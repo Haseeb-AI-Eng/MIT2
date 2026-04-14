@@ -1,52 +1,77 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { findArticle } from '../data/articles';
+import { fetchArticleBySlug, fetchRelatedArticles } from '../api';
 
 const generateArticleBody = (article: { title: string; category: string; description: string; date?: string }) => {
-  const title = article.title;
-  const category = article.category;
-  const description = article.description;
-  const label = category.toLowerCase();
-
-  const articleType = label.includes('event')
-    ? 'event narrative'
-    : label.includes('news')
-    ? 'news story'
-    : label.includes('community')
-    ? 'community profile'
-    : label.includes('innovation')
-    ? 'innovation report'
-    : 'research feature';
+  const label = article.category?.toLowerCase() || '';
+  const articleType = label.includes('event') ? 'event narrative' : label.includes('news') ? 'news story' : 'research feature';
 
   return [
-    `The piece is presented as a ${articleType} built around the visual and conceptual thread that appears in the hero image above. It invites the reader to follow the arc of the idea from early experimentation to a more coherent set of outcomes.`,
-    `At the outset, the article frames its core question clearly: what does this work mean for the people who will use it, study it, or be influenced by it? That question is the anchor for the entire page.`,
-    `This entry dives deep into ${description.toLowerCase()}. It describes the team’s process, the decisions that mattered, and the way the work interfaces with human behavior and real-world systems.`,
-    `The narrative emphasizes how the project connects technical design with practical application. It describes the kinds of environments where the work was tested, the collaborators who shaped it, and the early feedback that guided iteration.`,
-    `Because the Media Lab values interdisciplinary collaboration, the article also highlights the roles of designers, engineers, scientists, and community partners. Each paragraph shows how those contributions combine into a stronger whole.`,
-    `The story is not just about a single breakthrough. It unpacks the supporting systems, the measurement strategy, and the research questions that still remain open. That detail helps readers understand both the ambition and the rigor behind the work.`,
-    `As the reader moves through the page, the article consistently returns to the central idea: how this work can change the way we think about people, technology, and the future. That sense of purpose keeps the piece cohesive.`,
-    `Later sections describe specific outcomes and possible next steps. They may explain how the project could expand to new settings, how it could inform future prototypes, or how it might shape policy and public conversation.`,
-    `The article is careful to surface both promise and challenge. It notes where the current work is strong, where it requires more testing, and what the team has learned from early experiments. That honesty makes the detail feel credible.`,
-    `There is also a strong visual through-line. The hero image above is referenced again in the text as a way to ground the reader in the project's mood, materials, and human-centered ambitions.`,
-    `The piece includes reflections on how this research connects to broader Media Lab themes: creativity, equity, sustainability, and the ethics of emerging technology. Those reflections give the story context beyond the immediate project.`,
-    `In its concluding paragraphs, the article looks ahead. It describes what the team plans to explore next, what questions are still unanswered, and how the work could influence other research areas or public conversations.`,
-    `By the end of the detail page, readers should have a strong sense of what makes this project distinctive, how it was built, and why it matters. The longer body is designed to support both quick scanning and deeper reading.`,
-    `The extended narrative is intentionally layered, so it can serve as both a polished showcase of the work and a practical account of the process behind it. That balance is what gives the page true depth.`
+    `The piece is presented as a ${articleType} built around the visual and conceptual thread that appears in the hero image above.`,
+    `At the outset, the article frames its core question clearly: what does this work mean for the people who will use it, study it, or be influenced by it?`,
+    `This entry dives deep into ${article.description?.toLowerCase().slice(0, 120) || 'the research topic'}. It describes the team's process and the decisions that mattered most.`,
+    `The narrative emphasizes how the project connects technical design with practical application in real-world systems.`,
+    `Because the MIT Media Lab values interdisciplinary collaboration, the article highlights the roles of designers, engineers, scientists, and community partners.`,
+    `The story is not just about a single breakthrough. It unpacks the supporting systems and research questions that still remain open.`,
+    `As the reader moves through the page, the article consistently returns to the central idea of how this work can change the way we think about technology and the future.`,
+    `Later sections describe specific outcomes and possible next steps, including how the project could expand to new settings.`,
+    `The article is careful to surface both promise and challenge, noting where current work is strong and where it requires more testing.`,
+    `The piece includes reflections on how this research connects to broader Media Lab themes: creativity, equity, sustainability, and the ethics of emerging technology.`,
+    `In its concluding paragraphs, the article looks ahead to what the team plans to explore next.`,
+    `By the end of the detail page, readers should have a strong sense of what makes this project distinctive and why it matters.`,
   ];
 };
 
 export function ArticleDetail() {
   const { id } = useParams();
-  const article = useMemo(() => findArticle(id), [id]);
   const navigate = useNavigate();
+  const [article, setArticle] = useState<any | null>(null);
+  const [related, setRelated] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    setNotFound(false);
+
+    fetchArticleBySlug(id).then(data => {
+      if (!data) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+      setArticle(data);
+      fetchRelatedArticles(id).then(setRelated);
+      setLoading(false);
+    }).catch(() => {
+      setNotFound(true);
+      setLoading(false);
+    });
+  }, [id]);
 
   const detailContent = useMemo(() => {
     if (!article) return [];
-    return [...article.content, ...generateArticleBody(article)];
+    let body: string[] = [];
+    // Handle both array and string content (old DB entries may have string)
+    if (Array.isArray(article.content)) {
+      body = article.content.filter((p: string) => p && p.length > 10);
+    } else if (typeof article.content === 'string' && article.content.length > 10) {
+      body = [article.content];
+    }
+    const filler = generateArticleBody(article);
+    return [...body, ...filler];
   }, [article]);
 
-  if (!article) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-black/40 text-[16px]">Loading article...</div>
+      </div>
+    );
+  }
+
+  if (notFound || !article) {
     return (
       <div className="px-4 md:px-8 py-10 max-w-[900px] mx-auto">
         <p className="text-[18px] text-black/70 mb-6">Article not found.</p>
@@ -58,12 +83,10 @@ export function ArticleDetail() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative w-full aspect-[21/9] overflow-hidden">
-        <img
-          src={article.image}
-          alt={article.title}
-          className="w-full h-full object-cover"
-        />
+      <div className="relative w-full aspect-[16/5] overflow-hidden bg-gray-100">
+        {article.image && (
+          <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
+        )}
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16 lg:p-24">
           <p className="text-white text-sm font-semibold mb-3">Article</p>
@@ -84,7 +107,7 @@ export function ArticleDetail() {
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" fill="none" />
           </svg>
-          {article.category}
+          {article.category || 'News'}
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
@@ -95,16 +118,49 @@ export function ArticleDetail() {
               <p className="mb-1">By Rubina Veerakone</p>
               {article.date && <p className="text-black/50">{article.date}</p>}
             </div>
+
+            {/* Related Articles */}
+            {related.length > 0 && (
+              <div className="mt-8 pt-8 border-t border-black/10">
+                <p className="text-[12px] font-semibold text-black/50 uppercase tracking-wide mb-4">Related</p>
+                <div className="space-y-3">
+                  {related.map((r: any) => (
+                    <Link
+                      key={r.slug}
+                      to={`/article/${r.slug}`}
+                      onClick={(e) => { e.preventDefault(); navigate(`/article/${r.slug}`); }}
+                      className="block group"
+                    >
+                      <p className="text-[13px] text-black/70 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
+                        {r.title}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </aside>
 
           {/* Main Content */}
           <div className="md:col-span-8 lg:col-span-7">
             <div className="space-y-6 text-[16px] text-black/80 leading-relaxed font-serif">
-              <p>{article.description}</p>
-              {detailContent.map((paragraph, index) => (
+              {article.description && <p>{article.description}</p>}
+              {detailContent.map((paragraph: string, index: number) => (
                 <p key={index}>{paragraph}</p>
               ))}
             </div>
+
+            {/* Article URL source */}
+            {article.articleUrl && (
+              <div className="mt-12 pt-6 border-t border-black/10">
+                <p className="text-[12px] text-black/30">
+                  Source:{' '}
+                  <a href={article.articleUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    {article.articleUrl}
+                  </a>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
