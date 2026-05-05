@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export function Footer() {
   return (
     <footer className="bg-[#f0f0f0] py-16 px-8 lg:px-12">
@@ -22,6 +24,7 @@ export function Footer() {
             {['Videos', 'Publications', 'Job Opportunities', 'Contact'].map((link) => (
               <a key={link} href="#" className="text-[14px] text-black/80 hover:text-black transition-colors">{link}</a>
             ))}
+            <Link to="/add-research-project" className="text-[14px] text-black/80 hover:text-black transition-colors font-semibold">+ Add Research Project</Link>
           </div>
         </div>
         <div className="flex flex-col items-start lg:items-end gap-4">

@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { fetchArticleBySlug, fetchRelatedArticles } from '../api';
+import { researchProjects } from '../data/researchProjects';
 
 const generateArticleBody = (article: { title: string; category: string; description: string; date?: string }) => {
   const label = article.category?.toLowerCase() || '';
@@ -35,6 +37,14 @@ export function ArticleDetail() {
     setLoading(true);
     setNotFound(false);
 
+    const localArticle = researchProjects.find((item) => item.slug === id);
+    if (localArticle) {
+      setArticle(localArticle);
+      setRelated(researchProjects.filter((item) => item.slug !== id).slice(0, 4));
+      setLoading(false);
+      return;
+    }
+
     fetchArticleBySlug(id).then(data => {
       if (!data) {
         setNotFound(true);
@@ -42,7 +52,13 @@ export function ArticleDetail() {
         return;
       }
       setArticle(data);
-      fetchRelatedArticles(id).then(setRelated);
+      fetchRelatedArticles(id).then((items) => {
+        if (items && items.length > 0) {
+          setRelated(items);
+        } else {
+          setRelated(researchProjects.filter((item) => item.slug !== id).slice(0, 4));
+        }
+      });
       setLoading(false);
     }).catch(() => {
       setNotFound(true);
@@ -83,18 +99,22 @@ export function ArticleDetail() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative w-full aspect-[16/5] overflow-hidden bg-gray-100">
-        {article.image && (
-          <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
-        )}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16 lg:p-24">
-          <p className="text-white text-sm font-semibold mb-3">Article</p>
-          <h1 className="text-white text-[36px] md:text-[52px] font-bold leading-[1.1] max-w-4xl">
-            {article.title}
-          </h1>
+      <section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          {article.image && (
+            <img src={article.image} alt="" className="w-full h-full object-cover opacity-60" />
+          )}
         </div>
-      </div>
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight z-10 font-sans font-semibold max-w-5xl"
+          style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
+        >
+          {article.title}
+        </motion.h1>
+      </section>
 
       {/* Content Section */}
       <div className="lg:ml-80 px-4 md:px-8 lg:px-16 py-12 max-w-[1000px]">
@@ -144,7 +164,7 @@ export function ArticleDetail() {
           {/* Main Content */}
           <div className="md:col-span-8 lg:col-span-7">
             <div className="space-y-6 text-[16px] text-black/80 leading-relaxed font-serif">
-              {article.description && <p>{article.description}</p>}
+              {article.description && <p className="font-semibold">{article.description}</p>}
               {detailContent.map((paragraph: string, index: number) => (
                 <p key={index}>{paragraph}</p>
               ))}

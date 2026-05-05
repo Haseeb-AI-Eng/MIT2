@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface EventCardProps {
   image: string;
@@ -19,7 +20,7 @@ export function EventCard({ image, title, date, tag, onClick }: EventCardProps) 
       onClick={onClick}
     >
       <div className="aspect-[4/3] overflow-hidden bg-gray-100 mb-3 relative">
-        <img
+        <ImageWithFallback
           src={image}
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"

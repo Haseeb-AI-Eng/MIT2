@@ -3,17 +3,27 @@ import Parser from 'rss-parser';
 import { MongoClient } from 'mongodb';
 import cron from 'node-cron';
 
-const MONGO_URI = 'mongodb://localhost:27017';
-const DB_NAME = 'MITnews';
-const COLLECTION_NAME = 'mitn';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/';
+const DB_NAME = process.env.DB_NAME || 'research';
+const COLLECTION_NAME = 'articles';
 
 const FEEDS = [
-  // MIT News
-  { url: 'https://news.mit.edu/rss/topic/media-lab', source: 'MIT News', category: 'Media Lab' },
-  { url: 'https://news.mit.edu/rss/topic/artificial-intelligence', source: 'MIT News', category: 'AI' },
-  { url: 'https://news.mit.edu/rss/topic/robotics', source: 'MIT News', category: 'Robotics' },
-  { url: 'https://news.mit.edu/rss/topic/machine-learning', source: 'MIT News', category: 'Machine Learning' },
-  { url: 'https://news.mit.edu/rss/topic/sustainability', source: 'MIT News', category: 'Sustainability' },
+  // MIT News research-focused sources
+  { url: 'https://news.mit.edu/rss/topic/media-lab', source: 'MIT News', category: 'Research' },
+  { url: 'https://news.mit.edu/rss/topic/artificial-intelligence', source: 'MIT News', category: 'Research' },
+  { url: 'https://news.mit.edu/rss/topic/robotics', source: 'MIT News', category: 'Research' },
+  { url: 'https://news.mit.edu/rss/topic/machine-learning', source: 'MIT News', category: 'Research' },
+  { url: 'https://news.mit.edu/rss/topic/sustainability', source: 'MIT News', category: 'Research' },
+  { url: 'https://news.mit.edu/rss/topic/health', source: 'MIT News', category: 'Research' },
+  { url: 'https://news.mit.edu/rss/topic/energy', source: 'MIT News', category: 'Research' },
+  { url: 'https://news.mit.edu/rss/topic/technology', source: 'MIT News', category: 'Research' },
+
+  // Research and science feeds
+  { url: 'https://www.sciencedaily.com/rss/top/science.xml', source: 'ScienceDaily', category: 'Research' },
+  { url: 'https://phys.org/rss-feed/technology-news/', source: 'Phys.org', category: 'Research' },
+  { url: 'https://spectrum.ieee.org/rss/technology', source: 'IEEE Spectrum', category: 'Research' },
+  { url: 'https://www.technologyreview.com/feed/', source: 'MIT Technology Review', category: 'Research' },
+  { url: 'https://www.sciencemag.org/rss/news_current.xml', source: 'Science Magazine', category: 'Research' },
 
   // Hacker News
   { url: 'https://hnrss.org/frontpage', source: 'Hacker News', category: 'Tech' },
@@ -92,6 +102,21 @@ function slugify(text) {
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+async function generateUniqueSlug(collection, baseSlug) {
+  if (!baseSlug) {
+    baseSlug = `article-${Date.now()}`;
+  }
+
+  let slug = baseSlug;
+  let suffix = 1;
+
+  while (await collection.findOne({ slug })) {
+    slug = `${baseSlug}-${suffix++}`;
+  }
+
+  return slug;
 }
 
 function getImageFromItem(item) {
@@ -213,10 +238,12 @@ export async function scrapeAll() {
     if (existing) {
       skipped++;
     } else {
+      const baseSlug = slugify(item.title.slice(0, 100)) || linkSlug;
+      const slug = await generateUniqueSlug(db, baseSlug);
       await db.insertOne({
         ...item,
         linkSlug,
-        slug: slugify(item.title.slice(0, 100)),
+        slug,
         id: linkSlug,
         excerpt: item.description,
         createdAt: new Date(),

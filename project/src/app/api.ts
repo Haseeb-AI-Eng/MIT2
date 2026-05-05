@@ -41,3 +41,23 @@ export async function fetchAllArticles() {
   const data = await res.json();
   return data.articles;
 }
+
+export async function fetchFeaturedProjects(limit = 6) {
+  const res = await fetch(`${API_BASE}/projects?featured=true&limit=${limit}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.projects || [];
+}
+
+export async function fetchPublishedProjects(limit = 20, page = 1) {
+  const res = await fetch(`${API_BASE}/projects?limit=${limit}&page=${page}`);
+  if (!res.ok) return { projects: [], total: 0, page: 1, totalPages: 1 };
+  return res.json();
+}
+
+export async function fetchProjectByIdOrSlug(idOrSlug: string) {
+  const res = await fetch(`${API_BASE}/projects/${idOrSlug}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.project;
+}

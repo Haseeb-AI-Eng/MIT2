@@ -29,6 +29,7 @@ export default defineConfig({
   },
   assetsInclude: ['**/*.svg', '**/*.csv'],
   server: {
+    allowedHosts: ['unculturable-terresa-ineloquent.ngrok-free.dev'],
     proxy: {
       '/api': {
         target: 'http://localhost:4000',

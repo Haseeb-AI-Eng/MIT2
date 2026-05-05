@@ -63,8 +63,14 @@ npm start
 The backend will:
 - Connect to MongoDB at `mongodb://localhost:27017`
 - Run an **initial scrape** if the database is empty (~50+ articles)
-- Start the REST API on `http://localhost:4000`
+- Start the REST API on `http://localhost:4000` by default
 - Schedule auto-re-scraping every 6 hours
+
+If you need to run the backend on a different port (for example when forwarding with ngrok), set `PORT` before starting:
+
+```bash
+PORT=5000 npm start
+```
 
 ### 2. Start the Frontend
 

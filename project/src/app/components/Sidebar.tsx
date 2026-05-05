@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export function Sidebar() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('News + Updates');
   const [topOffset, setTopOffset] = useState('55vh');
 
@@ -54,25 +56,38 @@ export function Sidebar() {
     'For Press + Media'
   ];
 
+  const routeMap: Record<string, string> = {
+    'News + Updates': '/',
+    Research: '/research',
+    Projects: '/projects',
+    About: '/about',
+    'Support the Media Lab': '/support-media-lab',
+    'MAS Graduate Program': '/mas-graduate-program',
+    People: '/people',
+    Events: '/',
+    Videos: '/',
+    'Member Portal': '/',
+    'For Press + Media': '/',
+  };
+
   return (
     <aside
       className="fixed left-0 w-80 bg-white border-r border-black/10 hidden lg:block z-40 overflow-hidden"
       style={{ top: topOffset, height: 'auto', bottom: 'auto' }}
     >
       <nav className="py-4 flex flex-col justify-between" style={{ minHeight: '100%' }}>
-        <div>
+        <div className="space-y-1">
           {sections.map((section, index) => (
             <button
               key={section}
-              onClick={() => setActiveSection(section)}
-              className={`w-full text-left px-6 py-2.5 text-[14px] transition-colors ${
+              onClick={() => {
+                setActiveSection(section);
+                navigate(routeMap[section] || '/');
+              }}
+              className={`w-full text-left px-6 py-2 text-[14px] leading-5 transition-colors font-sans font-semibold ${
                 activeSection === section
-                  ? index === 0
-                    ? 'text-red-500 font-[500] bg-red-50'
-                    : 'text-black font-[500] bg-black/5'
-                  : index === 0 && activeSection !== section
-                    ? 'text-red-500 hover:text-red-600 hover:bg-red-50'
-                    : 'text-black/70 hover:text-black hover:bg-black/5'
+                  ? 'text-red-500 bg-red-50'
+                  : 'text-black/70 hover:text-black hover:bg-black/5'
               }`}
             >
               {section}
