@@ -3,19 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { NewsCard } from '../components/NewsCard';
 import { ProjectCard } from '../components/ProjectCard';
-import { fetchFeaturedProjects, fetchPublishedProjects } from '../api';
+import { fetchPublishedProjects } from '../api';
 
 export function Home() {
   const navigate = useNavigate();
-  const [featuredProjects, setFeaturedProjects] = useState<any[]>([]);
   const [publishedProjects, setPublishedProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchFeaturedProjects(6), fetchPublishedProjects(18, 1)])
-      .then(([featuredResponse, publishedResponse]) => {
-        setFeaturedProjects(featuredResponse || []);
+    fetchPublishedProjects(18, 1)
+      .then((publishedResponse) => {
         setPublishedProjects(publishedResponse.projects || []);
       })
       .catch(() => setError(true))
@@ -44,37 +42,6 @@ export function Home() {
       </section>
 
       <section className="lg:ml-80 px-4 md:px-8 py-8 max-w-[1400px] mx-auto">
-        <div className="mb-10">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
-            <div>
-              <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Featured Projects</p>
-              <h2 className="text-[28px] md:text-[36px] font-semibold text-black font-sans">Live platform research</h2>
-            </div>
-            <p className="text-[14px] text-black/50">{featuredProjects.length} featured projects</p>
-          </div>
-
-          {loading ? (
-            <div className="text-black/50">Loading projects...</div>
-          ) : error ? (
-            <div className="text-red-600">Unable to load projects from the database.</div>
-          ) : featuredProjects.length === 0 ? (
-            <div className="text-black/60">No featured projects yet. Create your first one through the project system.</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              {featuredProjects.map((project) => (
-                <ProjectCard
-                  key={project._id ?? project.slug}
-                  image={project.coverImage || project.cover_image || '/image.gif'}
-                  title={project.title}
-                  category={project.tags?.[0] || 'Research'}
-                  teamLabel={`${project.team?.length || 0} team members`}
-                  onClick={() => navigate(`/projects/${project.slug || project._id}`)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
         <div className="mb-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
             <div>

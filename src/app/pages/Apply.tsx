@@ -22,6 +22,20 @@ export function Apply() {
     otherInfo: ''
   });
 
+  const renderHero = () => (
+    <section className="relative overflow-hidden bg-black text-white aspect-[16/5] flex items-center justify-center">
+      <img
+        src="/image.gif"
+        alt="Apply hero"
+        className="absolute inset-0 w-full h-full object-cover opacity-60"
+      />
+      <div className="absolute inset-0 bg-black/50" />
+      <h1 className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight font-semibold">
+        Apply as a Student
+      </h1>
+    </section>
+  );
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -67,38 +81,43 @@ export function Apply() {
 
   if (submitted) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] px-4">
-        <div className="max-w-md w-full text-center">
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="w-16 h-16 text-gray-800" />
+      <div>
+        {renderHero()}
+        <div className="lg:ml-80 px-4 md:px-8 py-12 flex items-center justify-center min-h-[60vh]">
+          <div className="max-w-md w-full text-center">
+            <div className="flex justify-center mb-4">
+              <CheckCircle className="w-16 h-16 text-gray-800" />
+            </div>
+            <h1 className="text-3xl font-semibold text-black mb-4">Application Submitted!</h1>
+            <p className="text-black/70 mb-6">
+              Thank you for your application. We have received your information and will review it shortly. You will be contacted via email if selected.
+            </p>
           </div>
-          <h1 className="text-3xl font-semibold text-black mb-4">Application Submitted!</h1>
-          <p className="text-black/70 mb-6">
-            Thank you for your application. We have received your information and will review it shortly. You will be contacted via email if selected.
-          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex justify-center px-4 py-12">
-      <div className="w-full max-w-2xl">
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-semibold text-black mb-4">Apply Now</h1>
-          <p className="text-lg text-black/70">
-            Apply to our Media Arts &amp; Sciences Graduate Program. Please provide accurate information as this will be used for your application review.
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-gray-100 border border-gray-300 rounded-lg flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-gray-700 mt-0.5 flex-shrink-0" />
-            <p className="text-gray-800">{error}</p>
+    <div>
+      {renderHero()}
+      <div className="lg:ml-80 px-4 md:px-8 py-12">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-12 text-center">
+            <h2 className="text-2xl md:text-3xl font-semibold text-black mb-4">Application Form</h2>
+            <p className="text-base text-black/70">
+              Apply to our Media Arts &amp; Sciences Graduate Program. Please provide accurate information as this will be used for your application review.
+            </p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-8 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 p-8 shadow-sm">
+          {error && (
+            <div className="mb-6 p-4 bg-gray-100 border border-gray-300 rounded-lg flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-gray-700 mt-0.5 flex-shrink-0" />
+              <p className="text-gray-800">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-8 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 p-8 shadow-sm">
 
           {/* Personal Information */}
           <div>
@@ -245,6 +264,7 @@ export function Apply() {
             <span className="text-gray-500">*</span> Required fields
           </p>
         </form>
+        </div>
       </div>
     </div>
   );

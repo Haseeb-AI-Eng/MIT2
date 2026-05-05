@@ -23,7 +23,7 @@ export async function fetchRelatedArticles(slug: string, limit = 4) {
 export async function searchArticles(query: string) {
   const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`);
   const data = await res.json();
-  return data.results;
+  return data.results || [];
 }
 
 export async function triggerScrape() {

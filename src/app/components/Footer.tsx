@@ -1,6 +1,30 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export function Footer() {
+  const navigate = useNavigate();
+
+  const routeMap: Record<string, string> = {
+    'News + Updates': '/',
+    'Research': '/research',
+    'About': '/about',
+    'Support the Media Lab': '/support-media-lab',
+    'MAS Graduate Program': '/mas-graduate-program',
+    'People': '/people',
+    'Events': '/',
+    'Videos': '/',
+    'Member Portal': '/',
+    'For Press + Media': '/',
+    'Publications': '/',
+    'Job Opportunities': '/',
+    'Contact': '/',
+    'Accessibility': '/',
+    'Donate to the Lab': '/support-media-lab'
+  };
+
+  const handleNavigate = (linkName: string) => {
+    const route = routeMap[linkName] || '/';
+    navigate(route);
+  };
   return (
     <footer className="bg-[#f0f0f0] py-16 px-8 lg:px-12">
       <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row justify-between gap-12">
@@ -16,24 +40,24 @@ export function Footer() {
           </div>
           <nav className="flex flex-col gap-3">
             {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'MAS Graduate Program', 'People', 'Events', 'Videos', 'Member Portal', 'For Press + Media'].map((link) => (
-              <a key={link} href="#" className="text-[14px] text-black/80 hover:text-black transition-colors">{link}</a>
+              <button key={link} onClick={() => handleNavigate(link)} className="text-left text-[14px] text-black/80 hover:text-black transition-colors cursor-pointer">{link}</button>
             ))}
           </nav>
           <div className="flex flex-col gap-3">
             <span className="text-[14px] font-semibold text-black/50 mb-1">More ways to explore</span>
             {['Videos', 'Publications', 'Job Opportunities', 'Contact'].map((link) => (
-              <a key={link} href="#" className="text-[14px] text-black/80 hover:text-black transition-colors">{link}</a>
+              <button key={link} onClick={() => handleNavigate(link)} className="text-left text-[14px] text-black/80 hover:text-black transition-colors cursor-pointer">{link}</button>
             ))}
             <Link to="/add-research-project" className="text-[14px] text-black/80 hover:text-black transition-colors font-semibold">+ Add Research Project</Link>
           </div>
         </div>
         <div className="flex flex-col items-start lg:items-end gap-4">
           <div className="flex gap-4 text-black">
-            <a href="#" className="hover:text-black/60 transition-colors">X</a>
-            <a href="#" className="hover:text-black/60 transition-colors">FB</a>
-            <a href="#" className="hover:text-black/60 transition-colors">IG</a>
-            <a href="#" className="hover:text-black/60 transition-colors">YT</a>
-            <a href="#" className="hover:text-black/60 transition-colors">RSS</a>
+            <button onClick={() => handleNavigate('X')} className="hover:text-black/60 transition-colors cursor-pointer">X</button>
+            <button onClick={() => handleNavigate('FB')} className="hover:text-black/60 transition-colors cursor-pointer">FB</button>
+            <button onClick={() => handleNavigate('IG')} className="hover:text-black/60 transition-colors cursor-pointer">IG</button>
+            <button onClick={() => handleNavigate('YT')} className="hover:text-black/60 transition-colors cursor-pointer">YT</button>
+            <button onClick={() => handleNavigate('RSS')} className="hover:text-black/60 transition-colors cursor-pointer">RSS</button>
           </div>
           <svg width="50" height="32" viewBox="0 0 80 50" className="text-black">
             <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize="42" fontWeight="900" fill="currentColor" fontFamily="sans-serif" letterSpacing="1">MIT</text>
@@ -43,8 +67,8 @@ export function Footer() {
             <p className="text-[13px] text-black/70">School of Architecture + Planning</p>
           </div>
           <div className="flex flex-col gap-1">
-            <a href="#" className="text-[13px] text-black/70 hover:text-black transition-colors">Accessibility</a>
-            <a href="#" className="text-[13px] text-black/70 hover:text-black transition-colors">Donate to the Lab</a>
+            <button onClick={() => handleNavigate('Accessibility')} className="text-left text-[13px] text-black/70 hover:text-black transition-colors cursor-pointer">Accessibility</button>
+            <button onClick={() => handleNavigate('Donate to the Lab')} className="text-left text-[13px] text-black/70 hover:text-black transition-colors cursor-pointer">Donate to the Lab</button>
           </div>
         </div>
       </div>
