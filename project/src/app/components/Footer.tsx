@@ -1,5 +1,18 @@
 import { Link } from 'react-router-dom';
 
+const mainNavLinks = [
+  { name: 'News + Updates', path: '/' },
+  { name: 'Research', path: '/research' },
+  { name: 'About', path: '/about' },
+  { name: 'Support the Media Lab', path: '/support-media-lab' },
+  { name: 'MAS Graduate Program', path: '/mas-graduate-program' },
+  { name: 'People', path: '/people' },
+  { name: 'Events', path: '/' },
+  { name: 'Videos', path: '/' },
+  { name: 'Member Portal', path: '/' },
+  { name: 'For Press + Media', path: '/about#press' }
+];
+
 export function Footer() {
   return (
     <footer className="bg-[#f0f0f0] py-16 px-8 lg:px-12">
@@ -15,15 +28,18 @@ export function Footer() {
             <span className="text-[56px] font-bold tracking-tight text-black" style={{ fontFamily: "'Courier New', monospace" }}>&gt; 40</span>
           </div>
           <nav className="flex flex-col gap-3">
-            {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'MAS Graduate Program', 'People', 'Events', 'Videos', 'Member Portal', 'For Press + Media'].map((link) => (
-              <a key={link} href="#" className="text-[14px] text-black/80 hover:text-black transition-colors">{link}</a>
+            {mainNavLinks.map((link) => (
+              <Link key={link.name} to={link.path} className="text-[14px] text-black/80 hover:text-black transition-colors">
+                {link.name}
+              </Link>
             ))}
           </nav>
           <div className="flex flex-col gap-3">
             <span className="text-[14px] font-semibold text-black/50 mb-1">More ways to explore</span>
-            {['Videos', 'Publications', 'Job Opportunities', 'Contact'].map((link) => (
-              <a key={link} href="#" className="text-[14px] text-black/80 hover:text-black transition-colors">{link}</a>
-            ))}
+            <Link to="/" className="text-[14px] text-black/80 hover:text-black transition-colors">Videos</Link>
+            <Link to="/research" className="text-[14px] text-black/80 hover:text-black transition-colors">Publications</Link>
+            <Link to="/about#jobs" className="text-[14px] text-black/80 hover:text-black transition-colors">Job Opportunities</Link>
+            <Link to="/about#contact" className="text-[14px] text-black/80 hover:text-black transition-colors">Contact</Link>
             <Link to="/add-research-project" className="text-[14px] text-black/80 hover:text-black transition-colors font-semibold">+ Add Research Project</Link>
           </div>
         </div>
@@ -43,8 +59,8 @@ export function Footer() {
             <p className="text-[13px] text-black/70">School of Architecture + Planning</p>
           </div>
           <div className="flex flex-col gap-1">
-            <a href="#" className="text-[13px] text-black/70 hover:text-black transition-colors">Accessibility</a>
-            <a href="#" className="text-[13px] text-black/70 hover:text-black transition-colors">Donate to the Lab</a>
+            <Link to="/" className="text-[13px] text-black/70 hover:text-black transition-colors">Accessibility</Link>
+            <Link to="/support-media-lab" className="text-[13px] text-black/70 hover:text-black transition-colors">Donate to the Lab</Link>
           </div>
         </div>
       </div>

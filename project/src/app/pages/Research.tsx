@@ -76,8 +76,7 @@ export function Research() {
             MIT Media Lab research
           </p>
           <h1
-            className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto"
-            style={{ fontFamily: 'Georgia, serif' }}
+            className="text-[32px] md:text-[52px] font-bold leading-tight md:leading-[1.1] max-w-4xl mx-auto font-sans"
           >
             We are an interdisciplinary research lab working to invent the future of{' '}
             <span

@@ -785,7 +785,7 @@ app.delete('/api/articles/:id', authenticate, requireAdmin, async (req, res) => 
 app.get('/api/search', async (req, res) => {
   try {
     const q = (req.query.q || '').trim();
-    if (!q) return res.json({ results: [], query: '' });
+    if (!q) return res.json({ articles: [], projects: [], query: '' });
 
     const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     const articleResults = await articlesCollection

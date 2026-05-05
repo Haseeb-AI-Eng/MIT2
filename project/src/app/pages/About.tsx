@@ -164,7 +164,7 @@ export function About() {
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">About the Lab</p>
-          <h1 className="text-[36px] md:text-[56px] font-semibold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
+          <h1 className="text-[36px] md:text-[56px] font-bold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
             Imagine what we can become.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-[16px] text-white/70 leading-relaxed">

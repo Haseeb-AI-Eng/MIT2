@@ -10,6 +10,9 @@ interface SearchResult {
   excerpt: string;
   description: string;
   image: string;
+  type: 'article' | 'project';
+  source?: string;
+  _id?: string;
 }
 
 interface SearchPanelProps {
@@ -32,7 +35,21 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
     }
   }, [isOpen]);
 
-  const search = useCallback(async (q: string) => {
+  // Debounced search logic
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (query.trim()) {
+        performSearch(query);
+      } else {
+        setResults([]);
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const performSearch = async (q: string) => {
     if (!q.trim()) {
       setResults([]);
       setSelectedIndex(-1);
@@ -42,7 +59,16 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
     setLoading(true);
     try {
       const data = await searchArticles(q);
-      setResults(data);
+      // Defensive handling for different response formats
+      const articles = data?.articles || (Array.isArray(data) ? data : []);
+      const projects = data?.projects || [];
+      
+      const combined = [
+        ...articles.map((a: any) => ({ ...a, type: 'article' })),
+        ...projects.map((p: any) => ({ ...p, type: 'project' }))
+      ];
+
+      setResults(combined);
       setSelectedIndex(-1);
     } catch (err) {
       console.error('Search error:', err);
@@ -50,18 +76,21 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
-    search(e.target.value);
   };
 
-  const handleSelect = (articleSlug: string) => {
+  const handleSelect = (result: SearchResult) => {
     onClose();
     setQuery('');
     setResults([]);
-    navigate(`/article/${articleSlug}`);
+    const idOrSlug = result.slug || result.id || result._id;
+    const path = result.type === 'project' 
+      ? `/projects/${idOrSlug}` 
+      : `/article/${idOrSlug}`;
+    navigate(path);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -73,7 +102,7 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
     } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
-      handleSelect(results[selectedIndex].slug);
+      handleSelect(results[selectedIndex]);
     } else if (e.key === 'Escape') {
       onClose();
     }
@@ -163,8 +192,8 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
           )}
           {results.map((result, i) => (
             <button
-              key={result.slug}
-              onClick={() => handleSelect(result.slug)}
+              key={result.type + (result.slug || result.id || result._id)}
+              onClick={() => handleSelect(result)}
               onMouseEnter={() => setSelectedIndex(i)}
               className={`w-full flex items-start gap-4 px-6 py-4 text-left transition-colors border-b border-black/[0.06] ${
                 i === selectedIndex ? 'bg-blue-50/70' : 'hover:bg-black/[0.02]'
@@ -175,11 +204,11 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
                   {highlightMatch(result.title, query)}
                 </p>
                 <p className="text-[12px] text-black/35 mt-1 truncate">
-                  {result.source || result.category}
+                  {result.type === 'project' ? 'Research Project' : (result.source || result.category)}
                 </p>
               </div>
               <span className="text-[12px] text-black/30 shrink-0 mt-0.5 whitespace-nowrap ml-2">
-                {result.category}
+                {result.type === 'project' ? 'Project' : result.category}
               </span>
             </button>
           ))}
@@ -190,7 +219,7 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
 }
 
 function highlightMatch(text: string, query: string) {
-  if (!query.trim()) return text;
+  if (!query.trim() || !text) return text || '';
   const idx = text.toLowerCase().indexOf(query.toLowerCase());
   if (idx === -1) return text;
   const before = text.slice(0, idx);

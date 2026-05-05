@@ -39,7 +39,7 @@ export function People() {
         <div className="absolute inset-0 bg-slate-950/80" />
         <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
           <p className="text-sm uppercase tracking-[0.35em] text-red-400 mb-4">People</p>
-          <h1 className="text-[36px] md:text-[56px] font-semibold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
+          <h1 className="text-[36px] md:text-[56px] font-bold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
             We are a diverse group of thinkers and inventors
           </h1>
           <p className="mt-6 mx-auto max-w-3xl text-[17px] md:text-[18px] leading-8 text-slate-200">

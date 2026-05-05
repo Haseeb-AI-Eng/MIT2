@@ -36,44 +36,44 @@ export function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight z-10 font-sans font-semibold"
-          style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
+          className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight z-10 font-sans font-bold"
         >
           Imagine what we can become.
         </motion.h1>
       </section>
 
       <section className="lg:ml-80 px-4 md:px-8 py-8 max-w-[1400px] mx-auto">
-        <div className="mb-10">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
-            <div>
-              <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Featured Projects</p>
-              <h2 className="text-[28px] md:text-[36px] font-semibold text-black font-sans">Live platform research</h2>
-            </div>
-            <p className="text-[14px] text-black/50">{featuredProjects.length} featured projects</p>
+        {(loading || error || featuredProjects.length > 0) && (
+          <div className="mb-10">
+            {loading ? (
+              <div className="text-black/50">Loading projects...</div>
+            ) : error ? (
+              <div className="text-red-600">Unable to load projects from the database.</div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
+                  <div>
+                    <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Featured Projects</p>
+                    <h2 className="text-[28px] md:text-[36px] font-semibold text-black font-sans">Live platform research</h2>
+                  </div>
+                  <p className="text-[14px] text-black/50">{featuredProjects.length} featured projects</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                  {featuredProjects.map((project) => (
+                    <ProjectCard
+                      key={project._id ?? project.slug}
+                      image={project.coverImage || project.cover_image || '/image.gif'}
+                      title={project.title}
+                      category={project.tags?.[0] || 'Research'}
+                      teamLabel={`${project.team?.length || 0} team members`}
+                      onClick={() => navigate(`/projects/${project.slug || project._id}`)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-
-          {loading ? (
-            <div className="text-black/50">Loading projects...</div>
-          ) : error ? (
-            <div className="text-red-600">Unable to load projects from the database.</div>
-          ) : featuredProjects.length === 0 ? (
-            <div className="text-black/60">No featured projects yet. Create your first one through the project system.</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              {featuredProjects.map((project) => (
-                <ProjectCard
-                  key={project._id ?? project.slug}
-                  image={project.coverImage || project.cover_image || '/image.gif'}
-                  title={project.title}
-                  category={project.tags?.[0] || 'Research'}
-                  teamLabel={`${project.team?.length || 0} team members`}
-                  onClick={() => navigate(`/projects/${project.slug || project._id}`)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        )}
 
         <div className="mb-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">

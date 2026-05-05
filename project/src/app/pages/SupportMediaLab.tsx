@@ -12,7 +12,7 @@ export function SupportMediaLab() {
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative mx-auto max-w-[1100px] px-6 text-center">
           <p className="text-sm uppercase tracking-[0.35em] text-red-400 mb-4">About the Lab</p>
-          <h1 className="text-[36px] md:text-[56px] font-semibold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
+          <h1 className="text-[36px] md:text-[56px] font-bold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
             Support the Media Lab
           </h1>
         </div>

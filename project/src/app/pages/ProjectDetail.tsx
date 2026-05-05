@@ -103,8 +103,7 @@ export function ProjectDetail() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 text-[28px] md:text-[44px] font-bold leading-snug px-6 max-w-4xl"
-          style={{ fontFamily: 'Georgia, serif' }}
+          className="relative z-10 text-[28px] md:text-[44px] font-bold leading-snug px-6 max-w-4xl font-sans"
         >
           {project.title}
         </motion.h1>

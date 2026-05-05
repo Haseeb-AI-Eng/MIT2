@@ -32,7 +32,7 @@ export function Projects() {
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">Research Projects</p>
-          <h1 className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto">
+          <h1 className="text-[32px] md:text-[52px] font-bold leading-tight md:leading-[1.1] max-w-4xl mx-auto">
             A curated collection of MIT-style projects, built for review and publication.
           </h1>
           <p className="max-w-3xl mx-auto text-white/70 mt-6 text-[16px] md:text-[18px]">

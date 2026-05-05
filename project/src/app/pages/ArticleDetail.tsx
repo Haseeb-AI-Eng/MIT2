@@ -109,8 +109,7 @@ export function ArticleDetail() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight z-10 font-sans font-semibold max-w-5xl"
-          style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
+          className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight z-10 font-sans font-bold max-w-5xl"
         >
           {article.title}
         </motion.h1>
