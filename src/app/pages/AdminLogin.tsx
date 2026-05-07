@@ -40,8 +40,9 @@ export function AdminLogin() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Login failed');
+        const errorData = await response.json();
+        // If 401, it's usually wrong email/password or role issues
+        throw new Error(errorData.error || 'Invalid email or password');
       }
 
       const data = await response.json();

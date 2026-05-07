@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { fetchPublishedProjects } from '../api';
 
 export function Apply() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [projects, setProjects] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,8 +21,19 @@ export function Apply() {
     qualifications: '',
     experience: '',
     motivation: '',
-    otherInfo: ''
+    otherInfo: '',
+    projectId: ''
   });
+
+  useEffect(() => {
+    fetchPublishedProjects(100, 1)
+      .then((data) => {
+        if (data && data.projects) {
+          setProjects(data.projects);
+        }
+      })
+      .catch((err) => console.error('Error fetching projects:', err));
+  }, []);
 
   const renderHero = () => (
     <section className="relative overflow-hidden bg-black text-white aspect-[16/5] flex items-center justify-center">
@@ -68,7 +81,8 @@ export function Apply() {
       setFormData({
         name: '', email: '', phone: '', id: '',
         university: '', program: '', qualifications: '',
-        experience: '', motivation: '', otherInfo: ''
+        experience: '', motivation: '', otherInfo: '',
+        projectId: ''
       });
 
       setTimeout(() => setSubmitted(false), 5000);
@@ -106,7 +120,7 @@ export function Apply() {
           <div className="mb-12 text-center">
             <h2 className="text-2xl md:text-3xl font-semibold text-black mb-4">Application Form</h2>
             <p className="text-base text-black/70">
-              Apply to our Media Arts &amp; Sciences Graduate Program. Please provide accurate information as this will be used for your application review.
+              Apply to our EI Arts and Sciences Graduate Program. Please provide accurate information as this will be used for your application review.
             </p>
           </div>
 
@@ -166,6 +180,29 @@ export function Apply() {
             </div>
           </div>
 
+          {/* Project Selection */}
+          <div>
+            <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Research Interest</h2>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="projectId" className="text-black font-medium">Research Project Selection</Label>
+                <select
+                  id="projectId" name="projectId" value={formData.projectId}
+                  onChange={handleChange}
+                  className="mt-2 flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Select a research project (Optional)</option>
+                  {projects.map((project) => (
+                    <option key={project._id} value={project._id}>
+                      {project.title}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-black/50 mt-2">Selecting a project helps us route your application to the right research lead.</p>
+              </div>
+            </div>
+          </div>
+
           {/* Education */}
           <div>
             <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Education</h2>
@@ -216,7 +253,7 @@ export function Apply() {
                 <Textarea
                   id="motivation" name="motivation" value={formData.motivation}
                   onChange={handleChange}
-                  placeholder="Tell us why you're interested in Media Arts & Sciences and what you hope to achieve"
+                  placeholder="Tell us why you're interested in EI Arts and Sciences and what you hope to achieve"
                   className="mt-2 min-h-24"
                 />
               </div>
@@ -253,7 +290,8 @@ export function Apply() {
               onClick={() => setFormData({
                 name: '', email: '', phone: '', id: '',
                 university: '', program: '', qualifications: '',
-                experience: '', motivation: '', otherInfo: ''
+                experience: '', motivation: '', otherInfo: '',
+                projectId: ''
               })}
             >
               Clear

@@ -17,6 +17,20 @@ function getInitials(name: string) {
     .slice(0, 2) || 'U';
 }
 
+function generateDetailedExplanation(project: any) {
+  const title = project.title || 'this research project';
+  return [
+    `This project, ${title}, represents a significant step forward in our ongoing efforts to explore the intersection of technology and human experience.`,
+    `Our team has spent months prototyping and refining the core systems, focusing on how ${project.tags?.[0] || 'innovative design'} can solve real-world problems.`,
+    `The research methodology involved deep collaboration between engineers, designers, and community stakeholders to ensure that the final outcome is both technically robust and socially relevant.`,
+    `Key innovations in this work include a novel approach to system architecture and a highly intuitive user interface that adapts to individual needs.`,
+    `Initial results from our pilot studies indicate a high level of engagement and positive feedback from early adopters, suggesting a strong potential for broader impact.`,
+    `Looking ahead, we plan to scale the ${project.group || 'initiative'} and integrate more advanced AI capabilities to further enhance the system's performance and accessibility.`,
+    `By sharing our findings and tools with the wider community, we hope to inspire new forms of creative inquiry and contribute to a more just and resilient future.`,
+    `Every detail of the project has been carefully considered to align with the Lab's core values of curiosity, equity, and interdisciplinary collaboration.`
+  ];
+}
+
 export function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -76,6 +90,8 @@ export function ProjectDetail() {
     .filter(Boolean);
 
   const tags: string[] = project.tags || [];
+  const detailedExplanation = generateDetailedExplanation(project);
+  const videoSrc = project.videoUrl || '/16521670-hd_1920_1080_25fps.mp4';
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: 'Georgia, serif' }}>
@@ -246,6 +262,20 @@ export function ProjectDetail() {
             >
               {project.description}
             </p>
+          </div>
+
+          {/* Video Section */}
+          <div className="mb-10 rounded-2xl overflow-hidden border border-black/10 bg-black aspect-video">
+            <video controls className="w-full h-full object-cover">
+              <source src={videoSrc} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+
+          <div className="space-y-6 text-[15px] md:text-[16px] text-black/80 leading-relaxed mb-10">
+            {detailedExplanation.map((p, idx) => (
+              <p key={idx}>{p}</p>
+            ))}
           </div>
 
           {/* Status badge + tags */}

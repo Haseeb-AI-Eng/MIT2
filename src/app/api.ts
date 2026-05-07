@@ -50,7 +50,7 @@ export async function fetchFeaturedProjects(limit = 6) {
 }
 
 export async function fetchPublishedProjects(limit = 20, page = 1) {
-  const res = await fetch(`${API_BASE}/projects?limit=${limit}&page=${page}`);
+  const res = await fetch(`${API_BASE}/projects?status=published&limit=${limit}&page=${page}`);
   if (!res.ok) return { projects: [], total: 0, page: 1, totalPages: 1 };
   return res.json();
 }
@@ -60,4 +60,17 @@ export async function fetchProjectByIdOrSlug(idOrSlug: string) {
   if (!res.ok) return null;
   const data = await res.json();
   return data.project;
+}
+
+export async function submitMasApplication(payload: Record<string, unknown>) {
+  const res = await fetch(`${API_BASE}/form-submissions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to submit application');
+  return data;
 }

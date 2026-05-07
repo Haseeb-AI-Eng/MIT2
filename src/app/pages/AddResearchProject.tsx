@@ -17,6 +17,7 @@ export function AddResearchProject() {
     email: '',
     status: 'published',
     image: '',
+    videoUrl: '/16521670-hd_1920_1080_25fps.mp4',
     teamMembers: [{ name: '', role: '' }],
   });
 
@@ -45,6 +46,7 @@ export function AddResearchProject() {
           coverImage: formData.image,
           lead: formData.lead,
           email: formData.email,
+          videoUrl: formData.videoUrl,
           teamMembers: [] // Backend requires existing User ObjectIds
         }),
       });
@@ -174,6 +176,20 @@ export function AddResearchProject() {
                   placeholder="Describe your research project"
                   required
                   className="w-full min-h-[150px]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="videoUrl" className="block text-sm font-medium mb-2">
+                  Project Video URL (Direct MP4 link)
+                </label>
+                <Input
+                  id="videoUrl"
+                  name="videoUrl"
+                  value={formData.videoUrl}
+                  onChange={handleChange}
+                  placeholder="https://example.com/video.mp4"
+                  className="w-full"
                 />
               </div>
 

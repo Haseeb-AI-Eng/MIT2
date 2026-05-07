@@ -65,6 +65,11 @@ export function AdminSignup() {
 
       const data = await response.json();
 
+      // Critical check: Ensure the first user actually got the admin role
+      if (data.user.role !== 'admin') {
+        throw new Error('An admin already exists. Only the first registered user is granted admin privileges.');
+      }
+
       // Store token and user info
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));

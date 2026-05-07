@@ -1,7 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import { MongoClient, ObjectId } from 'mongodb';
 import { scrapeAll, startCronJob } from './scraper.js';
 import { createServer } from 'net';
@@ -50,6 +53,32 @@ async function connectDB() {
   await projectMembersCollection.createIndex({ userId: 1 });
   await tagsCollection.createIndex({ name: 1 }, { unique: true });
   await formSubmissionsCollection.createIndex({ createdAt: -1 });
+  await formSubmissionsCollection.createIndex({ email: 1 }, { unique: true });
+  await formSubmissionsCollection.createIndex({ id: 1 }, { unique: true });
+
+  // Ensure default admin account exists
+  const defaultAdminEmail = 'haseebmine24@gmail.com';
+  const defaultAdminPassword = 'ADYALAROAD';
+  const existingAdmin = await usersCollection.findOne({ email: defaultAdminEmail });
+  const passwordHash = await bcrypt.hash(defaultAdminPassword, 10);
+
+  if (!existingAdmin) {
+    await usersCollection.insertOne({
+      name: 'System Admin',
+      email: defaultAdminEmail,
+      passwordHash,
+      role: 'admin',
+      createdAt: new Date(),
+    });
+    console.log(`✅ Default admin account seeded: ${defaultAdminEmail}`);
+  } else {
+    // Ensure the password and role are always correct for this specific account
+    await usersCollection.updateOne(
+      { email: defaultAdminEmail },
+      { $set: { passwordHash, role: 'admin' } }
+    );
+    console.log(`✅ Admin credentials synchronized for: ${defaultAdminEmail}`);
+  }
 
   console.log(`✅ Connected to MongoDB ${DB_NAME}`);
 }
@@ -84,6 +113,64 @@ function sanitizeUser(user) {
   if (!user) return null;
   const { passwordHash, ...safe } = user;
   return safe;
+}
+
+const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
+const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || '587', 10);
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+const EMAIL_FROM = process.env.EMAIL_FROM || (EMAIL_USER ? `"MIT Research Lab" <${EMAIL_USER}>` : '"MIT Research Lab" <noreply@research.lab>');
+const APP_URL = process.env.APP_URL || 'http://localhost:5173';
+
+// Debug: Log environment variables
+console.log('\n📧 Email Configuration:');
+console.log(`   EMAIL_USER: ${EMAIL_USER ? '✅ ' + EMAIL_USER : '❌ NOT SET'}`);
+console.log(`   EMAIL_PASS: ${EMAIL_PASS ? '✅ Set (' + EMAIL_PASS.length + ' chars)' : '❌ NOT SET'}`);
+console.log(`   EMAIL_FROM: ${EMAIL_FROM}\n`);
+
+const mailTransporter = EMAIL_USER && EMAIL_PASS ? nodemailer.createTransport({
+  host: EMAIL_HOST,
+  port: EMAIL_PORT,
+  secure: EMAIL_PORT === 465 || process.env.EMAIL_SECURE === 'true',
+  auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+}) : null;
+
+if (mailTransporter) {
+  mailTransporter.verify((error) => {
+    if (error) {
+      console.error('❌ Email Auth Error (535): The App Password "EMAIL_PASS" is invalid.');
+      console.log('👉 To fix: Set EMAIL_USER and EMAIL_PASS environment variables with valid Gmail credentials.');
+      console.log('👉 Go to Google Account > Security > App Passwords and generate a new one.');
+    } else {
+      console.log('✅ Email service is authenticated and ready.');
+    }
+  });
+} else {
+  console.log('⚠️  Email service not configured. Set EMAIL_USER and EMAIL_PASS to enable email notifications.');
+}
+
+async function sendMail({ to, subject, html, text }) {
+  if (!mailTransporter || !EMAIL_USER || !EMAIL_PASS) {
+    console.warn('⚠️  Email credentials not configured; skipping email to:', to);
+    return;
+  }
+
+  try {
+    await mailTransporter.sendMail({
+      from: EMAIL_FROM,
+      to,
+      subject,
+      text,
+      html,
+    });
+    console.log(`✅ Email successfully sent to: ${to}`);
+  } catch (err) {
+    console.error('Failed to send email:', err);
+  }
+}
+
+function createConfirmationToken() {
+  return crypto.randomBytes(24).toString('hex');
 }
 
 function isAuthorizedEditor(user) {
@@ -150,8 +237,10 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Email already in use' });
     }
 
-    const userCount = await usersCollection.countDocuments();
-    const role = userCount === 0 ? 'admin' : 'student';
+    // Count actual users (not default seeded admin)
+    const totalUsers = await usersCollection.countDocuments();
+    // If only 1 user exists (the default admin), new signup becomes admin too
+    const role = totalUsers <= 1 ? 'admin' : 'student';
     const passwordHash = await bcrypt.hash(password, 10);
     const result = await usersCollection.insertOne({
       name,
@@ -262,6 +351,12 @@ app.get('/api/projects', async (req, res) => {
         }
       }
       filter.status = status;
+    } else {
+      // Default: show only published projects for non-authenticated users
+      const currentUser = await parseAuthUser(req);
+      if (!currentUser || currentUser.role !== 'admin') {
+        filter.status = 'published';
+      }
     }
     if (year) {
       const yearInt = parseInt(year, 10);
@@ -349,7 +444,13 @@ async function fetchProjectWithTeam(idOrSlug) {
     ])
     .toArray();
 
-  return results[0] || null;
+  const project = results[0] || null;
+  if (project && project.team) {
+    console.log(`✅ Project "${project.title}" has ${project.team.length} team members`);
+  } else if (project) {
+    console.log(`⚠️  Project "${project.title}" has NO team members set`);
+  }
+  return project;
 }
 
 app.get('/api/projects/:id', async (req, res) => {
@@ -382,7 +483,7 @@ app.post('/api/projects', async (req, res) => {
           name: lead || 'Anonymous Researcher',
           email: normalizedEmail,
           role: 'researcher',
-          createdAt: new Date()
+          createdAt: new Date(),
         });
         userId = result.insertedId;
       } else {
@@ -410,6 +511,8 @@ app.post('/api/projects', async (req, res) => {
       tags,
       labId: req.body.labId && ObjectId.isValid(req.body.labId) ? new ObjectId(req.body.labId) : null,
       createdBy: userId,
+      lead: req.body.lead || '',
+      leadEmail: req.body.email ? req.body.email.toLowerCase().trim() : '',
       createdAt: new Date(),
       updatedAt: new Date(),
       featured,
@@ -438,6 +541,25 @@ app.post('/api/projects', async (req, res) => {
 
     if (projectMemberDocs.length > 0) {
       await projectMembersCollection.insertMany(projectMemberDocs);
+    }
+
+    // Auto-add project lead as team member if leadEmail is provided
+    if (project.leadEmail) {
+      const leadUser = await usersCollection.findOne({ email: project.leadEmail.toLowerCase() });
+      if (leadUser) {
+        const leadExists = await projectMembersCollection.findOne({
+          projectId: result.insertedId,
+          userId: leadUser._id,
+        });
+        if (!leadExists) {
+          await projectMembersCollection.insertOne({
+            projectId: result.insertedId,
+            userId: leadUser._id,
+            role: 'Lead Researcher',
+            createdAt: new Date(),
+          });
+        }
+      }
     }
 
     const full = await fetchProjectWithTeam(created._id.toString());
@@ -493,6 +615,9 @@ app.put('/api/projects/:id', authenticate, requireAdmin, async (req, res) => {
     if (req.body.labId && ObjectId.isValid(req.body.labId)) {
       updates.labId = new ObjectId(req.body.labId);
     }
+    if (req.body.leadEmail) {
+      updates.leadEmail = req.body.leadEmail.toLowerCase().trim();
+    }
 
     const result = await projectsCollection.findOneAndUpdate(
       { _id: new ObjectId(id) },
@@ -514,6 +639,26 @@ app.put('/api/projects/:id', authenticate, requireAdmin, async (req, res) => {
         }));
       if (newMemberDocs.length > 0) {
         await projectMembersCollection.insertMany(newMemberDocs);
+      }
+    }
+
+    // Auto-add project lead as team member if leadEmail is provided
+    const updatedProject = result.value;
+    if (updatedProject.leadEmail) {
+      const leadUser = await usersCollection.findOne({ email: updatedProject.leadEmail.toLowerCase() });
+      if (leadUser) {
+        const leadExists = await projectMembersCollection.findOne({
+          projectId: new ObjectId(id),
+          userId: leadUser._id,
+        });
+        if (!leadExists) {
+          await projectMembersCollection.insertOne({
+            projectId: new ObjectId(id),
+            userId: leadUser._id,
+            role: 'Lead Researcher',
+            createdAt: new Date(),
+          });
+        }
       }
     }
 
@@ -652,6 +797,7 @@ app.get('/api/articles', async (req, res) => {
     const articles = await articlesCollection
       .find(filter)
       .sort({ createdAt: -1 })
+      .project({ content: 0 })
       .skip(skip)
       .limit(limit)
       .toArray();
@@ -783,20 +929,24 @@ app.get('/api/search', async (req, res) => {
     const q = (req.query.q || '').trim();
     if (!q) return res.json({ results: [], query: '' });
 
-    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     const articleResults = await articlesCollection
-      .find({ $or: [{ title: regex }, { description: regex }, { content: regex }, { category: regex }] })
-      .sort({ createdAt: -1 })
+      .find({ $text: { $search: q } })
+      .sort({ score: { $meta: 'textScore' } })
       .limit(30)
       .toArray();
 
     const projectResults = await projectsCollection
-      .find({ $or: [{ title: regex }, { description: regex }, { tags: regex }] })
-      .sort({ createdAt: -1 })
+      .find({ $text: { $search: q } })
+      .sort({ score: { $meta: 'textScore' } })
       .limit(30)
       .toArray();
 
-    res.json({ query: q, articles: articleResults, projects: projectResults });
+    const results = [
+      ...articleResults.map((a) => ({ ...a, resultType: 'article' })),
+      ...projectResults.map((p) => ({ ...p, resultType: 'project' })),
+    ];
+
+    res.json({ query: q, articles: articleResults, projects: projectResults, results });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -807,11 +957,13 @@ app.get('/api/search', async (req, res) => {
 app.post('/api/scrape', async (req, res) => {
   try {
     res.json({ status: 'scraping started' });
-    scrapeAll().then(result => {
-      console.log('Scrape complete:', result);
-    }).catch(err => {
-      console.error('Scrape error:', err);
-    });
+    scrapeAll()
+      .then((result) => {
+        console.log('Scrape complete:', result);
+      })
+      .catch((err) => {
+        console.error('Scrape error:', err);
+      });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -836,13 +988,67 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', db: 'connected' });
 });
 
+// ---- Utility: Populate team members for projects without them ----
+app.post('/api/fix-missing-team-members', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const projectsWithoutTeam = await projectsCollection
+      .find({ $or: [{ team: { $exists: false } }, { team: [] }] })
+      .toArray();
+
+    let updated = 0;
+    for (const project of projectsWithoutTeam) {
+      if (project.leadEmail) {
+        const lead = await usersCollection.findOne({ email: project.leadEmail.toLowerCase() });
+        if (lead) {
+          const existing = await projectMembersCollection.findOne({
+            projectId: project._id,
+            userId: lead._id,
+          });
+          if (!existing) {
+            await projectMembersCollection.insertOne({
+              projectId: project._id,
+              userId: lead._id,
+              role: 'Lead Researcher',
+              createdAt: new Date(),
+            });
+            updated++;
+            console.log(`✅ Added lead ${project.leadEmail} to project "${project.title}"`);
+          }
+        }
+      }
+    }
+    res.json({ success: true, message: `Updated ${updated} projects with team members` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ---- Form Submissions ----
 app.post('/api/form-submissions', async (req, res) => {
   try {
-    const { name, email, phone, id, qualifications, experience, motivation, university, program, otherInfo } = req.body;
+    const { name, email, phone, id, qualifications, experience, motivation, university, program, otherInfo, projectId } = req.body;
 
     if (!name || !email || !phone || !id) {
       return res.status(400).json({ error: 'Name, email, phone, and ID are required' });
+    }
+
+    // Check for duplicate entries (Email or ID/Passport)
+    const existingSubmission = await formSubmissionsCollection.findOne({
+      $or: [{ email: email.toLowerCase().trim() }, { id: id.trim() }],
+    });
+    if (existingSubmission) {
+      return res.status(400).json({ error: 'An application with this email or ID/Passport already exists.' });
+    }
+
+    let projectTitle = '';
+    let projectLeadEmail = '';
+    if (projectId && ObjectId.isValid(projectId)) {
+      const project = await projectsCollection.findOne({ _id: new ObjectId(projectId) });
+      if (project) {
+        projectTitle = project.title || '';
+        projectLeadEmail = project.leadEmail || '';
+      }
     }
 
     const submission = {
@@ -856,9 +1062,16 @@ app.post('/api/form-submissions', async (req, res) => {
       university: university || '',
       program: program || '',
       otherInfo: otherInfo || '',
+      projectId: projectId && ObjectId.isValid(projectId) ? new ObjectId(projectId) : null,
+      projectTitle,
+      projectLeadEmail: projectLeadEmail.toLowerCase().trim(),
+      leadRequestStatus: 'not-requested',
+      leadConfirmationToken: null,
+      leadResponseAt: null,
+      assignedAt: null,
       status: 'new',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     const result = await formSubmissionsCollection.insertOne(submission);
@@ -884,7 +1097,7 @@ app.get('/api/form-submissions', authenticate, requireAdmin, async (req, res) =>
         { name: { $regex: searchQuery, $options: 'i' } },
         { email: { $regex: searchQuery, $options: 'i' } },
         { phone: { $regex: searchQuery, $options: 'i' } },
-        { id: { $regex: searchQuery, $options: 'i' } }
+        { id: { $regex: searchQuery, $options: 'i' } },
       ];
     }
 
@@ -897,6 +1110,25 @@ app.get('/api/form-submissions', authenticate, requireAdmin, async (req, res) =>
       .toArray();
 
     res.json({ submissions, total, page, totalPages: Math.ceil(total / limit) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/form-submissions-stats', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const total = await formSubmissionsCollection.countDocuments();
+    const statusStats = await formSubmissionsCollection
+      .aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }])
+      .toArray();
+
+    const byStatus = {};
+    statusStats.forEach((item) => {
+      byStatus[item._id || 'new'] = item.count;
+    });
+
+    res.json({ total, byStatus });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -930,10 +1162,26 @@ app.put('/api/form-submissions/:id', authenticate, requireAdmin, async (req, res
       return res.status(400).json({ error: 'Invalid status' });
     }
 
+    const existing = await formSubmissionsCollection.findOne({ _id: new ObjectId(req.params.id) });
+    if (!existing) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
     const updates = {};
     if (status) updates.status = status;
     if (notes !== undefined) updates.notes = notes;
     updates.updatedAt = new Date();
+
+    let leadConfirmationToken = existing.leadConfirmationToken;
+    if (status === 'accepted' && existing.status !== 'accepted') {
+      if (existing.projectLeadEmail) {
+        leadConfirmationToken = createConfirmationToken();
+        updates.leadRequestStatus = 'pending';
+        updates.leadConfirmationToken = leadConfirmationToken;
+      } else {
+        updates.leadRequestStatus = 'not-required';
+      }
+    }
 
     const result = await formSubmissionsCollection.findOneAndUpdate(
       { _id: new ObjectId(req.params.id) },
@@ -941,8 +1189,74 @@ app.put('/api/form-submissions/:id', authenticate, requireAdmin, async (req, res
       { returnDocument: 'after' }
     );
 
-    if (!result.value) return res.status(404).json({ error: 'Submission not found' });
+    // Compatibility fix: handles both old and new MongoDB driver versions
+    const submission = result.value !== undefined ? result.value : result;
+    if (!submission) return res.status(404).json({ error: 'Submission not found' });
+
+    if (status === 'accepted' && existing.status !== 'accepted') {
+      console.log(`📧 Processing acceptance emails for student: ${submission.email}`);
+
+      const studentSubject = 'Your EIAS program request has been accepted';
+      const studentText = `Hello ${submission.name},\n\nYour application to join the EIAS program ${submission.projectTitle ? `for the research project "${submission.projectTitle}" ` : ''}has been accepted by the admin team. The project lead has been notified to confirm your final assignment.\n\nThank you for applying.`;
+      const studentHtml = `<p>Hello ${submission.name},</p><p>Your application to join the EIAS program ${submission.projectTitle ? `for the research project <strong>${submission.projectTitle}</strong> ` : ''}has been accepted by the admin team.</p><p>The project lead has been notified to confirm your final assignment.</p><p>Thank you for applying.</p>`;
+      await sendMail({ to: submission.email, subject: studentSubject, text: studentText, html: studentHtml });
+
+      if (submission.projectLeadEmail) {
+        const leadSubject = `Action Required: Confirm ${submission.name} for EIAS ${submission.projectTitle || 'Research Project'}`;
+        const confirmLink = `${APP_URL}/lead-confirm?token=${encodeURIComponent(leadConfirmationToken)}`;
+        const leadText = `Hello,\n\nStudent ${submission.name} (${submission.email}) has been accepted by the Admin for the EIAS program and has requested to join your project: ${submission.projectTitle || 'N/A'}.\n\nPlease click the link below to confirm their assignment:\n${confirmLink}\n\nOnce you confirm, the student will be officially assigned and notified.\n\nThank you.`;
+        const leadHtml = `<p>Hello,</p><p>Student <strong>${submission.name}</strong> (<a href="mailto:${submission.email}">${submission.email}</a>) has been accepted by the Admin for the EIAS program and has requested to join your project: ${submission.projectTitle ? `<strong>${submission.projectTitle}</strong>` : 'N/A'}.</p><p><strong>Click the link below to confirm this assignment:</strong></p><p><a href="${confirmLink}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Confirm Assignment</a></p><p>If the button doesn't work, copy this link: ${confirmLink}</p><p>Thank you.</p>`;
+        await sendMail({ to: submission.projectLeadEmail, subject: leadSubject, text: leadText, html: leadHtml });
+      }
+    }
+
     res.json({ submission: result.value });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/form-submissions/lead-confirm', async (req, res) => {
+  try {
+    const token = req.query.token || req.body.token;
+    if (!token) {
+      return res.status(400).json({ error: 'Confirmation token is required' });
+    }
+
+    const submission = await formSubmissionsCollection.findOne({ leadConfirmationToken: token });
+    if (!submission) {
+      return res.status(404).json({ error: 'Invalid or expired confirmation token' });
+    }
+
+    if (submission.leadRequestStatus === 'confirmed') {
+      return res.json({ message: 'This request has already been confirmed.' });
+    }
+
+    const updated = await formSubmissionsCollection.findOneAndUpdate(
+      { _id: submission._id },
+      {
+        $set: {
+          leadRequestStatus: 'confirmed',
+          status: 'assigned',
+          leadResponseAt: new Date(),
+          assignedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (!updated.value) {
+      return res.status(500).json({ error: 'Unable to confirm assignment' });
+    }
+
+    const studentSubject = 'Your research project assignment is confirmed';
+    const studentText = `Hello ${updated.value.name},\n\nGood news: the project lead has confirmed your assignment to ${updated.value.projectTitle || 'the requested research project'}. You are now part of that research effort.\n\nBest of luck.`;
+    const studentHtml = `<p>Hello ${updated.value.name},</p><p>Good news: the project lead has confirmed your assignment to ${updated.value.projectTitle ? `<strong>${updated.value.projectTitle}</strong>` : 'the requested research project'}.</p><p>You are now part of that research effort.</p><p>Best of luck.</p>`;
+    await sendMail({ to: updated.value.email, subject: studentSubject, text: studentText, html: studentHtml });
+
+    res.json({ message: 'Thank you. The lead has confirmed the student assignment.', submission: updated.value });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -951,29 +1265,15 @@ app.put('/api/form-submissions/:id', authenticate, requireAdmin, async (req, res
 
 app.delete('/api/form-submissions/:id', authenticate, requireAdmin, async (req, res) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Invalid submission ID' });
     }
-    const result = await formSubmissionsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+    const result = await formSubmissionsCollection.deleteOne({ _id: new ObjectId(id) });
     if (result.deletedCount === 0) return res.status(404).json({ error: 'Submission not found' });
-    res.json({ success: true, message: 'Submission deleted' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
-app.get('/api/form-submissions-stats', authenticate, requireAdmin, async (req, res) => {
-  try {
-    const total = await formSubmissionsCollection.countDocuments();
-    const byStatus = await formSubmissionsCollection.aggregate([
-      { $group: { _id: '$status', count: { $sum: 1 } } }
-    ]).toArray();
-
-    const statusCounts = {};
-    byStatus.forEach(item => { statusCounts[item._id] = item.count; });
-
-    res.json({ total, byStatus: statusCounts });
+    res.json({ success: true, message: 'Submission deleted successfully' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -996,7 +1296,6 @@ function findFreePort(startPort) {
     });
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
-        // Try next port
         resolve(findFreePort(startPort + 1));
       } else {
         reject(err);
@@ -1008,6 +1307,33 @@ function findFreePort(startPort) {
 async function start() {
   await connectDB();
 
+  // Auto-fix: Ensure all projects with leadEmail have them as team members
+  console.log('\n🔧 Syncing project team members with lead emails...');
+  const projectsWithLead = await projectsCollection
+    .find({ leadEmail: { $exists: true, $ne: '' } })
+    .toArray();
+  let synced = 0;
+
+  for (const project of projectsWithLead) {
+    const lead = await usersCollection.findOne({ email: project.leadEmail.toLowerCase() });
+    if (lead) {
+      const existing = await projectMembersCollection.findOne({
+        projectId: project._id,
+        userId: lead._id,
+      });
+      if (!existing) {
+        await projectMembersCollection.insertOne({
+          projectId: project._id,
+          userId: lead._id,
+          role: 'Lead Researcher',
+          createdAt: new Date(),
+        });
+        synced++;
+      }
+    }
+  }
+  if (synced > 0) console.log(`✅ Added ${synced} project leads to team members`);
+
   const count = await articlesCollection.countDocuments();
   if (count === 0) {
     console.log('\n📭 Database empty. Running initial scrape...\n');
@@ -1018,7 +1344,6 @@ async function start() {
 
   startCronJob();
 
-  // Find a free port starting from the desired PORT
   const availablePort = await findFreePort(PORT);
 
   if (availablePort !== PORT) {
@@ -1030,7 +1355,7 @@ async function start() {
     console.log(`🚀 Backend running on http://localhost:${availablePort}`);
     console.log(`   API:     http://localhost:${availablePort}/api/articles`);
     console.log(`   Search:  http://localhost:${availablePort}/api/search?q=robotics`);
-    console.log(`   Scrape:  POST http://localhost:${availablePort}/api/scrape\n`);
+    console.log(`   POST http://localhost:${availablePort}/api/scrape\n`);
   });
 }
 

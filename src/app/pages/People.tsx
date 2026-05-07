@@ -43,7 +43,7 @@ export function People() {
             We are a diverse group of thinkers and inventors
           </h1>
           <p className="mt-6 mx-auto max-w-3xl text-[17px] md:text-[18px] leading-8 text-slate-200">
-            All team members are part of different research projects and work together to shape the future of Media Arts and Sciences.
+            All team members are part of different research projects and work together to shape the future of EI Arts and Sciences.
           </p>
         </div>
       </section>

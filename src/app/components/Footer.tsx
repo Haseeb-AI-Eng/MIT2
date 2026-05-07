@@ -32,9 +32,7 @@ export function Footer() {
           <div className="flex flex-col items-start">
             <svg width="80" height="80" viewBox="0 0 72 72" className="text-black mb-4">
               <path d="M4 8h8v8h-8zM12 8h8v8h-8zM12 16h8v8h-8zM20 16h8v8h-8zM20 24h8v8h-8zM12 24h8v8h-8zM4 24h8v8h-8z" fill="currentColor" />
-              <text x="36" y="30" fontSize="16" fontWeight="bold" fill="currentColor" fontFamily="monospace">mit</text>
-              <text x="36" y="46" fontSize="16" fontWeight="bold" fill="currentColor" fontFamily="monospace">media</text>
-              <text x="36" y="62" fontSize="16" fontWeight="bold" fill="currentColor" fontFamily="monospace">lab</text>
+              <text x="36" y="48" fontSize="32" fontWeight="bold" fill="currentColor" fontFamily="monospace">EI</text>
             </svg>
             <span className="text-[56px] font-bold tracking-tight text-black" style={{ fontFamily: "'Courier New', monospace" }}>&gt; 40</span>
           </div>
@@ -60,7 +58,7 @@ export function Footer() {
             <button onClick={() => handleNavigate('RSS')} className="hover:text-black/60 transition-colors cursor-pointer">RSS</button>
           </div>
           <svg width="50" height="32" viewBox="0 0 80 50" className="text-black">
-            <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize="42" fontWeight="900" fill="currentColor" fontFamily="sans-serif" letterSpacing="1">MIT</text>
+            <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize="42" fontWeight="900" fill="currentColor" fontFamily="sans-serif" letterSpacing="1">EI</text>
           </svg>
           <div className="text-right lg:text-left">
             <p className="text-[13px] text-black/70">Massachusetts Institute of Technology</p>

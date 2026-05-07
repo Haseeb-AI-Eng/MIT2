@@ -76,7 +76,7 @@ export function Home() {
 
         <section className="mb-10 rounded-[2rem] border border-white/10 bg-[#050505] px-6 py-10 text-white">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-[32px] md:text-[48px] font-semibold">Support the Media Lab</h2>
+            <h2 className="text-[32px] md:text-[48px] font-semibold">Support EI</h2>
             <p className="mt-4 text-[15px] md:text-[16px] text-white/70 max-w-2xl mx-auto">
               We believe that together, we can play an important role in helping people realize a better and more just future for themselves and for all.
             </p>
