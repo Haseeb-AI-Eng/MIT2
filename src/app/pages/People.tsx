@@ -1,32 +1,119 @@
+import { useEffect, useState } from 'react';
 import haseebImage from '../../../pic.jpeg';
 
+type TeamMember = {
+  name: string;
+  title: string;
+  description: string;
+};
+
+type BackendTeamMember = {
+  _id: string;
+  name: string;
+  email: string;
+  roles: string[];
+  projectCount: number;
+};
+
+const coreTeamMembers: TeamMember[] = [
+  {
+    name: 'Haseeb Ejaz',
+    title: 'Associate Professor of Elements Research Lab and Sciences',
+    description:
+      'Haseeb leads a multidisciplinary team focused on material systems, interactive media, and new forms of computational expression. His work bridges research, design, engineering, and performance to create emergent technologies that feel poetic, rigorous, and deeply human.',
+  },
+  {
+    name: 'Ayesha Khalid',
+    title: 'Research Fellow, Immersive Systems',
+    description:
+      'Ayesha develops immersive experiences and interactive installations that blend physical computing, sound, and spatial design. She supports cross-disciplinary research across multiple labs.',
+  },
+  {
+    name: 'Samuel Ortiz',
+    title: 'Creative Technologist, Human-Computer Interaction',
+    description:
+      'Samuel explores new interfaces for collaboration, real-time media, and storytelling. He brings design rigor to experimental research and prototyping.',
+  },
+  {
+    name: 'Lina Chen',
+    title: 'Project Lead, Computational Art',
+    description:
+      'Lina combines computational design, generative systems, and visual culture to create work that is both technically sophisticated and deeply expressive.',
+  },
+];
+
+const roleHighlights = [
+  { match: /lead/i, copy: 'Leads interdisciplinary research initiatives and keeps projects anchored to impact-driven goals.' },
+  { match: /researcher/i, copy: 'Explores new ideas with experimental rigor and turns complex science into useful insight.' },
+  { match: /design/i, copy: 'Shapes thoughtful experiences, interactions, and visual systems that make research accessible and inspiring.' },
+  { match: /engineer|developer/i, copy: 'Builds the technical foundations and prototypes that make ambitious research work in the real world.' },
+  { match: /student/i, copy: 'Brings fresh curiosity, hands-on energy, and a collaborative spirit to every project.' },
+  { match: /fellow/i, copy: 'Connects creative practice to research, helping teams translate ideas into expressive, meaningful work.' },
+];
+
+function buildMemberTitle(roles: string[]) {
+  if (!roles || roles.length === 0) return 'Research Team Member';
+  const normalized = [...new Set(roles.map((role) => role.trim()).filter(Boolean))];
+  return normalized.length === 1 ? normalized[0] : normalized.join(' / ');
+}
+
+function buildMemberDescription(name: string, roles: string[]) {
+  const descriptions = roles
+    .map((role) => roleHighlights.find((item) => item.match.test(role)))
+    .filter(Boolean)
+    .map((item) => item!.copy);
+
+  const details = descriptions.length
+    ? descriptions.join(' ')
+    : 'Contributes to research with creativity, collaboration, and a strong commitment to making ideas matter.';
+
+  return `${name} ${details}`;
+}
+
+function uniqueMembers(members: TeamMember[]) {
+  return members.reduce<TeamMember[]>((acc, member) => {
+    if (!acc.some((existing) => existing.name === member.name)) {
+      acc.push(member);
+    }
+    return acc;
+  }, []);
+}
+
 export function People() {
-  const teamMembers = [
-    {
-      name: 'Haseeb Ejaz',
-      title: 'Associate Professor of Elements Research Lab and Sciences',
-      description:
-        'Haseeb leads a multidisciplinary team focused on material systems, interactive media, and new forms of computational expression. His work bridges research, design, engineering, and performance to create emergent technologies that feel poetic, rigorous, and deeply human.',
-    },
-    {
-      name: 'Ayesha Khalid',
-      title: 'Research Fellow, Immersive Systems',
-      description:
-        'Ayesha develops immersive experiences and interactive installations that blend physical computing, sound, and spatial design. She supports cross-disciplinary research across multiple labs.',
-    },
-    {
-      name: 'Samuel Ortiz',
-      title: 'Creative Technologist, Human-Computer Interaction',
-      description:
-        'Samuel explores new interfaces for collaboration, real-time media, and storytelling. He brings design rigor to experimental research and prototyping.',
-    },
-    {
-      name: 'Lina Chen',
-      title: 'Project Lead, Computational Art',
-      description:
-        'Lina combines computational design, generative systems, and visual culture to create work that is both technically sophisticated and deeply expressive.',
-    },
-  ];
+  const [projectTeamMembers, setProjectTeamMembers] = useState<TeamMember[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(true);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const response = await fetch('/api/team-members');
+        if (!response.ok) {
+          throw new Error('Unable to load project team members.');
+        }
+
+        const data = await response.json();
+        const members = Array.isArray(data.members)
+          ? data.members
+              .filter((member: BackendTeamMember) => member.name)
+              .map((member: BackendTeamMember) => ({
+                name: member.name,
+                title: buildMemberTitle(member.roles),
+                description: buildMemberDescription(member.name, member.roles),
+              }))
+          : [];
+
+        setProjectTeamMembers(members);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingMembers(false);
+      }
+    };
+
+    fetchMembers();
+  }, []);
+
+  const mergedTeamMembers = uniqueMembers([...coreTeamMembers, ...projectTeamMembers]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -71,7 +158,7 @@ export function People() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {teamMembers.map((member) => (
+            {mergedTeamMembers.map((member) => (
               <div key={member.name} className="rounded-[32px] border border-slate-200/10 bg-white p-6 shadow-sm shadow-slate-900/10">
                 <div className="h-64 overflow-hidden rounded-[28px] bg-slate-200">
                   <div className="h-full flex items-center justify-center bg-slate-100 text-slate-400">

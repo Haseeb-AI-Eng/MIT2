@@ -10,6 +10,7 @@ interface SearchResult {
   excerpt: string;
   description: string;
   image: string;
+  resultType: 'article' | 'project';
 }
 
 interface SearchPanelProps {
@@ -57,11 +58,15 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
     search(e.target.value);
   };
 
-  const handleSelect = (articleSlug: string) => {
+  const handleSelect = (result: SearchResult) => {
     onClose();
     setQuery('');
     setResults([]);
-    navigate(`/article/${articleSlug}`);
+    if (result.resultType === 'project') {
+      navigate(`/projects/${result.slug}`);
+    } else {
+      navigate(`/article/${result.slug}`);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -73,7 +78,7 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
     } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
-      handleSelect(results[selectedIndex].slug);
+      handleSelect(results[selectedIndex]);
     } else if (e.key === 'Escape') {
       onClose();
     }
@@ -163,8 +168,8 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
           )}
           {results.map((result, i) => (
             <button
-              key={result.slug}
-              onClick={() => handleSelect(result.slug)}
+              key={`${result.resultType}-${result.slug}`}
+              onClick={() => handleSelect(result)}
               onMouseEnter={() => setSelectedIndex(i)}
               className={`w-full flex items-start gap-4 px-6 py-4 text-left transition-colors border-b border-black/[0.06] ${
                 i === selectedIndex ? 'bg-blue-50/70' : 'hover:bg-black/[0.02]'
@@ -179,7 +184,7 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
                 </p>
               </div>
               <span className="text-[12px] text-black/30 shrink-0 mt-0.5 whitespace-nowrap ml-2">
-                {result.category}
+                {result.resultType === 'project' ? 'Project' : 'Article'}
               </span>
             </button>
           ))}

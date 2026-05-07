@@ -386,6 +386,51 @@ app.get('/api/projects', async (req, res) => {
   }
 });
 
+app.get('/api/team-members', async (req, res) => {
+  try {
+    const members = await projectMembersCollection
+      .aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        { $unwind: '$user' },
+        {
+          $group: {
+            _id: '$user._id',
+            name: { $first: '$user.name' },
+            email: { $first: '$user.email' },
+            roles: { $addToSet: '$role' },
+            projectCount: { $sum: 1 },
+          },
+        },
+        { $sort: { projectCount: -1, name: 1 } },
+      ])
+      .toArray();
+
+    res.json({ members });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const project = await fetchProjectWithTeam(id);
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+    res.json({ project });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 async function fetchProjectWithTeam(idOrSlug) {
   const match = ObjectId.isValid(idOrSlug)
     ? { _id: new ObjectId(idOrSlug) }
@@ -522,25 +567,53 @@ app.post('/api/projects', async (req, res) => {
     const result = await projectsCollection.insertOne(project);
     const created = await projectsCollection.findOne({ _id: result.insertedId });
 
+    // Handle team members - can be { name, role } or { userId, role } or just userId string
     const teamMembersInput = Array.isArray(req.body.teamMembers) ? req.body.teamMembers : [];
-    const teamMembers = teamMembersInput.map((member) => {
-      if (typeof member === 'string') {
-        return { userId: member, role: 'assistant' };
-      }
-      return { userId: member.userId, role: member.role || 'assistant' };
-    });
+    const projectMemberDocs = [];
 
-    const projectMemberDocs = teamMembers
-      .filter((member) => ObjectId.isValid(member.userId))
-      .map((member) => ({
-        projectId: result.insertedId,
-        userId: new ObjectId(member.userId),
-        role: member.role,
-        createdAt: new Date(),
-      }));
+    for (const member of teamMembersInput) {
+      let userId;
+
+      if (typeof member === 'string') {
+        // Direct userId string
+        if (ObjectId.isValid(member)) {
+          userId = new ObjectId(member);
+        }
+      } else if (member.userId && ObjectId.isValid(member.userId)) {
+        // Already has userId (from database)
+        userId = new ObjectId(member.userId);
+      } else if (member.name) {
+        // Has name - need to look up or create user
+        const trimmedName = member.name.trim();
+        let user = await usersCollection.findOne({ name: trimmedName });
+        if (!user) {
+          // Create new user for this team member
+          const result = await usersCollection.insertOne({
+            name: trimmedName,
+            email: `${trimmedName.toLowerCase().replace(/\s+/g, '.')}@mit.edu`,
+            role: 'researcher',
+            createdAt: new Date(),
+          });
+          userId = result.insertedId;
+          console.log(`✅ Created new user for team member: ${trimmedName}`);
+        } else {
+          userId = user._id;
+        }
+      }
+
+      if (userId) {
+        projectMemberDocs.push({
+          projectId: result.insertedId,
+          userId,
+          role: member.role || 'Researcher',
+          createdAt: new Date(),
+        });
+      }
+    }
 
     if (projectMemberDocs.length > 0) {
       await projectMembersCollection.insertMany(projectMemberDocs);
+      console.log(`✅ Added ${projectMemberDocs.length} team members to project`);
     }
 
     // Auto-add project lead as team member if leadEmail is provided
@@ -629,16 +702,52 @@ app.put('/api/projects/:id', authenticate, requireAdmin, async (req, res) => {
 
     if (Array.isArray(req.body.teamMembers)) {
       await projectMembersCollection.deleteMany({ projectId: new ObjectId(id) });
-      const newMemberDocs = req.body.teamMembers
-        .filter((member) => ObjectId.isValid(member.userId || member))
-        .map((member) => ({
-          projectId: new ObjectId(id),
-          userId: new ObjectId(typeof member === 'string' ? member : member.userId),
-          role: typeof member === 'string' ? 'assistant' : member.role || 'assistant',
-          createdAt: new Date(),
-        }));
+      const teamMembersInput = req.body.teamMembers;
+      const newMemberDocs = [];
+
+      for (const member of teamMembersInput) {
+        let userId;
+
+        if (typeof member === 'string') {
+          // Direct userId string
+          if (ObjectId.isValid(member)) {
+            userId = new ObjectId(member);
+          }
+        } else if (member.userId && ObjectId.isValid(member.userId)) {
+          // Already has userId (from database)
+          userId = new ObjectId(member.userId);
+        } else if (member.name) {
+          // Has name - need to look up or create user
+          const trimmedName = member.name.trim();
+          let user = await usersCollection.findOne({ name: trimmedName });
+          if (!user) {
+            // Create new user for this team member
+            const insertResult = await usersCollection.insertOne({
+              name: trimmedName,
+              email: `${trimmedName.toLowerCase().replace(/\s+/g, '.')}@mit.edu`,
+              role: 'researcher',
+              createdAt: new Date(),
+            });
+            userId = insertResult.insertedId;
+            console.log(`✅ Created new user for team member: ${trimmedName}`);
+          } else {
+            userId = user._id;
+          }
+        }
+
+        if (userId) {
+          newMemberDocs.push({
+            projectId: new ObjectId(id),
+            userId,
+            role: member.role || 'Researcher',
+            createdAt: new Date(),
+          });
+        }
+      }
+
       if (newMemberDocs.length > 0) {
         await projectMembersCollection.insertMany(newMemberDocs);
+        console.log(`✅ Updated ${newMemberDocs.length} team members for project`);
       }
     }
 

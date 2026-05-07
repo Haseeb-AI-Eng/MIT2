@@ -81,7 +81,7 @@ export function Research() {
           >
             We are an interdisciplinary research lab working to invent the future of{' '}
             <span
-              className="text-[#ff33b8] inline-block transition-opacity duration-300"
+              className="text-[#3b82f6] inline-block transition-opacity duration-300"
               style={{ opacity: fade ? 1 : 0 }}
             >
               {cyclingWords[wordIndex]}

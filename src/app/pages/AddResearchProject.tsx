@@ -47,7 +47,7 @@ export function AddResearchProject() {
           lead: formData.lead,
           email: formData.email,
           videoUrl: formData.videoUrl,
-          teamMembers: [] // Backend requires existing User ObjectIds
+          teamMembers: formData.teamMembers.filter(m => m.name.trim()) // Send collected team members
         }),
       });
 
@@ -64,7 +64,7 @@ export function AddResearchProject() {
       }
 
       alert('Research project added and published successfully!');
-      navigate('/projects');
+      navigate('/');
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'An error occurred. Make sure you are logged in.');
