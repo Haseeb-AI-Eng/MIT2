@@ -64,7 +64,6 @@ export function AddResearchProject() {
       }
 
       alert('Research project added and published successfully!');
-      navigate('/');
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'An error occurred. Make sure you are logged in.');

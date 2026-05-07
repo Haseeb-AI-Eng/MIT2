@@ -100,7 +100,7 @@ export function Research() {
               className="text-[32px] md:text-[42px] font-semibold text-black"
               style={{ fontFamily: 'Georgia, serif' }}
             >
-              Published teams and ongoing work
+              Published teams and work
             </h2>
           </div>
           <p className="text-black/50" style={{ fontFamily: 'Georgia, serif' }}>
@@ -135,6 +135,23 @@ export function Research() {
                 onDelete={() => handleDeleteProject(project._id ?? project.slug)}
               />
             ))}
+          </div>
+        )}
+
+        {!loading && !error && projects.length > 0 && (
+          <div className="mt-12 space-y-5 text-[15px] md:text-[16px] text-black/80 leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
+            <p>
+              The Affective Computing group creates and evaluates new ways of bringing together Emotion AI and other affective technologies in order to make people&apos;s lives better.
+            </p>
+            <p>
+              Our primary motivations are to help people who are not flourishing or at risk of not flourishing. Our projects are diverse: from finding new ways to forecast and prevent depression; to inventing new solutions to help exceptional people who face communication, motivation, and emotion regulation challenges; to enabling robots and computers to respond intelligently to natural human emotional feedback; to enabling people to have better awareness of their own health and wellbeing; to giving people better control and protection over their most sensitive, private, personal data.
+            </p>
+            <p>
+              Some of our work focuses on making contributions to basic theory and science, including new improvements to machine learning algorithms, while other projects focus on advancing research outside the lab, with applications aimed at improving the lives of individuals in their everyday environments.
+            </p>
+            <p>
+              Purpose of research and what others can learn from this work is central to our mission: we share findings, methods, and tools so that teams across the world can build better systems, improve wellbeing, and design more humane technology.
+            </p>
           </div>
         )}
       </div>

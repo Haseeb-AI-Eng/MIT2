@@ -50,9 +50,9 @@ export function Sidebar() {
     'Support the Media Lab',
     'MAS Graduate Program',
     'People',
+    'Alumni + Friends',
     'Events',
     'Videos',
-    'Member Portal',
     'For Press + Media'
   ];
 
@@ -64,9 +64,9 @@ export function Sidebar() {
     'Support the Media Lab': '/support-media-lab',
     'MAS Graduate Program': '/mas-graduate-program',
     People: '/people',
+    'Alumni + Friends': '/alumni-friends',
     Events: '/',
     Videos: '/',
-    'Member Portal': '/',
     'For Press + Media': '/',
   };
 

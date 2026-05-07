@@ -46,7 +46,12 @@ export function Home() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
             <div>
               <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Latest Research</p>
-              <h2 className="text-[28px] md:text-[36px] font-semibold text-black font-sans">New published projects</h2>
+              <h2
+                className="text-[32px] md:text-[42px] font-semibold text-black"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
+                New published projects
+              </h2>
             </div>
             <p className="text-[14px] text-black/50">{publishedProjects.length} projects shown</p>
           </div>
@@ -89,7 +94,10 @@ export function Home() {
             <button className="rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10">
               Foundations
             </button>
-            <button className="sm:col-span-2 mx-auto max-w-[360px] rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10">
+            <button
+              onClick={() => navigate('/alumni-friends')}
+              className="sm:col-span-2 mx-auto max-w-[360px] rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10"
+            >
               Alumni + friends
             </button>
           </div>

@@ -17,6 +17,25 @@ function getInitials(name: string) {
     .slice(0, 2) || 'U';
 }
 
+function makeLogoText(text: string) {
+  const parts = text
+    .replace(/[^A-Za-z0-9 ]/g, '')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase());
+  return parts.slice(0, 2).join('') || text.slice(0, 2).toUpperCase();
+}
+
+function ProjectIcon({ label }: { label: string }) {
+  return (
+    <div className="w-20 h-20 rounded-3xl border border-black/10 bg-slate-100 flex items-center justify-center">
+      <span className="text-[24px] font-black text-black/80" style={{ fontFamily: 'Georgia, serif' }}>
+        {makeLogoText(label)}
+      </span>
+    </div>
+  );
+}
+
 function generateDetailedExplanation(project: any) {
   const title = project.title || 'this research project';
   return [
@@ -231,6 +250,26 @@ export function ProjectDetail() {
               </div>
             </div>
           )}
+
+          <div className="border-t border-black/10 pt-6 mt-6">
+            <button
+              type="button"
+              onClick={() => navigate('/research')}
+              className="w-full text-left rounded-3xl border border-black/10 bg-slate-100 p-4 transition hover:border-black/20 hover:bg-slate-200"
+            >
+              <div className="flex items-center gap-4">
+                <ProjectIcon label={project.title || 'Research'} />
+                <div>
+                  <p className="text-[13px] uppercase tracking-[0.18em] text-black/40 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+                    Research section
+                  </p>
+                  <p className="text-[14px] font-semibold text-black" style={{ fontFamily: 'Georgia, serif' }}>
+                    Open the Research page
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
         </aside>
 
         {/* ── MAIN CONTENT ── */}

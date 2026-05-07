@@ -159,10 +159,10 @@ export function About() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section className="relative overflow-hidden bg-black text-white">
+      <section className="relative overflow-hidden bg-black text-white aspect-[16/5]">
         <img src="/image.gif" alt="About background" className="absolute inset-0 w-full h-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
+        <div className="relative mx-auto max-w-[1200px] px-6 h-full flex flex-col items-center justify-center text-center">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">About the Lab</p>
           <h1 className="text-[36px] md:text-[56px] font-semibold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
             Imagine what we can become.

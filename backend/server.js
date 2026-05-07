@@ -26,6 +26,7 @@ let labsCollection;
 let articlesCollection;
 let tagsCollection;
 let formSubmissionsCollection;
+let announcementsCollection;
 
 const USER_ROLES = ['admin', 'researcher', 'student'];
 const PROJECT_STATUSES = ['draft', 'review', 'published'];
@@ -42,6 +43,7 @@ async function connectDB() {
   articlesCollection = db.collection('articles');
   tagsCollection = db.collection('tags');
   formSubmissionsCollection = db.collection('form_submissions');
+  announcementsCollection = db.collection('announcements');
 
   await usersCollection.createIndex({ email: 1 }, { unique: true });
   await labsCollection.createIndex({ name: 1 }, { unique: true });
@@ -55,6 +57,7 @@ async function connectDB() {
   await formSubmissionsCollection.createIndex({ createdAt: -1 });
   await formSubmissionsCollection.createIndex({ email: 1 }, { unique: true });
   await formSubmissionsCollection.createIndex({ id: 1 }, { unique: true });
+  await announcementsCollection.createIndex({ createdAt: -1 });
 
   // Ensure default admin account exists
   const defaultAdminEmail = 'haseebmine24@gmail.com';
@@ -413,6 +416,48 @@ app.get('/api/team-members', async (req, res) => {
       .toArray();
 
     res.json({ members });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/announcements', async (req, res) => {
+  try {
+    const announcements = await announcementsCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    res.json({ announcements });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/announcements', async (req, res) => {
+  try {
+    const { title, content, authorName, authorEmail } = req.body;
+
+    if (!title || !content || !authorName || !authorEmail) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    const announcement = {
+      title: title.trim(),
+      content: content.trim(),
+      authorName: authorName.trim(),
+      authorEmail: authorEmail.trim(),
+      createdAt: new Date(),
+    };
+
+    const result = await announcementsCollection.insertOne(announcement);
+    res.status(201).json({ 
+      announcement: {
+        _id: result.insertedId,
+        ...announcement
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

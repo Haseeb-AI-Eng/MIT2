@@ -11,6 +11,7 @@ import { Projects } from './pages/Projects';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { MASGraduateProgram } from './pages/MASGraduateProgram';
 import { People } from './pages/People';
+import { AlumniFriends } from './pages/AlumniFriends';
 import { SupportMediaLab } from './pages/SupportMediaLab';
 import { AddResearchProject } from './pages/AddResearchProject';
 import { Apply } from './pages/Apply';
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/support-media-lab" element={<Layout><SupportMediaLab /></Layout>} />
         <Route path="/mas-graduate-program" element={<Layout><MASGraduateProgram /></Layout>} />
         <Route path="/people" element={<Layout><People /></Layout>} />
+        <Route path="/alumni-friends" element={<Layout><AlumniFriends /></Layout>} />
         <Route path="/add-research-project" element={<Layout><AddResearchProject /></Layout>} />
         <Route path="/apply" element={<Layout><Apply /></Layout>} />
         <Route path="/article/:id" element={<Layout><ArticleDetail /></Layout>} />
