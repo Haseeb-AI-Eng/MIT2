@@ -7,6 +7,7 @@ import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Research } from './pages/Research';
 import { ArticleDetail } from './pages/ArticleDetail';
+import { Foundations } from './pages/Foundations';
 import { Projects } from './pages/Projects';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { MASGraduateProgram } from './pages/MASGraduateProgram';
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/" element={<Layout><Home /></Layout>} />
         <Route path="/about" element={<Layout><About /></Layout>} />
         <Route path="/research" element={<Layout><Research /></Layout>} />
+        <Route path="/foundations" element={<Layout><Foundations /></Layout>} />
         <Route path="/projects" element={<Layout><Projects /></Layout>} />
         <Route path="/support-media-lab" element={<Layout><SupportMediaLab /></Layout>} />
         <Route path="/mas-graduate-program" element={<Layout><MASGraduateProgram /></Layout>} />

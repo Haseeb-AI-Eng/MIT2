@@ -91,7 +91,10 @@ export function Home() {
             <button className="rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10">
               Corporate membership
             </button>
-            <button className="rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10">
+            <button
+              onClick={() => navigate('/foundations')}
+              className="rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10"
+            >
               Foundations
             </button>
             <button

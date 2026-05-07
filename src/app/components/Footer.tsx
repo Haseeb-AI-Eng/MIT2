@@ -8,14 +8,12 @@ export function Footer() {
     'Research': '/research',
     'About': '/about',
     'Support the Media Lab': '/support-media-lab',
-    'MAS Graduate Program': '/mas-graduate-program',
+    'EL Graduate Program': '/mas-graduate-program',
     'People': '/people',
     'Events': '/',
-    'Videos': '/',
     'Member Portal': '/',
     'For Press + Media': '/',
     'Publications': '/',
-    'Job Opportunities': '/',
     'Contact': '/',
     'Accessibility': '/',
     'Donate to the Lab': '/support-media-lab'
@@ -37,13 +35,13 @@ export function Footer() {
             <span className="text-[56px] font-bold tracking-tight text-black" style={{ fontFamily: "'Courier New', monospace" }}>&gt; 40</span>
           </div>
           <nav className="flex flex-col gap-3">
-            {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'MAS Graduate Program', 'People', 'Events', 'Videos', 'Member Portal', 'For Press + Media'].map((link) => (
+            {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'EL Graduate Program', 'People', 'Events', 'Member Portal', 'For Press + Media'].map((link) => (
               <button key={link} onClick={() => handleNavigate(link)} className="text-left text-[14px] text-black/80 hover:text-black transition-colors cursor-pointer">{link}</button>
             ))}
           </nav>
           <div className="flex flex-col gap-3">
             <span className="text-[14px] font-semibold text-black/50 mb-1">More ways to explore</span>
-            {['Videos', 'Publications', 'Job Opportunities', 'Contact'].map((link) => (
+            {['Publications', 'Contact'].map((link) => (
               <button key={link} onClick={() => handleNavigate(link)} className="text-left text-[14px] text-black/80 hover:text-black transition-colors cursor-pointer">{link}</button>
             ))}
             <Link to="/add-research-project" className="text-[14px] text-black/80 hover:text-black transition-colors font-semibold">+ Add Research Project</Link>
@@ -61,7 +59,7 @@ export function Footer() {
             <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize="42" fontWeight="900" fill="currentColor" fontFamily="sans-serif" letterSpacing="1">EI</text>
           </svg>
           <div className="text-right lg:text-left">
-            <p className="text-[13px] text-black/70">Massachusetts Institute of Technology</p>
+            <p className="text-[13px] text-black/70">Elements Interactive Institute of Technology</p>
             <p className="text-[13px] text-black/70">School of Architecture + Planning</p>
           </div>
           <div className="flex flex-col gap-1">

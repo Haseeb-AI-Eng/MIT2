@@ -49,7 +49,7 @@ export function Sidebar() {
     'Research',
     'About',
     'Support the Media Lab',
-    'MAS Graduate Program',
+    'EL Graduate Program',
     'People',
     'Alumni + Friends',
     'Events',
@@ -62,7 +62,7 @@ export function Sidebar() {
     Projects: '/projects',
     About: '/about',
     'Support the Media Lab': '/support-media-lab',
-    'MAS Graduate Program': '/mas-graduate-program',
+    'EL Graduate Program': '/mas-graduate-program',
     People: '/people',
     'Alumni + Friends': '/alumni-friends',
     Events: '/',
@@ -83,7 +83,7 @@ export function Sidebar() {
     } else if (currentPath === '/support-media-lab') {
       setActiveSection('Support the Media Lab');
     } else if (currentPath === '/mas-graduate-program') {
-      setActiveSection('MAS Graduate Program');
+      setActiveSection('EL Graduate Program');
     } else if (currentPath === '/people') {
       setActiveSection('People');
     } else if (currentPath === '/alumni-friends') {

@@ -1,9 +1,15 @@
+import dns from 'dns';
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
 import axios from 'axios';
 import Parser from 'rss-parser';
 import { MongoClient } from 'mongodb';
 import cron from 'node-cron';
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/';
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  throw new Error('MONGO_URI environment variable is required');
+}
 const DB_NAME = process.env.DB_NAME || 'research';
 const COLLECTION_NAME = 'articles';
 

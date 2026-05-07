@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import dns from 'dns';
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
@@ -12,7 +15,7 @@ import { createServer } from 'net';
 const PORT = parseInt(process.env.PORT || '4000', 10);
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/';
 const DB_NAME = process.env.DB_NAME || 'research';
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey_change_me';
 
 const app = express();
 app.use(cors());
@@ -60,8 +63,8 @@ async function connectDB() {
   await announcementsCollection.createIndex({ createdAt: -1 });
 
   // Ensure default admin account exists
-  const defaultAdminEmail = 'haseebmine24@gmail.com';
-  const defaultAdminPassword = 'ADYALAROAD';
+  const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
+  const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'ChangeMe123!';
   const existingAdmin = await usersCollection.findOne({ email: defaultAdminEmail });
   const passwordHash = await bcrypt.hash(defaultAdminPassword, 10);
 
@@ -218,6 +221,11 @@ async function authenticate(req, res, next) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 }
+
+// Middleware to catch async errors
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
 
 function requireAdmin(req, res, next) {
   if (!req.user || req.user.role !== 'admin') {
