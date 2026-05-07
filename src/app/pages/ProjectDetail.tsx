@@ -255,19 +255,39 @@ export function ProjectDetail() {
             <button
               type="button"
               onClick={() => navigate('/research')}
-              className="w-full text-left rounded-3xl border border-black/10 bg-slate-100 p-4 transition hover:border-black/20 hover:bg-slate-200"
+              className="w-16 h-16 flex items-center justify-center"
+              title="Back to Research"
             >
-              <div className="flex items-center gap-4">
-                <ProjectIcon label={project.title || 'Research'} />
-                <div>
-                  <p className="text-[13px] uppercase tracking-[0.18em] text-black/40 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-                    Research section
-                  </p>
-                  <p className="text-[14px] font-semibold text-black" style={{ fontFamily: 'Georgia, serif' }}>
-                    Open the Research page
-                  </p>
-                </div>
-              </div>
+              {/* Main icon */}
+              <svg 
+                width="64" 
+                height="64" 
+                viewBox="0 0 64 64" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Outer square */}
+                <rect 
+                  x="8" 
+                  y="8" 
+                  width="48" 
+                  height="48"
+                  stroke="currentColor" 
+                  strokeWidth="5" 
+                  className="text-black"
+                />
+                
+                {/* Inner square */}
+                <rect 
+                  x="22" 
+                  y="22" 
+                  width="20" 
+                  height="20"
+                  stroke="currentColor" 
+                  strokeWidth="5"
+                  className="text-black"
+                />
+              </svg>
             </button>
           </div>
         </aside>

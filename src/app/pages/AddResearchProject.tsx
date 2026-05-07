@@ -95,6 +95,21 @@ export function AddResearchProject() {
     }
   };
 
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setFormData({
+          ...formData,
+          videoUrl: result,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleTeamMemberChange = (index: number, field: 'name' | 'role', value: string) => {
     const newMembers = [...formData.teamMembers];
     newMembers[index] = { ...newMembers[index], [field]: value };
@@ -179,17 +194,34 @@ export function AddResearchProject() {
               </div>
 
               <div>
-                <label htmlFor="videoUrl" className="block text-sm font-medium mb-2">
-                  Project Video URL (Direct MP4 link)
+                <label htmlFor="videoUpload" className="block text-sm font-medium mb-2">
+                  Project Video
                 </label>
-                <Input
-                  id="videoUrl"
-                  name="videoUrl"
-                  value={formData.videoUrl}
-                  onChange={handleChange}
-                  placeholder="https://example.com/video.mp4"
-                  className="w-full"
-                />
+                <div className="space-y-3">
+                  <Input
+                    id="videoUpload"
+                    type="file"
+                    accept="video/*"
+                    onChange={handleVideoUpload}
+                    className="w-full"
+                  />
+                  <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                    <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Current Video Status:</p>
+                    {formData.videoUrl.startsWith('data:') ? (
+                      <div className="space-y-2">
+                        <video className="w-full max-h-48 rounded bg-black" controls key={formData.videoUrl}>
+                          <source src={formData.videoUrl} />
+                        </video>
+                        <p className="text-[11px] text-blue-600 font-medium">✓ Custom video uploaded from system</p>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600 truncate mr-2">{formData.videoUrl}</span>
+                        <span className="text-[10px] bg-gray-200 px-2 py-0.5 rounded text-gray-600 uppercase font-bold tracking-tighter">Default</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

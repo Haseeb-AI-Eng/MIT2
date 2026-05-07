@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('News + Updates');
   const [topOffset, setTopOffset] = useState('55vh');
 
@@ -52,7 +53,6 @@ export function Sidebar() {
     'People',
     'Alumni + Friends',
     'Events',
-    'Videos',
     'For Press + Media'
   ];
 
@@ -66,9 +66,30 @@ export function Sidebar() {
     People: '/people',
     'Alumni + Friends': '/alumni-friends',
     Events: '/',
-    Videos: '/',
     'For Press + Media': '/',
   };
+
+  // Update active section based on current route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    
+    // Determine which section should be active based on current path
+    if (currentPath === '/') {
+      setActiveSection('News + Updates');
+    } else if (currentPath.startsWith('/research') || currentPath.startsWith('/projects')) {
+      setActiveSection('Research');
+    } else if (currentPath === '/about') {
+      setActiveSection('About');
+    } else if (currentPath === '/support-media-lab') {
+      setActiveSection('Support the Media Lab');
+    } else if (currentPath === '/mas-graduate-program') {
+      setActiveSection('MAS Graduate Program');
+    } else if (currentPath === '/people') {
+      setActiveSection('People');
+    } else if (currentPath === '/alumni-friends') {
+      setActiveSection('Alumni + Friends');
+    }
+  }, [location.pathname]);
 
   return (
     <aside
