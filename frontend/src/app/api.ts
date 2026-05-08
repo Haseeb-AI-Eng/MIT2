@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev/api').replace(/\/api\/api/, '/api').replace(/\/$/, '');
+const API_BASE = 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev/api';
 
 export const getApiUrl = () => API_BASE;
 
@@ -79,3 +79,4 @@ export async function submitMasApplication(payload: Record<string, unknown>) {
   if (!res.ok) throw new Error(data.error || 'Failed to submit application');
   return data;
 }
+
