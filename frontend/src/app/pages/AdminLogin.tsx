@@ -4,7 +4,6 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { AlertCircle } from 'lucide-react';
-import { getApiUrl } from '../api';
 
 export function AdminLogin() {
   const navigate = useNavigate();
@@ -32,7 +31,7 @@ export function AdminLogin() {
     }
 
     try {
-      const response = await fetch(`${getApiUrl()}/auth/login`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev'}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,15 +41,18 @@ export function AdminLogin() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        // If 401, it's usually wrong email/password or role issues
         throw new Error(errorData.error || 'Invalid email or password');
       }
 
       const data = await response.json();
-
+      
+      // Check if user is admin
       if (data.user.role !== 'admin') {
         throw new Error('Only admins can access the admin panel');
       }
 
+      // Store token and user info
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
@@ -65,6 +67,7 @@ export function AdminLogin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
+        {/* Branding */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-3">
@@ -89,6 +92,7 @@ export function AdminLogin() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5 bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+          {/* Email */}
           <div>
             <Label htmlFor="email" className="text-gray-900 font-semibold block mb-2">
               Email Address
@@ -105,6 +109,7 @@ export function AdminLogin() {
             />
           </div>
 
+          {/* Password */}
           <div>
             <Label htmlFor="password" className="text-gray-900 font-semibold block mb-2">
               Password
@@ -121,6 +126,7 @@ export function AdminLogin() {
             />
           </div>
 
+          {/* Submit Button */}
           <Button
             type="submit"
             disabled={loading}
