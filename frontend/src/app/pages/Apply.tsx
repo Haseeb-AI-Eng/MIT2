@@ -4,7 +4,7 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { fetchPublishedProjects } from '../api';
+import { fetchPublishedProjects, getApiUrl } from '../api';
 
 export function Apply() {
   const [loading, setLoading] = useState(false);
@@ -66,14 +66,15 @@ export function Apply() {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev'}/api/form-submissions`, {
+      const response = await fetch(`${getApiUrl()}/form-submissions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error || 'Failed to submit form');
       }
 
@@ -87,11 +88,18 @@ export function Apply() {
 
       setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  const clearForm = () => setFormData({
+    name: '', email: '', phone: '', id: '',
+    university: '', program: '', qualifications: '',
+    experience: '', motivation: '', otherInfo: '',
+    projectId: ''
+  });
 
   if (submitted) {
     return (
@@ -133,175 +141,170 @@ export function Apply() {
 
           <form onSubmit={handleSubmit} className="space-y-8 bg-white/90 backdrop-blur-sm rounded-lg border border-gray-200 p-8 shadow-sm">
 
-          {/* Personal Information */}
-          <div>
-            <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Personal Information</h2>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name" className="text-black font-medium">
-                  Full Name <span className="text-gray-400">*</span>
-                </Label>
-                <Input
-                  id="name" name="name" value={formData.name}
-                  onChange={handleChange} placeholder="Enter your full name"
-                  required className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email" className="text-black font-medium">
-                  Email Address <span className="text-gray-400">*</span>
-                </Label>
-                <Input
-                  id="email" name="email" type="email" value={formData.email}
-                  onChange={handleChange} placeholder="your.email@example.com"
-                  required className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone" className="text-black font-medium">
-                  Phone Number <span className="text-gray-400">*</span>
-                </Label>
-                <Input
-                  id="phone" name="phone" value={formData.phone}
-                  onChange={handleChange} placeholder="+1 (555) 123-4567"
-                  required className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="id" className="text-black font-medium">
-                  ID/Passport Number <span className="text-gray-400">*</span>
-                </Label>
-                <Input
-                  id="id" name="id" value={formData.id}
-                  onChange={handleChange} placeholder="Your ID or passport number"
-                  required className="mt-2"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Project Selection */}
-          <div>
-            <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Research Interest</h2>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="projectId" className="text-black font-medium">Research Project Selection</Label>
-                <select
-                  id="projectId" name="projectId" value={formData.projectId}
-                  onChange={handleChange}
-                  className="mt-2 flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">Select a research project (Optional)</option>
-                  {projects.map((project) => (
-                    <option key={project._id} value={project._id}>
-                      {project.title}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-black/50 mt-2">Selecting a project helps us route your application to the right research lead.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Education */}
-          <div>
-            <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Education</h2>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="university" className="text-black font-medium">Current/Previous University</Label>
-                <Input
-                  id="university" name="university" value={formData.university}
-                  onChange={handleChange} placeholder="University name"
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="program" className="text-black font-medium">Program/Degree</Label>
-                <Input
-                  id="program" name="program" value={formData.program}
-                  onChange={handleChange} placeholder="e.g., Bachelor of Science in Computer Science"
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="qualifications" className="text-black font-medium">Qualifications &amp; Skills</Label>
-                <Textarea
-                  id="qualifications" name="qualifications" value={formData.qualifications}
-                  onChange={handleChange}
-                  placeholder="Describe your relevant qualifications, skills, and achievements"
-                  className="mt-2 min-h-24"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Experience */}
-          <div>
-            <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Experience</h2>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="experience" className="text-black font-medium">Professional/Research Experience</Label>
-                <Textarea
-                  id="experience" name="experience" value={formData.experience}
-                  onChange={handleChange}
-                  placeholder="Describe your work experience, internships, research projects, etc."
-                  className="mt-2 min-h-24"
-                />
-              </div>
-              <div>
-                <Label htmlFor="motivation" className="text-black font-medium">Motivation &amp; Interest</Label>
-                <Textarea
-                  id="motivation" name="motivation" value={formData.motivation}
-                  onChange={handleChange}
-                  placeholder="Tell us why you're interested in EI Arts and Sciences and what you hope to achieve"
-                  className="mt-2 min-h-24"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Additional */}
-          <div>
-            <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Additional Information</h2>
+            {/* Personal Information */}
             <div>
-              <Label htmlFor="otherInfo" className="text-black font-medium">Other Information</Label>
-              <Textarea
-                id="otherInfo" name="otherInfo" value={formData.otherInfo}
-                onChange={handleChange}
-                placeholder="Any other information you'd like us to know about you"
-                className="mt-2 min-h-20"
-              />
+              <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Personal Information</h2>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name" className="text-black font-medium">
+                    Full Name <span className="text-gray-400">*</span>
+                  </Label>
+                  <Input
+                    id="name" name="name" value={formData.name}
+                    onChange={handleChange} placeholder="Enter your full name"
+                    required className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email" className="text-black font-medium">
+                    Email Address <span className="text-gray-400">*</span>
+                  </Label>
+                  <Input
+                    id="email" name="email" type="email" value={formData.email}
+                    onChange={handleChange} placeholder="your.email@example.com"
+                    required className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone" className="text-black font-medium">
+                    Phone Number <span className="text-gray-400">*</span>
+                  </Label>
+                  <Input
+                    id="phone" name="phone" value={formData.phone}
+                    onChange={handleChange} placeholder="+1 (555) 123-4567"
+                    required className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="id" className="text-black font-medium">
+                    ID/Passport Number <span className="text-gray-400">*</span>
+                  </Label>
+                  <Input
+                    id="id" name="id" value={formData.id}
+                    onChange={handleChange} placeholder="Your ID or passport number"
+                    required className="mt-2"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Submit */}
-          <div className="flex gap-4 pt-2">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-black hover:bg-gray-900 text-white px-8 py-3 font-semibold"
-            >
-              {loading ? 'Submitting...' : 'Submit Application'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-gray-300 text-black hover:bg-gray-50"
-              onClick={() => setFormData({
-                name: '', email: '', phone: '', id: '',
-                university: '', program: '', qualifications: '',
-                experience: '', motivation: '', otherInfo: '',
-                projectId: ''
-              })}
-            >
-              Clear
-            </Button>
-          </div>
+            {/* Project Selection */}
+            <div>
+              <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Research Interest</h2>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="projectId" className="text-black font-medium">Research Project Selection</Label>
+                  <select
+                    id="projectId" name="projectId" value={formData.projectId}
+                    onChange={handleChange}
+                    className="mt-2 flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Select a research project (Optional)</option>
+                    {projects.map((project) => (
+                      <option key={project._id} value={project._id}>
+                        {project.title}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-black/50 mt-2">Selecting a project helps us route your application to the right research lead.</p>
+                </div>
+              </div>
+            </div>
 
-          <p className="text-sm text-black/50">
-            <span className="text-gray-500">*</span> Required fields
-          </p>
-        </form>
+            {/* Education */}
+            <div>
+              <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Education</h2>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="university" className="text-black font-medium">Current/Previous University</Label>
+                  <Input
+                    id="university" name="university" value={formData.university}
+                    onChange={handleChange} placeholder="University name"
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="program" className="text-black font-medium">Program/Degree</Label>
+                  <Input
+                    id="program" name="program" value={formData.program}
+                    onChange={handleChange} placeholder="e.g., Bachelor of Science in Computer Science"
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="qualifications" className="text-black font-medium">Qualifications &amp; Skills</Label>
+                  <Textarea
+                    id="qualifications" name="qualifications" value={formData.qualifications}
+                    onChange={handleChange}
+                    placeholder="Describe your relevant qualifications, skills, and achievements"
+                    className="mt-2 min-h-24"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Experience */}
+            <div>
+              <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Experience</h2>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="experience" className="text-black font-medium">Professional/Research Experience</Label>
+                  <Textarea
+                    id="experience" name="experience" value={formData.experience}
+                    onChange={handleChange}
+                    placeholder="Describe your work experience, internships, research projects, etc."
+                    className="mt-2 min-h-24"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="motivation" className="text-black font-medium">Motivation &amp; Interest</Label>
+                  <Textarea
+                    id="motivation" name="motivation" value={formData.motivation}
+                    onChange={handleChange}
+                    placeholder="Tell us why you're interested in EI Arts and Sciences and what you hope to achieve"
+                    className="mt-2 min-h-24"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional */}
+            <div>
+              <h2 className="text-xl font-semibold text-black mb-4 pb-2 border-b border-gray-100">Additional Information</h2>
+              <div>
+                <Label htmlFor="otherInfo" className="text-black font-medium">Other Information</Label>
+                <Textarea
+                  id="otherInfo" name="otherInfo" value={formData.otherInfo}
+                  onChange={handleChange}
+                  placeholder="Any other information you'd like us to know about you"
+                  className="mt-2 min-h-20"
+                />
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className="flex gap-4 pt-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-black hover:bg-gray-900 text-white px-8 py-3 font-semibold"
+              >
+                {loading ? 'Submitting...' : 'Submit Application'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-gray-300 text-black hover:bg-gray-50"
+                onClick={clearForm}
+              >
+                Clear
+              </Button>
+            </div>
+
+            <p className="text-sm text-black/50">
+              <span className="text-gray-500">*</span> Required fields
+            </p>
+          </form>
         </div>
       </div>
     </div>
