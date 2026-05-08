@@ -46,7 +46,7 @@ export function AdminSignup() {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/register`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev'}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

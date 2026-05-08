@@ -85,7 +85,7 @@ export function AdminDashboard() {
       });
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/form-submissions?${params}`,
+        `${import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev'}/api/form-submissions?${params}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -118,7 +118,7 @@ export function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/form-submissions-stats`,
+        `${import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev'}/api/form-submissions-stats`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -146,7 +146,7 @@ export function AdminDashboard() {
   const handleStatusChange = async (submissionId: string, newStatus: string) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/form-submissions/${submissionId}`,
+        `${import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev'}/api/form-submissions/${submissionId}`,
         {
           method: 'PUT',
           headers: {
@@ -193,7 +193,7 @@ export function AdminDashboard() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/form-submissions/${submissionToDelete}`,
+        `${import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev'}/api/form-submissions/${submissionToDelete}`,
         {
           method: 'DELETE',
           headers: {

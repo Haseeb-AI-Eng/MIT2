@@ -32,7 +32,7 @@ export default defineConfig({
     allowedHosts: ['unculturable-terresa-ineloquent.ngrok-free.dev'],
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev',
         changeOrigin: true,
       },
     },
