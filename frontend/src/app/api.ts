@@ -1,4 +1,6 @@
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+export const getApiUrl = () => API_BASE;
 
 export async function fetchLatestArticles(limit = 20) {
   const res = await fetch(`${API_BASE}/articles/latest?limit=${limit}`);
