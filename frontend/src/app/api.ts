@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev';
 
 export const getApiUrl = () => API_BASE;
 
