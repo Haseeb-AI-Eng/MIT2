@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { AlertCircle } from 'lucide-react';
+import { getApiUrl } from '../api';
 
 export function AdminSignup() {
   const navigate = useNavigate();
@@ -26,7 +27,6 @@ export function AdminSignup() {
     setLoading(true);
     setError('');
 
-    // Validation
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all fields');
       setLoading(false);
@@ -46,7 +46,7 @@ export function AdminSignup() {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev'}/api/auth/register`, {
+      const response = await fetch(`${getApiUrl()}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,16 +65,13 @@ export function AdminSignup() {
 
       const data = await response.json();
 
-      // Critical check: Ensure the first user actually got the admin role
       if (data.user.role !== 'admin') {
         throw new Error('An admin already exists. Only the first registered user is granted admin privileges.');
       }
 
-      // Store token and user info
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Redirect to admin dashboard
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -86,7 +83,6 @@ export function AdminSignup() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Branding */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-3">
@@ -111,7 +107,6 @@ export function AdminSignup() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5 bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
-          {/* Name */}
           <div>
             <Label htmlFor="name" className="text-gray-900 font-semibold block mb-2">
               Full Name
@@ -127,7 +122,6 @@ export function AdminSignup() {
             />
           </div>
 
-          {/* Email */}
           <div>
             <Label htmlFor="email" className="text-gray-900 font-semibold block mb-2">
               Email Address
@@ -144,7 +138,6 @@ export function AdminSignup() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <Label htmlFor="password" className="text-gray-900 font-semibold block mb-2">
               Password
@@ -161,7 +154,6 @@ export function AdminSignup() {
             />
           </div>
 
-          {/* Confirm Password */}
           <div>
             <Label htmlFor="confirmPassword" className="text-gray-900 font-semibold block mb-2">
               Confirm Password
@@ -178,7 +170,6 @@ export function AdminSignup() {
             />
           </div>
 
-          {/* Submit Button */}
           <Button
             type="submit"
             disabled={loading}
