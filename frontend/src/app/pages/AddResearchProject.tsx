@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { X } from 'lucide-react';
+import { getApiUrl } from '../api';
 
 export function AddResearchProject() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export function AddResearchProject() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.image) {
       alert('Please upload a project image.');
       return;
@@ -33,10 +34,10 @@ export function AddResearchProject() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/projects', {
+      const response = await fetch(`${getApiUrl()}/projects`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           title: formData.title,
@@ -47,7 +48,7 @@ export function AddResearchProject() {
           lead: formData.lead,
           email: formData.email,
           videoUrl: formData.videoUrl,
-          teamMembers: formData.teamMembers.filter(m => m.name.trim()) // Send collected team members
+          teamMembers: formData.teamMembers.filter((m) => m.name.trim()),
         }),
       });
 
@@ -58,12 +59,13 @@ export function AddResearchProject() {
           const errData = await response.json();
           errorMessage = errData.error || errorMessage;
         } else {
-          errorMessage = `Server Error (${response.status}): ${response.statusText}. The image might be too large or the server is unavailable.`;
+          errorMessage = `Server Error (${response.status}): ${response.statusText}. Please try again.`;
         }
         throw new Error(errorMessage);
       }
 
       alert('Research project added and published successfully!');
+      navigate(-1);
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'An error occurred. Make sure you are logged in.');
@@ -72,7 +74,9 @@ export function AddResearchProject() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -82,6 +86,12 @@ export function AddResearchProject() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Limit image to 2MB to avoid payload too large errors
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Image is too large. Please upload an image under 2MB.');
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -98,6 +108,12 @@ export function AddResearchProject() {
   const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Limit video to 20MB
+      if (file.size > 20 * 1024 * 1024) {
+        alert('Video is too large. Please upload a video under 20MB.');
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -155,246 +171,256 @@ export function AddResearchProject() {
       </section>
 
       <main className="lg:ml-80 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
-      <div className="mb-12">
-        <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">New Project Form</p>
-      </div>
+        <div className="mb-12">
+          <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">New Project Form</p>
+        </div>
 
-      <Card className="p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium mb-2">
-                  Project Title *
-                </label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="Enter project title"
-                  required
-                  className="w-full"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium mb-2">
-                  Description *
-                </label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Describe your research project"
-                  required
-                  className="w-full min-h-[150px]"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="videoUpload" className="block text-sm font-medium mb-2">
-                  Project Video
-                </label>
-                <div className="space-y-3">
+        <Card className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div>
+                  <label htmlFor="title" className="block text-sm font-medium mb-2">
+                    Project Title *
+                  </label>
                   <Input
-                    id="videoUpload"
-                    type="file"
-                    accept="video/*"
-                    onChange={handleVideoUpload}
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="Enter project title"
+                    required
                     className="w-full"
                   />
-                  <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
-                    <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Current Video Status:</p>
-                    {formData.videoUrl.startsWith('data:') ? (
-                      <div className="space-y-2">
-                        <video className="w-full max-h-48 rounded bg-black" controls key={formData.videoUrl}>
-                          <source src={formData.videoUrl} />
-                        </video>
-                        <p className="text-[11px] text-blue-600 font-medium">✓ Custom video uploaded from system</p>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600 truncate mr-2">{formData.videoUrl}</span>
-                        <span className="text-[10px] bg-gray-200 px-2 py-0.5 rounded text-gray-600 uppercase font-bold tracking-tighter">Default</span>
-                      </div>
-                    )}
+                </div>
+
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium mb-2">
+                    Description *
+                  </label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Describe your research project"
+                    required
+                    className="w-full min-h-[150px]"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="videoUpload" className="block text-sm font-medium mb-2">
+                    Project Video <span className="text-gray-400 font-normal">(max 20MB)</span>
+                  </label>
+                  <div className="space-y-3">
+                    <Input
+                      id="videoUpload"
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      className="w-full"
+                    />
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">
+                        Current Video Status:
+                      </p>
+                      {formData.videoUrl.startsWith('data:') ? (
+                        <div className="space-y-2">
+                          <video
+                            className="w-full max-h-48 rounded bg-black"
+                            controls
+                            key={formData.videoUrl}
+                          >
+                            <source src={formData.videoUrl} />
+                          </video>
+                          <p className="text-[11px] text-blue-600 font-medium">
+                            ✓ Custom video uploaded from system
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-600 truncate mr-2">{formData.videoUrl}</span>
+                          <span className="text-[10px] bg-gray-200 px-2 py-0.5 rounded text-gray-600 uppercase font-bold tracking-tighter">
+                            Default
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="category" className="block text-sm font-medium mb-2">
+                      Category *
+                    </label>
+                    <select
+                      id="category"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select a category</option>
+                      <option value="AI">AI & Machine Learning</option>
+                      <option value="HCI">Human-Computer Interaction</option>
+                      <option value="Media">Media Technology</option>
+                      <option value="Biology">Synthetic Biology</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="status" className="block text-sm font-medium mb-2">
+                      Status
+                    </label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="published">Published</option>
+                      <option value="review">Under Review</option>
+                      <option value="draft">Draft</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="lead" className="block text-sm font-medium mb-2">
+                      Project Lead *
+                    </label>
+                    <Input
+                      id="lead"
+                      name="lead"
+                      value={formData.lead}
+                      onChange={handleChange}
+                      placeholder="Your name"
+                      required
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium mb-2">
+                      Lead Email *
+                    </label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="your.email@mit.edu"
+                      required
+                      className="w-full"
+                    />
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="lg:col-span-1">
                 <div>
-                  <label htmlFor="category" className="block text-sm font-medium mb-2">
-                    Category *
+                  <label htmlFor="image" className="block text-sm font-medium mb-2">
+                    Project Image * <span className="text-gray-400 font-normal">(max 2MB)</span>
                   </label>
-                  <select
-                    id="category"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select a category</option>
-                    <option value="AI">AI & Machine Learning</option>
-                    <option value="HCI">Human-Computer Interaction</option>
-                    <option value="Media">Media Technology</option>
-                    <option value="Biology">Synthetic Biology</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="status" className="block text-sm font-medium mb-2">
-                    Status
-                  </label>
-                  <select
-                    id="status"
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="published">Published</option>
-                    <option value="review">Under Review</option>
-                    <option value="draft">Draft</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="lead" className="block text-sm font-medium mb-2">
-                    Project Lead *
-                  </label>
-                  <Input
-                    id="lead"
-                    name="lead"
-                    value={formData.lead}
-                    onChange={handleChange}
-                    placeholder="Your name"
-                    required
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">
-                    Lead Email *
-                  </label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="your.email@mit.edu"
-                    required
-                    className="w-full"
-                  />
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-gray-400 transition">
+                    <input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <label htmlFor="image" className="cursor-pointer block">
+                      {imagePreview ? (
+                        <div className="space-y-2">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                          <p className="text-xs text-gray-500">Click to change image</p>
+                        </div>
+                      ) : (
+                        <div className="py-8">
+                          <p className="text-sm font-medium text-gray-700">Upload image</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG or GIF (max 2MB)</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="lg:col-span-1">
-              <div>
-                <label htmlFor="image" className="block text-sm font-medium mb-2">
-                  Project Image *
+            <div className="border-t pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <label className="block text-sm font-medium">
+                  Team Members ({formData.teamMembers.length})
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-gray-400 transition">
-                  <input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  <label htmlFor="image" className="cursor-pointer block">
-                    {imagePreview ? (
-                      <div className="space-y-2">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                        <p className="text-xs text-gray-500">Click to change image</p>
-                      </div>
-                    ) : (
-                      <div className="py-8">
-                        <p className="text-sm font-medium text-gray-700">Upload image</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG or GIF (max 5MB)</p>
-                      </div>
+                <Button
+                  type="button"
+                  onClick={addTeamMember}
+                  className="bg-blue-600 text-white hover:bg-blue-700 text-sm"
+                >
+                  + Add Member
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {formData.teamMembers.map((member, index) => (
+                  <div key={index} className="flex gap-3 items-end">
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                      <Input
+                        value={member.name}
+                        onChange={(e) => handleTeamMemberChange(index, 'name', e.target.value)}
+                        placeholder="Team member name"
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Role</label>
+                      <Input
+                        value={member.role}
+                        onChange={(e) => handleTeamMemberChange(index, 'role', e.target.value)}
+                        placeholder="e.g., Researcher, Designer"
+                        className="w-full"
+                      />
+                    </div>
+                    {formData.teamMembers.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeTeamMember(index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-md transition"
+                      >
+                        <X size={20} />
+                      </button>
                     )}
-                  </label>
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
 
-          <div className="border-t pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <label className="block text-sm font-medium">
-                Team Members ({formData.teamMembers.length})
-              </label>
+            <div className="flex gap-4 pt-4">
               <Button
-                type="button"
-                onClick={addTeamMember}
-                className="bg-blue-600 text-white hover:bg-blue-700 text-sm"
+                type="submit"
+                disabled={loading}
+                className="bg-black text-white hover:bg-gray-800"
               >
-                + Add Member
+                {loading ? 'Submitting...' : 'Submit Research Project'}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => window.history.back()}>
+                Cancel
               </Button>
             </div>
-
-            <div className="space-y-4">
-              {formData.teamMembers.map((member, index) => (
-                <div key={index} className="flex gap-3 items-end">
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Name
-                    </label>
-                    <Input
-                      value={member.name}
-                      onChange={(e) => handleTeamMemberChange(index, 'name', e.target.value)}
-                      placeholder="Team member name"
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Role
-                    </label>
-                    <Input
-                      value={member.role}
-                      onChange={(e) => handleTeamMemberChange(index, 'role', e.target.value)}
-                      placeholder="e.g., Researcher, Designer"
-                      className="w-full"
-                    />
-                  </div>
-                  {formData.teamMembers.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeTeamMember(index)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-md transition"
-                    >
-                      <X size={20} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-4 pt-4">
-            <Button type="submit" disabled={loading} className="bg-black text-white hover:bg-gray-800">
-              {loading ? 'Submitting...' : 'Submit Research Project'}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => window.history.back()}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </Card>
+          </form>
+        </Card>
       </main>
     </div>
   );
