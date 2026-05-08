@@ -382,15 +382,19 @@ app.get('/api/projects', async (req, res) => {
       filter.$text = { $search: q };
     }
 
-    const total = await projectsCollection.countDocuments(filter);
     const projects = await projectsCollection
       .find(filter)
+      .project({ description: 1, title: 1, coverImage: 1, cover_image: 1, slug: 1, tags: 1, createdAt: 1, status: 1, featured: 1, _id: 1 })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit)
+      .limit(limit + 1)
       .toArray();
 
-    res.json({ projects, total, page, totalPages: Math.ceil(total / limit) });
+    const total = await projectsCollection.countDocuments(filter);
+    const hasMore = projects.length > limit;
+    const projectList = hasMore ? projects.slice(0, limit) : projects;
+
+    res.json({ projects: projectList, total, page, totalPages: Math.ceil(total / limit) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

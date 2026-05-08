@@ -12,7 +12,7 @@
 ## Step 1: Start the Backend Server
 
 ```bash
-cd project/backend
+cd backend
 npm install  # Only needed first time
 npm run dev
 ```
@@ -30,7 +30,8 @@ Expected output:
 In a new terminal:
 
 ```bash
-cd project
+cd frontend
+npm install  # Only needed first time
 npm run dev
 ```
 

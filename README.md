@@ -100,12 +100,16 @@ project/
 │   ├── styles/
 │   │   └── index.css           # Global styles & Tailwind imports
 │   └── main.tsx                # Application entry point
-├── public/                 # Static assets
-├── index.html              # HTML template
-├── vite.config.ts          # Vite configuration
-├── postcss.config.mjs      # PostCSS configuration
-├── tailwind.config         # Tailwind configuration
-├── package.json            # Dependencies & scripts
+├── frontend/
+│   ├── public/             # Static assets
+│   ├── index.html          # HTML template
+│   ├── vite.config.ts      # Vite configuration
+│   ├── postcss.config.mjs  # PostCSS configuration
+│   ├── tailwind.config     # Tailwind configuration
+│   ├── package.json        # Frontend dependencies & scripts
+│   └── src/                # React app source files
+├── backend/
+│   └── package.json        # Backend dependencies & scripts
 └── README.md               # This file
 ```
 >>>>>>> 471c3bdcb0025b35bd8e026b5312943bec485459
@@ -141,7 +145,7 @@ PORT=5000 npm start
 ### 2. Start the Frontend
 
 ```bash
-# From project root
+cd frontend
 npm install
 npm run dev
 ```
