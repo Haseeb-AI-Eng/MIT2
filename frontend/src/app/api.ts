@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev/api';
 
 export const getApiUrl = () => API_BASE;
 
@@ -30,12 +30,15 @@ export async function searchArticles(query: string) {
 
 export async function triggerScrape() {
   const res = await fetch(`${API_BASE}/scrape`, { method: 'POST' });
+  if (!res.ok) throw new Error('Scrape failed');
   return res.json();
 }
 
 export async function fetchStats() {
   const res = await fetch(`${API_BASE}/stats`);
-  return res.json();
+  if (!res.ok) return { totalArticles: 0, lastScrape: null };
+  const data = await res.json();
+  return data;
 }
 
 export async function fetchAllArticles() {
