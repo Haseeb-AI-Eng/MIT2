@@ -1,9 +1,4 @@
-const getBaseUrl = () => {
-  const url = import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev';
-  return url.endsWith('/api') ? url : `${url.replace(/\/$/, '')}/api`;
-};
-
-const API_BASE = getBaseUrl();
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://5bc7c866-b21d-4da5-9995-61354fcbe425-00-38w7zdn4lxnur.pike.replit.dev/api').replace(/\/api\/api/, '/api').replace(/\/$/, '');
 
 export const getApiUrl = () => API_BASE;
 
