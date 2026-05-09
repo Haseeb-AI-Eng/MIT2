@@ -1,8 +1,9 @@
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
+import { NavSidebar } from './components/NavSidebar';
 import { Footer } from './components/Footer';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Research } from './pages/Research';
@@ -29,10 +30,10 @@ function ScrollToTop() {
   return null;
 }
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout({ children, onMenuClick }: { children: React.ReactNode; onMenuClick: () => void }) {
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <Header onMenuClick={onMenuClick} />
       <Sidebar />
       {children}
       <Footer />
@@ -40,10 +41,10 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LayoutNoSidebar({ children }: { children: React.ReactNode }) {
+function LayoutNoSidebar({ children, onMenuClick }: { children: React.ReactNode; onMenuClick: () => void }) {
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <Header onMenuClick={onMenuClick} />
       {children}
       <Footer />
     </div>
@@ -51,23 +52,26 @@ function LayoutNoSidebar({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
   return (
     <>
       <ScrollToTop />
+      <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
       <Routes>
-        <Route path="/" element={<Layout><Home /></Layout>} />
-        <Route path="/about" element={<Layout><About /></Layout>} />
-        <Route path="/research" element={<Layout><Research /></Layout>} />
-        <Route path="/foundations" element={<Layout><Foundations /></Layout>} />
-        <Route path="/projects" element={<Layout><Projects /></Layout>} />
-        <Route path="/support-media-lab" element={<Layout><SupportMediaLab /></Layout>} />
-        <Route path="/mas-graduate-program" element={<Layout><MASGraduateProgram /></Layout>} />
-        <Route path="/people" element={<Layout><People /></Layout>} />
-        <Route path="/alumni-friends" element={<Layout><AlumniFriends /></Layout>} />
-        <Route path="/add-research-project" element={<Layout><AddResearchProject /></Layout>} />
-        <Route path="/apply" element={<Layout><Apply /></Layout>} />
-        <Route path="/article/:id" element={<Layout><ArticleDetail /></Layout>} />
-        <Route path="/projects/:id" element={<LayoutNoSidebar><ProjectDetail /></LayoutNoSidebar>} />
+        <Route path="/" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Home /></Layout>} />
+        <Route path="/about" element={<Layout onMenuClick={() => setIsNavOpen(true)}><About /></Layout>} />
+        <Route path="/research" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Research /></Layout>} />
+        <Route path="/foundations" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Foundations /></Layout>} />
+        <Route path="/projects" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Projects /></Layout>} />
+        <Route path="/support-media-lab" element={<Layout onMenuClick={() => setIsNavOpen(true)}><SupportMediaLab /></Layout>} />
+        <Route path="/mas-graduate-program" element={<Layout onMenuClick={() => setIsNavOpen(true)}><MASGraduateProgram /></Layout>} />
+        <Route path="/people" element={<Layout onMenuClick={() => setIsNavOpen(true)}><People /></Layout>} />
+        <Route path="/alumni-friends" element={<Layout onMenuClick={() => setIsNavOpen(true)}><AlumniFriends /></Layout>} />
+        <Route path="/add-research-project" element={<Layout onMenuClick={() => setIsNavOpen(true)}><AddResearchProject /></Layout>} />
+        <Route path="/apply" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Apply /></Layout>} />
+        <Route path="/article/:id" element={<Layout onMenuClick={() => setIsNavOpen(true)}><ArticleDetail /></Layout>} />
+        <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={() => setIsNavOpen(true)}><ProjectDetail /></LayoutNoSidebar>} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />

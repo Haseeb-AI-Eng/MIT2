@@ -3,7 +3,11 @@ import { Search, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SearchPanel } from './SearchPanel';
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -54,7 +58,10 @@ export function Header() {
             >
               <Search className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
             </button>
-            <button className={`p-2 md:p-2.5 rounded-full transition-colors ${isScrolled ? 'hover:bg-black/5 text-black' : 'hover:bg-white/10 text-white'}`}>
+            <button 
+              onClick={onMenuClick}
+              className={`p-2 md:p-2.5 rounded-full transition-colors ${isScrolled ? 'hover:bg-black/5 text-black' : 'hover:bg-white/10 text-white'}`}
+            >
               <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
             </button>
             <svg width={isScrolled ? '32' : '40'} height={isScrolled ? '32' : '40'} viewBox="0 0 80 50" className={`transition-all duration-300 hidden md:block ${isScrolled ? 'text-black' : 'text-white'}`}>
