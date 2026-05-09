@@ -11,5 +11,8 @@
     "build": "pnpm --dir frontend build",
     "start:backend": "pnpm --dir backend start",
     "dev:backend": "pnpm --dir backend dev"
+  },
+  "devDependencies": {
+    "terser": "^5.47.1"
   }
 }
