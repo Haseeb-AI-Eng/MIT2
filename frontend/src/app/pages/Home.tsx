@@ -27,12 +27,15 @@ export function Home() {
   return (
     <div>
       <section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 will-change-auto">
-          <img
-            src="/image.gif"
-            alt=""
+        <div className="absolute inset-0">
+          <video
+            src="/robotic.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
             className="w-full h-full object-cover opacity-60"
-            loading="eager"
+            style={{ filter: 'grayscale(100%)' }}
           />
         </div>
         <motion.h1
