@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import dns from 'dns';
-dns.setServers(['8.8.8.8', '1.1.1.1']);
+if (process.env.NODE_ENV !== 'production') {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+}
 
 import express from 'express';
 import cors from 'cors';
@@ -1517,12 +1519,15 @@ async function start() {
     console.log(`   Update VITE_API_URL in your frontend .env to: http://localhost:${availablePort}\n`);
   }
 
-  app.listen(availablePort, () => {
-    console.log(`🚀 Backend running on http://localhost:${availablePort}`);
-    console.log(`   API:     http://localhost:${availablePort}/api/articles`);
-    console.log(`   Search:  http://localhost:${availablePort}/api/search?q=robotics`);
-    console.log(`   POST http://localhost:${availablePort}/api/scrape\n`);
-  });
+  if (process.env.NODE_ENV !== 'production') {
+    app.listen(availablePort, () => {
+      console.log(`🚀 Backend running on http://localhost:${availablePort}`);
+    });
+  }
 }
 
-start().catch(console.error);
+if (process.env.NODE_ENV !== 'production') {
+  start().catch(console.error);
+}
+
+export default app;
