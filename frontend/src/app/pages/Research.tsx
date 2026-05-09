@@ -38,7 +38,7 @@ export function Research() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetchPublishedProjects(12, 1)
+    fetchPublishedProjects(100, 1)
       .then((data) => {
         setProjects(data.projects || []);
       })

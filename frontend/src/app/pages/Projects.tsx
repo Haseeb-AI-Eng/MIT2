@@ -10,7 +10,7 @@ export function Projects() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchPublishedProjects(12, 1)
+    fetchPublishedProjects(100, 1)
       .then((data) => {
         setProjects(data.projects || []);
         setLoading(false);

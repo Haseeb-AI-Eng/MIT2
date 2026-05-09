@@ -12,7 +12,7 @@ export function Home() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetchPublishedProjects(12, 1)
+    fetchPublishedProjects(100, 1)
       .then((publishedResponse) => {
         setPublishedProjects(publishedResponse.projects || []);
       })
@@ -79,7 +79,7 @@ export function Home() {
           )}
         </div>
 
-        <section className="mb-10 rounded-[2rem] border border-white/10 bg-[#050505] px-6 py-10 text-white">
+        <section className="mb-10 rounded-none border border-white/10 bg-[#050505] px-6 py-10 text-white">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-[32px] md:text-[48px] font-semibold">Support EI</h2>
             <p className="mt-4 text-[15px] md:text-[16px] text-white/70 max-w-2xl mx-auto">
@@ -88,18 +88,18 @@ export function Home() {
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <button className="rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10">
+            <button className="rounded-none border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10">
               Corporate membership
             </button>
             <button
               onClick={() => navigate('/foundations')}
-              className="rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10"
+              className="rounded-none border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10"
             >
               Foundations
             </button>
             <button
               onClick={() => navigate('/alumni-friends')}
-              className="sm:col-span-2 mx-auto max-w-[360px] rounded-xl border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10"
+              className="sm:col-span-2 mx-auto max-w-[360px] rounded-none border border-white/80 bg-transparent px-6 py-4 text-left text-white font-semibold transition hover:bg-white/10"
             >
               Alumni + friends
             </button>
