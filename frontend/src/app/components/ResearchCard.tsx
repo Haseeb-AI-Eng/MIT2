@@ -70,7 +70,7 @@ export function ResearchCard({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
+      viewport={{ once: true }}
       transition={{ duration: 0.4 }}
       className="group relative w-full bg-white border-b border-r border-black/12 cursor-pointer"
       style={{ borderBottom: '1px solid rgba(0,0,0,0.12)', borderRight: '1px solid rgba(0,0,0,0.12)' }}

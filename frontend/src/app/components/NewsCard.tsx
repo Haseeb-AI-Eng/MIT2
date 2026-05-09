@@ -34,7 +34,7 @@ function NewsCardComponent({ image, title, description, category, date, size = '
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className="group cursor-pointer overflow-hidden bg-white rounded-none flex flex-col h-full"
       onClick={onClick}

@@ -185,7 +185,7 @@ export function About() {
                 </p>
               </div>
               <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-black">
-                <video controls poster="/image.gif" className="w-full aspect-[16/9] object-cover">
+                <video controls poster="/image.gif" className="block w-full aspect-[16/9] object-cover">
                   <source
                     src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
                     type="video/mp4"
@@ -251,7 +251,7 @@ export function About() {
                   </div>
                 </div>
                 <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-black">
-                  <img src={section.image} alt={section.title} className="w-full h-full object-cover" />
+                  <img src={section.image} alt={section.title} className="block w-full h-full object-cover" />
                 </div>
               </div>
             </section>
