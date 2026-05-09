@@ -96,12 +96,6 @@ export function Research() {
             <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
               Research Projects
             </p>
-            <h2
-              className="text-[32px] md:text-[42px] font-semibold text-black"
-              style={{ fontFamily: 'Georgia, serif' }}
-            >
-              Published teams and work
-            </h2>
           </div>
           <p className="text-black/50" style={{ fontFamily: 'Georgia, serif' }}>
             {loading ? 'Loading…' : `${projects.length} published projects`}

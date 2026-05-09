@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { NewsCard } from '../components/NewsCard';
@@ -20,20 +20,25 @@ export function Home() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleProjectClick = useCallback((slug: string | undefined, id: string | undefined) => {
+    navigate(`/projects/${slug || id}`);
+  }, [navigate]);
+
   return (
     <div>
       <section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 will-change-auto">
           <img
             src="/image.gif"
             alt=""
             className="w-full h-full object-cover opacity-60"
+            loading="eager"
           />
         </div>
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight z-10 font-sans font-semibold"
           style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
         >
@@ -46,12 +51,6 @@ export function Home() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
             <div>
               <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Latest Research</p>
-              <h2
-                className="text-[32px] md:text-[42px] font-semibold text-black"
-                style={{ fontFamily: 'Georgia, serif' }}
-              >
-                New published projects
-              </h2>
             </div>
             <p className="text-[14px] text-black/50">{publishedProjects.length} projects shown</p>
           </div>
@@ -63,17 +62,18 @@ export function Home() {
           ) : publishedProjects.length === 0 ? (
             <div className="text-black/60">No published projects are available yet.</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 auto-rows-fr" style={{ margin: 0 }}>
               {publishedProjects.map((project) => (
-                <NewsCard
-                  key={project._id ?? project.slug}
-                  image={project.coverImage || project.cover_image || ''}
-                  title={project.title}
-                  description={project.description}
-                  category={project.tags?.[0] || 'Research'}
-                  onClick={() => navigate(`/projects/${project.slug || project._id}`)}
-                  aspect="normal"
-                />
+                <div key={project._id ?? project.slug} style={{ padding: 0 }}>
+                  <NewsCard
+                    image={project.coverImage || project.cover_image || ''}
+                    title={project.title}
+                    description={project.description}
+                    category={project.tags?.[0] || 'Research'}
+                    onClick={() => handleProjectClick(project.slug, project._id)}
+                    aspect="normal"
+                  />
+                </div>
               ))}
             </div>
           )}

@@ -19,7 +19,11 @@ function figmaAssetResolver() {
 export default defineConfig({
   plugins: [
     figmaAssetResolver(),
-    react(),
+    react({
+      babel: {
+        compact: true,
+      },
+    }),
     tailwindcss(),
   ],
   resolve: {
@@ -28,4 +32,26 @@ export default defineConfig({
     },
   },
   assetsInclude: ['**/*.svg', '**/*.csv'],
+  build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
+          'motion': ['motion/react'],
+        },
+      },
+    },
+  },
+  server: {
+    hmr: true,
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', 'motion/react'],
+  },
 });
