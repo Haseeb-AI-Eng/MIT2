@@ -12,23 +12,9 @@ export function Sidebar() {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
       const initialTop = viewportHeight * 0.5;
-      const targetTop = 16;
-      const startScroll = 10;
-      const heroEnd = viewportHeight * 0.35;
-
-      if (scrollY <= startScroll) {
-        setTopOffset('50vh');
-        return;
-      }
-
-      if (scrollY >= heroEnd) {
-        setTopOffset(`${targetTop}px`);
-        return;
-      }
-
-      const progress = Math.min((scrollY - startScroll) / (heroEnd - startScroll), 1);
-      const newTop = initialTop - (initialTop - targetTop) * progress;
-      setTopOffset(`${newTop}px`);
+      const minTop = 16;
+      const offset = Math.max(minTop, initialTop - scrollY);
+      setTopOffset(`${offset}px`);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -94,7 +80,7 @@ export function Sidebar() {
         height: 'auto',
         bottom: 'auto',
         zIndex: 40,
-        transition: 'top 0.2s ease-out', // smooth animation as it moves up
+        transition: 'top 0.2s ease-out',
       }}
     >
       <nav className="py-4 flex flex-col justify-between" style={{ minHeight: '100%' }}>

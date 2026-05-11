@@ -26,7 +26,7 @@ export function Home() {
 
   return (
     <div>
-      <section className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[62vh] md:min-h-0 flex items-center justify-center overflow-hidden">
+      <section data-hero-section className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[62vh] md:min-h-0 flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <video
             src="/robotic.mp4"
