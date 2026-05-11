@@ -99,78 +99,79 @@ export function ArticleDetail() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          {article.image && (
-            <img src={article.image} alt="" className="w-full h-full object-cover opacity-60" />
-          )}
-        </div>
+      <section
+        className="relative text-white flex items-center text-left"
+        style={{
+          minHeight: '260px',
+          maxHeight: '360px',
+          height: '28vw',
+          backgroundColor: '#000',
+          backgroundImage: article.image ? `url(${article.image})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        <div className="absolute inset-0 bg-black/60" />
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight z-10 font-sans font-semibold max-w-5xl"
-          style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
+          className="relative z-10 text-[28px] md:text-[44px] font-bold leading-tight px-6 max-w-4xl mx-auto"
         >
           {article.title}
         </motion.h1>
       </section>
 
       {/* Content Section */}
-      <div className="lg:ml-80 px-4 md:px-8 lg:px-16 py-12 max-w-[1000px]">
-        {/* Back Link + Category */}
-        <Link
-          to="/"
-          onClick={(e) => { e.preventDefault(); navigate('/'); }}
-          className="inline-flex items-center gap-2 text-[14px] text-black/60 hover:text-black transition-colors mb-8"
+      <div className="flex min-h-[calc(100vh-280px)]">
+        <aside
+          className="hidden md:flex flex-col flex-shrink-0 border-r border-black/10"
+          style={{ width: '260px', minWidth: '220px', padding: '2rem 1.5rem' }}
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          </svg>
-          {article.category || 'News'}
-        </Link>
+          <Link
+            to="/"
+            onClick={(e) => { e.preventDefault(); navigate('/'); }}
+            className="flex items-center gap-1 text-[13px] text-black/60 hover:text-black mb-6 transition-colors"
+          >
+            ‹ {article.category || 'News'}
+          </Link>
+          <div className="text-sm text-black/70 leading-relaxed">
+            {article.source && <p className="mb-1">{article.source}</p>}
+            <p className="mb-1">By Rubina Veerakone</p>
+            {article.date && <p className="text-black/50">{article.date}</p>}
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
-          {/* Sidebar */}
-          <aside className="md:col-span-4 lg:col-span-3 border-t border-black/10 pt-8">
-            <div className="text-sm text-black/70 leading-relaxed">
-              {article.source && <p className="mb-1">{article.source}</p>}
-              <p className="mb-1">By Rubina Veerakone</p>
-              {article.date && <p className="text-black/50">{article.date}</p>}
-            </div>
-
-            {/* Related Articles */}
-            {related.length > 0 && (
-              <div className="mt-8 pt-8 border-t border-black/10">
-                <p className="text-[12px] font-semibold text-black/50 uppercase tracking-wide mb-4">Related</p>
-                <div className="space-y-3">
-                  {related.map((r: any) => (
-                    <Link
-                      key={r.slug}
-                      to={`/article/${r.slug}`}
-                      onClick={(e) => { e.preventDefault(); navigate(`/article/${r.slug}`); }}
-                      className="block group"
-                    >
-                      <p className="text-[13px] text-black/70 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
-                        {r.title}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
+          {related.length > 0 && (
+            <div className="mt-8 pt-8 border-t border-black/10">
+              <p className="text-[12px] font-semibold text-black/50 uppercase tracking-wide mb-4">Related</p>
+              <div className="space-y-3">
+                {related.map((r: any) => (
+                  <Link
+                    key={r.slug}
+                    to={`/article/${r.slug}`}
+                    onClick={(e) => { e.preventDefault(); navigate(`/article/${r.slug}`); }}
+                    className="block group"
+                  >
+                    <p className="text-[13px] text-black/70 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
+                      {r.title}
+                    </p>
+                  </Link>
+                ))}
               </div>
-            )}
-          </aside>
+            </div>
+          )}
+        </aside>
 
-          {/* Main Content */}
-          <div className="md:col-span-8 lg:col-span-7">
-            <div className="space-y-6 text-[16px] text-black/80 leading-relaxed font-serif">
-              {article.description && <p className="font-semibold">{article.description}</p>}
+        <main className="flex-1 px-6 py-12">
+          <div className="max-w-[760px]">
+            {article.description && <p className="text-[18px] font-semibold text-black/80 mb-6">{article.description}</p>}
+            <div className="space-y-6 text-[16px] text-black/80 leading-relaxed">
               {detailContent.map((paragraph: string, index: number) => (
                 <p key={index}>{paragraph}</p>
               ))}
             </div>
 
-            {/* Article URL source */}
             {article.articleUrl && (
               <div className="mt-12 pt-6 border-t border-black/10">
                 <p className="text-[12px] text-black/30">
@@ -182,7 +183,7 @@ export function ArticleDetail() {
               </div>
             )}
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );

@@ -72,12 +72,11 @@ export function Research() {
         <div className="absolute inset-0 bg-black/50" />
 
         <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
-          <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+          <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">
             EI research
           </p>
           <h1
             className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto"
-            style={{ fontFamily: 'Georgia, serif' }}
           >
             We are an interdisciplinary research lab working to invent the future of{' '}
             <span
@@ -93,21 +92,21 @@ export function Research() {
       <div className="lg:ml-80 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-10">
           <div>
-            <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">
               Research Projects
             </p>
           </div>
-          <p className="text-black/50" style={{ fontFamily: 'Georgia, serif' }}>
-            {loading ? 'Loading…' : `${projects.length} published projects`}
+          <p className="text-black/50">
+            {loading ? 'Loading research…' : `${projects.length} research projects`}
           </p>
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-black/50" style={{ fontFamily: 'Georgia, serif' }}>Loading published projects...</div>
+          <div className="py-20 text-center text-black/50">Loading research...</div>
         ) : error ? (
           <div className="py-20 text-center text-red-600">Unable to load research projects.</div>
         ) : projects.length === 0 ? (
-          <div className="py-20 text-center text-black/60" style={{ fontFamily: 'Georgia, serif' }}>
+          <div className="py-20 text-center text-black/60">
             No projects are published yet. Add them through the admin system.
           </div>
         ) : (
@@ -133,7 +132,7 @@ export function Research() {
         )}
 
         {!loading && !error && projects.length > 0 && (
-          <div className="mt-12 space-y-5 text-[15px] md:text-[16px] text-black/80 leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
+          <div className="mt-12 space-y-5 text-[15px] md:text-[16px] text-black/80 leading-relaxed">
             <p>
               The Affective Computing group creates and evaluates new ways of bringing together Emotion AI and other affective technologies in order to make people&apos;s lives better.
             </p>

@@ -29,7 +29,7 @@ function makeLogoText(text: string) {
 function ProjectIcon({ label }: { label: string }) {
   return (
     <div className="w-20 h-20 rounded-3xl border border-black/10 bg-slate-100 flex items-center justify-center">
-      <span className="text-[24px] font-black text-black/80" style={{ fontFamily: 'Georgia, serif' }}>
+      <span className="text-[24px] font-black text-black/80">
         {makeLogoText(label)}
       </span>
     </div>
@@ -75,7 +75,7 @@ export function ProjectDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-black/50 text-[16px]" style={{ fontFamily: 'Georgia, serif' }}>Loading project...</div>
+        <div className="text-black/50 text-[16px]">Loading project...</div>
       </div>
     );
   }
@@ -83,7 +83,7 @@ export function ProjectDetail() {
   if (notFound || !project) {
     return (
       <div className="px-4 md:px-8 py-14 max-w-[900px] mx-auto">
-        <p className="text-[18px] text-black/70 mb-6" style={{ fontFamily: 'Georgia, serif' }}>Project not found.</p>
+        <p className="text-[18px] text-black/70 mb-6">Project not found.</p>
         <button onClick={() => navigate('/projects')} className="rounded-lg px-5 py-3 bg-black text-white hover:bg-slate-900 transition">Back to projects</button>
       </div>
     );
@@ -113,7 +113,7 @@ export function ProjectDetail() {
   const videoSrc = project.videoUrl || '/16521670-hd_1920_1080_25fps.mp4';
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: 'Georgia, serif' }}>
+    <div className="min-h-screen bg-white">
 
       {/* ── Hero banner ── */}
       <section className="relative bg-[#2d4a3e] text-white flex items-center justify-center text-center" style={{ minHeight: '260px', maxHeight: '360px', height: '28vw', paddingTop: '5rem' }}>
@@ -129,7 +129,7 @@ export function ProjectDetail() {
 
         {/* top-right label */}
         <div className="absolute top-4 right-5 z-10">
-          <span className="text-white/80 text-[13px] tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>
+          <span className="text-white/80 text-[13px] tracking-wide">
             {project.groupName || project.group || 'Research Project'}
           </span>
         </div>
@@ -139,7 +139,7 @@ export function ProjectDetail() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="relative z-10 text-[28px] md:text-[44px] font-bold leading-snug px-6 max-w-4xl"
-          style={{ fontFamily: 'Georgia, serif' }}
+         
         >
           {project.title}
         </motion.h1>
@@ -158,7 +158,7 @@ export function ProjectDetail() {
             type="button"
             onClick={() => navigate('/projects')}
             className="flex items-center gap-1 text-[13px] text-black/60 hover:text-black mb-6 transition-colors"
-            style={{ fontFamily: 'Georgia, serif' }}
+           
           >
             ‹ Member Portal
           </button>
@@ -167,34 +167,34 @@ export function ProjectDetail() {
             {/* Author / Published */}
             {teamMembers.length > 0 && (
               <div className="mb-1">
-                <p className="text-[13px] text-black/80" style={{ fontFamily: 'Georgia, serif' }}>
+                <p className="text-[13px] text-black/80">
                   by {teamMembers.map(m => m.name).join(', ')}
                 </p>
               </div>
             )}
-            <p className="text-[13px] text-black/50" style={{ fontFamily: 'Georgia, serif' }}>
+            <p className="text-[13px] text-black/50">
               {formatDate(project.createdAt || project.publishedAt)}
             </p>
           </div>
 
           <div className="border-t border-black/10 pt-5 mb-5">
             {/* Groups / tags used as group labels */}
-            <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-2">
               Groups
             </p>
             <div className="space-y-1">
               {tags.length > 0 ? (
                 tags.map((tag) => (
-                  <p key={tag} className="text-[13px] text-black/60 hover:text-black cursor-pointer transition-colors" style={{ fontFamily: 'Georgia, serif' }}>
+                  <p key={tag} className="text-[13px] text-black/60 hover:text-black cursor-pointer transition-colors">
                     {tag}
                   </p>
                 ))
               ) : (
                 <>
-                  <p className="text-[13px] text-black/60" style={{ fontFamily: 'Georgia, serif' }}>
+                  <p className="text-[13px] text-black/60">
                     {project.group || "Director's Office"}
                   </p>
-                  <p className="text-[13px] text-black/60" style={{ fontFamily: 'Georgia, serif' }}>
+                  <p className="text-[13px] text-black/60">
                     External Relations
                   </p>
                 </>
@@ -203,7 +203,7 @@ export function ProjectDetail() {
           </div>
 
           <div className="border-t border-black/10 pt-5">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-3" style={{ fontFamily: 'Georgia, serif' }}>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-3">
               Share this post
             </p>
             <div className="flex gap-3">
@@ -237,14 +237,14 @@ export function ProjectDetail() {
           {/* Team members section in sidebar */}
           {teamMembers.length > 0 && (
             <div className="border-t border-black/10 pt-5 mt-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-3" style={{ fontFamily: 'Georgia, serif' }}>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-3">
                 Team
               </p>
               <div className="space-y-3">
                 {teamMembers.map((member, i) => (
                   <div key={i}>
-                    <p className="text-[13px] font-semibold text-black/80" style={{ fontFamily: 'Georgia, serif' }}>{member.name}</p>
-                    <p className="text-[12px] text-black/50" style={{ fontFamily: 'Georgia, serif' }}>{member.role}</p>
+                    <p className="text-[13px] font-semibold text-black/80">{member.name}</p>
+                    <p className="text-[12px] text-black/50">{member.role}</p>
                   </div>
                 ))}
               </div>
@@ -300,7 +300,7 @@ export function ProjectDetail() {
             type="button"
             onClick={() => navigate('/projects')}
             className="flex md:hidden items-center gap-1 text-[13px] text-black/60 hover:text-black mb-6 transition-colors"
-            style={{ fontFamily: 'Georgia, serif' }}
+           
           >
             ← Back to projects
           </button>
@@ -310,14 +310,14 @@ export function ProjectDetail() {
             {/* Bold intro line like MIT Media Lab style */}
             <p
               className="text-[17px] md:text-[19px] font-bold leading-snug mb-5"
-              style={{ fontFamily: 'Georgia, serif' }}
+             
             >
               {project.subtitle || project.shortDescription || project.title}
             </p>
 
             <p
               className="text-[15px] md:text-[16px] text-black/80 leading-relaxed"
-              style={{ fontFamily: 'Georgia, serif' }}
+             
             >
               {project.description}
             </p>
@@ -341,7 +341,7 @@ export function ProjectDetail() {
           <div className="flex flex-wrap items-center gap-2 mb-10">
             <span
               className="border border-black/20 px-3 py-1 text-[12px] uppercase tracking-[0.18em] text-black/60"
-              style={{ fontFamily: 'Georgia, serif' }}
+             
             >
               {project.status || 'published'}
             </span>
@@ -349,7 +349,7 @@ export function ProjectDetail() {
               <span
                 key={tag}
                 className="border border-black/10 px-3 py-1 text-[12px] text-black/50"
-                style={{ fontFamily: 'Georgia, serif' }}
+               
               >
                 {tag}
               </span>
@@ -359,20 +359,20 @@ export function ProjectDetail() {
           {/* Project details row */}
           <div className="border-t border-black/10 pt-6 mb-10 grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1" style={{ fontFamily: 'Georgia, serif' }}>Status</p>
-              <p className="text-[14px] text-black/80" style={{ fontFamily: 'Georgia, serif' }}>{project.status || 'Draft'}</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Status</p>
+              <p className="text-[14px] text-black/80">{project.status || 'Draft'}</p>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1" style={{ fontFamily: 'Georgia, serif' }}>Published</p>
-              <p className="text-[14px] text-black/80" style={{ fontFamily: 'Georgia, serif' }}>{formatDate(project.createdAt)}</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Published</p>
+              <p className="text-[14px] text-black/80">{formatDate(project.createdAt)}</p>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1" style={{ fontFamily: 'Georgia, serif' }}>Team size</p>
-              <p className="text-[14px] text-black/80" style={{ fontFamily: 'Georgia, serif' }}>{teamMembers.length}</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Team size</p>
+              <p className="text-[14px] text-black/80">{teamMembers.length}</p>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1" style={{ fontFamily: 'Georgia, serif' }}>Lead role</p>
-              <p className="text-[14px] text-black/80" style={{ fontFamily: 'Georgia, serif' }}>{teamMembers[0]?.role || 'Lead Researcher'}</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Lead role</p>
+              <p className="text-[14px] text-black/80">{teamMembers[0]?.role || 'Lead Researcher'}</p>
             </div>
           </div>
 
@@ -381,7 +381,7 @@ export function ProjectDetail() {
             <div className="border-t border-black/10 pt-6">
               <h3
                 className="text-[13px] uppercase tracking-[0.18em] text-black/40 mb-5"
-                style={{ fontFamily: 'Georgia, serif' }}
+               
               >
                 Project team
               </h3>
@@ -390,15 +390,15 @@ export function ProjectDetail() {
                   <div key={i} className="flex items-center gap-4 border border-black/8 bg-slate-50 rounded-xl p-4">
                     <div
                       className="flex-shrink-0 flex items-center justify-center rounded-full bg-black/10 text-black/70 text-sm font-semibold"
-                      style={{ width: 48, height: 48, fontFamily: 'Georgia, serif' }}
+                      style={{ width: 48, height: 48 }}
                     >
                       {getInitials(member.name)}
                     </div>
                     <div>
-                      <p className="text-[15px] font-semibold text-black" style={{ fontFamily: 'Georgia, serif' }}>{member.name}</p>
-                      <p className="text-[13px] text-black/55" style={{ fontFamily: 'Georgia, serif' }}>{member.role}</p>
+                      <p className="text-[15px] font-semibold text-black">{member.name}</p>
+                      <p className="text-[13px] text-black/55">{member.role}</p>
                       {member.email && (
-                        <p className="text-[12px] text-black/40" style={{ fontFamily: 'Georgia, serif' }}>{member.email}</p>
+                        <p className="text-[12px] text-black/40">{member.email}</p>
                       )}
                     </div>
                   </div>
@@ -409,10 +409,10 @@ export function ProjectDetail() {
 
           {/* Why this matters */}
           <div className="border-t border-black/10 pt-6 mt-10">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-3" style={{ fontFamily: 'Georgia, serif' }}>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-3">
               Why this matters
             </p>
-            <p className="text-[15px] text-black/65 leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
+            <p className="text-[15px] text-black/65 leading-relaxed">
               Projects on this platform go through a draft → review → published workflow, so every public project has been prepared for the community.
             </p>
           </div>

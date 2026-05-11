@@ -70,7 +70,7 @@ export default function App() {
         <Route path="/alumni-friends" element={<Layout onMenuClick={() => setIsNavOpen(true)}><AlumniFriends /></Layout>} />
         <Route path="/add-research-project" element={<Layout onMenuClick={() => setIsNavOpen(true)}><AddResearchProject /></Layout>} />
         <Route path="/apply" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Apply /></Layout>} />
-        <Route path="/article/:id" element={<Layout onMenuClick={() => setIsNavOpen(true)}><ArticleDetail /></Layout>} />
+        <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={() => setIsNavOpen(true)}><ArticleDetail /></LayoutNoSidebar>} />
         <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={() => setIsNavOpen(true)}><ProjectDetail /></LayoutNoSidebar>} />
         
         {/* Admin Routes */}
