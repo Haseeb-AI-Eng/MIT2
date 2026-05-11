@@ -24,7 +24,7 @@ export function Footer() {
     navigate(route);
   };
   return (
-    <footer className="bg-[#f0f0f0] py-16 px-8 lg:px-12">
+    <footer className="relative z-50 bg-[#f0f0f0] py-16 px-8 lg:px-12">
       <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row justify-between gap-12">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 flex-1">
           <div className="flex flex-col items-start">

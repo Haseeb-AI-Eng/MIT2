@@ -1,65 +1,43 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('News + Updates');
-  const [topOffset, setTopOffset] = useState('55vh');
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastScrollYRef = useRef(0);
+  const [topOffset, setTopOffset] = useState('50vh');
 
   useEffect(() => {
     const handleScroll = () => {
-      // Only process scroll every 16ms (60fps)
-      if (scrollTimeoutRef.current) return;
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      const initialTop = viewportHeight * 0.5;
+      const targetTop = 16;
+      const startScroll = 10;
+      const heroEnd = viewportHeight * 0.35;
 
-      scrollTimeoutRef.current = setTimeout(() => {
-        const scrollY = window.scrollY;
-        // Skip if scroll position hasn't changed significantly
-        if (Math.abs(scrollY - lastScrollYRef.current) < 5) {
-          scrollTimeoutRef.current = null;
-          return;
-        }
-        lastScrollYRef.current = scrollY;
+      if (scrollY <= startScroll) {
+        setTopOffset('50vh');
+        return;
+      }
 
-        const heroHeight = window.innerHeight * 0.35;
-        const footerEl = document.querySelector('footer');
-        const footerTop = footerEl ? footerEl.getBoundingClientRect().top + scrollY : document.documentElement.scrollHeight;
+      if (scrollY >= heroEnd) {
+        setTopOffset(`${targetTop}px`);
+        return;
+      }
 
-        if (scrollY <= 150) {
-          setTopOffset('55vh');
-        } else if (scrollY < heroHeight) {
-          const progress = (scrollY - 150) / (heroHeight - 150);
-          const vh55 = window.innerHeight * 0.55;
-          const newTop = vh55 - (vh55 - 73) * progress;
-          setTopOffset(`${Math.max(73, newTop)}px`);
-        } else {
-          setTopOffset('73px');
-        }
-
-        // Adjust sidebar height to stop before footer
-        const sidebar = document.querySelector('aside');
-        if (sidebar) {
-          const distanceToFooter = footerTop - scrollY - 73;
-          if (distanceToFooter > 0) {
-            (sidebar as HTMLElement).style.maxHeight = `${Math.min(distanceToFooter, window.innerHeight)}px`;
-          }
-        }
-        
-        scrollTimeoutRef.current = null;
-      }, 0);
+      const progress = Math.min((scrollY - startScroll) / (heroEnd - startScroll), 1);
+      const newTop = initialTop - (initialTop - targetTop) * progress;
+      setTopOffset(`${newTop}px`);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
-    
+    handleScroll();
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
     };
   }, []);
 
@@ -88,7 +66,6 @@ export function Sidebar() {
     'For Press + Media': '/',
   };
 
-  // Update active section based on current route
   useEffect(() => {
     const currentPath = location.pathname;
 
@@ -111,8 +88,14 @@ export function Sidebar() {
 
   return (
     <aside
-      className="fixed left-0 w-80 bg-white border-r border-black/10 hidden lg:block z-40 overflow-hidden will-change-transform"
-      style={{ top: topOffset, height: 'auto', bottom: 'auto' }}
+      className="fixed left-0 w-80 bg-white border-r border-black/10 hidden lg:block overflow-hidden will-change-transform"
+      style={{
+        top: topOffset,
+        height: 'auto',
+        bottom: 'auto',
+        zIndex: 40,
+        transition: 'top 0.2s ease-out', // smooth animation as it moves up
+      }}
     >
       <nav className="py-4 flex flex-col justify-between" style={{ minHeight: '100%' }}>
         <div className="space-y-0">
@@ -130,7 +113,7 @@ export function Sidebar() {
               }`}
               style={{
                 fontFamily: "'Georgia', 'Garamond', serif",
-                fontWeight: 700
+                fontWeight: 700,
               }}
             >
               {section}

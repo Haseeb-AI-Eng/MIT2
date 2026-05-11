@@ -26,7 +26,7 @@ export function Home() {
 
   return (
     <div>
-      <section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
+      <section className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[62vh] md:min-h-0 flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <video
             src="/robotic.mp4"
@@ -38,15 +38,17 @@ export function Home() {
             style={{ filter: 'grayscale(100%)' }}
           />
         </div>
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="relative text-[36px] md:text-[56px] text-center px-8 leading-tight z-10 font-sans font-semibold"
-          style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
-        >
-          Imagine what we can become.
-        </motion.h1>
+        <div className="relative w-full max-w-[90vw] px-4 sm:px-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="relative w-full text-[24px] sm:text-[32px] md:text-[56px] text-center leading-[1.05] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none z-10 font-sans font-semibold"
+            style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
+          >
+            Imagine what we can become.
+          </motion.h1>
+        </div>
       </section>
 
       <section className="lg:ml-80 px-4 md:px-8 py-8 max-w-[1400px] mx-auto">
