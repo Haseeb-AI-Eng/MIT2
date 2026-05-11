@@ -86,7 +86,6 @@ export function Apply() {
         projectId: ''
       });
 
-      setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
     } finally {

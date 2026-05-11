@@ -182,7 +182,7 @@ async function scrapeFeed(feed) {
     // Use axios to fetch XML, then parse manually (avoids rss-parser callback bug)
     const { data: xml } = await axios.get(feed.url, {
       headers: HEADERS,
-      timeout: 15000,
+      timeout: 0,
       responseType: 'text',
     });
     const feedData = await parser.parseString(xml);

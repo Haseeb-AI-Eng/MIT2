@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { NewsCard } from '../components/NewsCard';
-import { ProjectCard } from '../components/ProjectCard';
 import { fetchPublishedProjects } from '../api';
 
 export function Home() {
@@ -12,7 +11,7 @@ export function Home() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetchPublishedProjects(100, 1)
+    fetchPublishedProjects(12, 1)
       .then((publishedResponse) => {
         setPublishedProjects(publishedResponse.projects || []);
       })
@@ -20,13 +19,19 @@ export function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleProjectClick = useCallback((slug: string | undefined, id: string | undefined) => {
-    navigate(`/projects/${slug || id}`);
-  }, [navigate]);
+  const handleProjectClick = useCallback(
+    (slug: string | undefined, id: string | undefined) => {
+      navigate(`/projects/${slug || id}`);
+    },
+    [navigate]
+  );
 
   return (
     <div>
-      <section data-hero-section className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[62vh] md:min-h-0 flex items-center justify-center overflow-hidden">
+      <section
+        data-hero-section
+        className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[62vh] md:min-h-0 flex items-center justify-center overflow-hidden"
+      >
         <div className="absolute inset-0">
           <video
             src="/robotic.mp4"
@@ -54,20 +59,29 @@ export function Home() {
       <section className="lg:ml-80 px-4 md:px-8 py-8 max-w-[1400px] mx-auto">
         <div className="mb-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
-            <div>
-              <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Latest Research</p>
-            </div>
-            <p className="text-[14px] text-black/50">{publishedProjects.length} projects shown</p>
+            <p className="text-[12px] uppercase tracking-[0.24em] text-black/40">
+              Latest Research
+            </p>
+            {!loading && (
+              <p className="text-[14px] text-black/50">{publishedProjects.length} projects shown</p>
+            )}
           </div>
 
           {loading ? (
-            <div className="text-black/50">Loading latest projects...</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="animate-pulse bg-black/5 h-64 w-full" />
+              ))}
+            </div>
           ) : error ? (
             <div className="text-red-600">Could not fetch latest projects.</div>
           ) : publishedProjects.length === 0 ? (
             <div className="text-black/60">No published projects are available yet.</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 auto-rows-fr" style={{ margin: 0 }}>
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 auto-rows-fr"
+              style={{ margin: 0 }}
+            >
               {publishedProjects.map((project) => (
                 <div key={project._id ?? project.slug} style={{ padding: 0 }}>
                   <NewsCard
@@ -88,7 +102,8 @@ export function Home() {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-[32px] md:text-[48px] font-semibold">Support EI</h2>
             <p className="mt-4 text-[15px] md:text-[16px] text-white/70 max-w-2xl mx-auto">
-              We believe that together, we can play an important role in helping people realize a better and more just future for themselves and for all.
+              We believe that together, we can play an important role in helping people realize a
+              better and more just future for themselves and for all.
             </p>
           </div>
 
