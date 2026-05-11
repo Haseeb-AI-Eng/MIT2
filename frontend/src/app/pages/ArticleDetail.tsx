@@ -165,8 +165,8 @@ export function ArticleDetail() {
 
         <main className="flex-1 px-6 py-12">
           <div className="max-w-[760px]">
-            {article.description && <p className="text-[18px] font-semibold text-black/80 mb-6">{article.description}</p>}
-            <div className="space-y-6 text-[16px] text-black/80 leading-relaxed">
+            {article.description && <p className="text-[18px] font-semibold text-black/80 mb-6 text-justify">{article.description}</p>}
+            <div className="space-y-6 text-[16px] text-black/80 leading-relaxed text-justify">
               {detailContent.map((paragraph: string, index: number) => (
                 <p key={index}>{paragraph}</p>
               ))}

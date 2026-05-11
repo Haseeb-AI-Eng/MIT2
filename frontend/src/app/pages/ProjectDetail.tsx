@@ -316,7 +316,7 @@ export function ProjectDetail() {
             </p>
 
             <p
-              className="text-[15px] md:text-[16px] text-black/80 leading-relaxed"
+              className="text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify"
              
             >
               {project.description}
@@ -331,7 +331,7 @@ export function ProjectDetail() {
             </video>
           </div>
 
-          <div className="space-y-6 text-[15px] md:text-[16px] text-black/80 leading-relaxed mb-10">
+          <div className="text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
             {detailedExplanation.map((p, idx) => (
               <p key={idx}>{p}</p>
             ))}
