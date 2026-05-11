@@ -37,6 +37,13 @@ export function ProjectCard({ image, title, category, teamLabel, onClick, onDele
           <img
             src={image}
             alt={title}
+            loading="lazy"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src !== window.location.origin + '/image.gif') {
+                target.src = '/image.gif';
+              }
+            }}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           {onDelete && (

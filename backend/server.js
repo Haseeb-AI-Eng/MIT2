@@ -13,6 +13,7 @@ import crypto from 'crypto';
 import { MongoClient, ObjectId } from 'mongodb';
 import { scrapeAll, startCronJob } from './scraper.js';
 import { createServer } from 'net';
+import twilio from 'twilio';
 
 
 const PORT = parseInt(process.env.PORT || '4000', 10);
@@ -156,6 +157,37 @@ if (mailTransporter) {
   });
 } else {
   console.log('⚠️  Email service not configured. Set EMAIL_USER and EMAIL_PASS to enable email notifications.');
+}
+
+// ---- SMS (Twilio) ----
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+const TWILIO_FROM_NUMBER = process.env.TWILIO_FROM_NUMBER;
+const ADMIN_PHONE_NUMBER = process.env.ADMIN_PHONE_NUMBER;
+
+let twilioClient = null;
+if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_FROM_NUMBER) {
+  twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+  console.log('✅ SMS service (Twilio) is configured and ready.');
+} else {
+  console.log('⚠️  SMS service not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, and ADMIN_PHONE_NUMBER to enable SMS notifications.');
+}
+
+async function sendSMS(to, body) {
+  if (!twilioClient || !TWILIO_FROM_NUMBER) {
+    console.warn('⚠️  SMS not configured; skipping SMS to:', to);
+    return;
+  }
+  if (!to) {
+    console.warn('⚠️  SMS skipped: no destination phone number provided.');
+    return;
+  }
+  try {
+    const msg = await twilioClient.messages.create({ from: TWILIO_FROM_NUMBER, to, body });
+    console.log(`✅ SMS sent to ${to} — SID: ${msg.sid}`);
+  } catch (err) {
+    console.error('❌ Failed to send SMS:', err.message);
+  }
 }
 
 async function sendMail({ to, subject, html, text }) {
@@ -1244,6 +1276,13 @@ app.post('/api/form-submissions', async (req, res) => {
     };
 
     const result = await formSubmissionsCollection.insertOne(submission);
+
+    // SMS: notify admin of new application
+    if (ADMIN_PHONE_NUMBER) {
+      const smsBody = `📋 New EIAS Application!\nName: ${submission.name}\nPhone: ${submission.phone}\nProject: ${submission.projectTitle || 'Not specified'}\nEmail: ${submission.email}`;
+      sendSMS(ADMIN_PHONE_NUMBER, smsBody).catch(() => {});
+    }
+
     res.status(201).json({ success: true, message: 'Form submitted successfully', id: result.insertedId });
   } catch (err) {
     console.error(err);
@@ -1369,6 +1408,18 @@ app.put('/api/form-submissions/:id', authenticate, requireAdmin, async (req, res
       const studentText = `Hello ${submission.name},\n\nYour application to join the EIAS program ${submission.projectTitle ? `for the research project "${submission.projectTitle}" ` : ''}has been accepted by the admin team. The project lead has been notified to confirm your final assignment.\n\nThank you for applying.`;
       const studentHtml = `<p>Hello ${submission.name},</p><p>Your application to join the EIAS program ${submission.projectTitle ? `for the research project <strong>${submission.projectTitle}</strong> ` : ''}has been accepted by the admin team.</p><p>The project lead has been notified to confirm your final assignment.</p><p>Thank you for applying.</p>`;
       await sendMail({ to: submission.email, subject: studentSubject, text: studentText, html: studentHtml });
+
+      // SMS: notify the student they have been accepted
+      if (submission.phone) {
+        const studentSms = `✅ Congrats ${submission.name}! Your EIAS application${submission.projectTitle ? ` for "${submission.projectTitle}"` : ''} has been accepted. The project lead will confirm your assignment shortly.`;
+        sendSMS(submission.phone, studentSms).catch(() => {});
+      }
+
+      // SMS: notify admin of acceptance action
+      if (ADMIN_PHONE_NUMBER) {
+        const adminSms = `✅ You accepted ${submission.name}'s EIAS application${submission.projectTitle ? ` for "${submission.projectTitle}"` : ''}. Lead notification email sent.`;
+        sendSMS(ADMIN_PHONE_NUMBER, adminSms).catch(() => {});
+      }
 
       if (submission.projectLeadEmail) {
         const leadSubject = `Action Required: Confirm ${submission.name} for EIAS ${submission.projectTitle || 'Research Project'}`;

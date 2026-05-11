@@ -7,6 +7,31 @@ import { Textarea } from '../components/ui/textarea';
 import { X } from 'lucide-react';
 import { getApiUrl } from '../api';
 
+function compressImage(file: File, maxWidth = 800, maxHeight = 600, quality = 0.72): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas not supported'));
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 export function AddResearchProject() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -83,32 +108,29 @@ export function AddResearchProject() {
     });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Limit image to 2MB to avoid payload too large errors
-      if (file.size > 2 * 1024 * 1024) {
-        alert('Image is too large. Please upload an image under 2MB.');
-        e.target.value = '';
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setImagePreview(result);
-        setFormData({
-          ...formData,
-          image: result,
-        });
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image is too large. Please upload an image under 10MB.');
+      e.target.value = '';
+      return;
+    }
+
+    try {
+      const compressed = await compressImage(file, 800, 600, 0.72);
+      setImagePreview(compressed);
+      setFormData((prev) => ({ ...prev, image: compressed }));
+    } catch {
+      alert('Failed to process image. Please try a different file.');
+      e.target.value = '';
     }
   };
 
   const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Limit video to 20MB
       if (file.size > 20 * 1024 * 1024) {
         alert('Video is too large. Please upload a video under 20MB.');
         e.target.value = '';
@@ -117,10 +139,7 @@ export function AddResearchProject() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
-        setFormData({
-          ...formData,
-          videoUrl: result,
-        });
+        setFormData((prev) => ({ ...prev, videoUrl: result }));
       };
       reader.readAsDataURL(file);
     }
@@ -129,10 +148,7 @@ export function AddResearchProject() {
   const handleTeamMemberChange = (index: number, field: 'name' | 'role', value: string) => {
     const newMembers = [...formData.teamMembers];
     newMembers[index] = { ...newMembers[index], [field]: value };
-    setFormData({
-      ...formData,
-      teamMembers: newMembers,
-    });
+    setFormData({ ...formData, teamMembers: newMembers });
   };
 
   const addTeamMember = () => {
@@ -326,7 +342,7 @@ export function AddResearchProject() {
               <div className="lg:col-span-1">
                 <div>
                   <label htmlFor="image" className="block text-sm font-medium mb-2">
-                    Project Image * <span className="text-gray-400 font-normal">(max 2MB)</span>
+                    Project Image * <span className="text-gray-400 font-normal">(auto-compressed)</span>
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-gray-400 transition">
                     <input
@@ -349,7 +365,7 @@ export function AddResearchProject() {
                       ) : (
                         <div className="py-8">
                           <p className="text-sm font-medium text-gray-700">Upload image</p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG or GIF (max 2MB)</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG or GIF (auto-compressed for fast loading)</p>
                         </div>
                       )}
                     </label>
