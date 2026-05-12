@@ -4,13 +4,14 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { fetchPublishedProjects, getApiUrl } from '../api';
+import { getApiUrl, clientCacheInvalidate } from '../api';
 
 export function Apply() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [projects, setProjects] = useState<any[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,13 +27,59 @@ export function Apply() {
   });
 
   useEffect(() => {
-    fetchPublishedProjects(20, 1)
-      .then((data) => {
-        if (data && data.projects) {
-          setProjects(data.projects);
+    clientCacheInvalidate('published-projects:');
+    const controller = new AbortController();
+    const base = getApiUrl();
+
+    async function loadProjects() {
+      const endpoints = [
+        `${base}/projects/fast?status=published&limit=100&page=1`,
+        `${base}/projects?status=published&limit=100&page=1`,
+        `${base}/projects?limit=100&page=1`,
+      ];
+
+      for (const url of endpoints) {
+        try {
+          console.log('[Apply] Trying:', url);
+
+          const res = await Promise.race([
+            fetch(url, { signal: controller.signal }),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('timeout')), 6000)
+            ),
+          ]);
+
+          if (!res.ok) {
+            console.warn('[Apply] Non-ok status from:', url, res.status);
+            continue;
+          }
+
+          const data = await res.json();
+          console.log('[Apply] Response from:', url, data);
+
+          const list =
+            data?.projects ||
+            data?.data ||
+            (Array.isArray(data) ? data : []);
+
+          if (list.length > 0) {
+            setProjects(list);
+            return;
+          }
+
+          console.warn('[Apply] Empty list from:', url);
+        } catch (err: any) {
+          if (err.name === 'AbortError') return;
+          console.warn('[Apply] Failed/timed out:', url, err.message);
         }
-      })
-      .catch((err) => console.error('Error fetching projects:', err));
+      }
+
+      console.error('[Apply] All endpoints failed or returned empty');
+    }
+
+    loadProjects().finally(() => setProjectsLoading(false));
+
+    return () => controller.abort();
   }, []);
 
   const renderHero = () => (
@@ -196,16 +243,31 @@ export function Apply() {
                   <select
                     id="projectId" name="projectId" value={formData.projectId}
                     onChange={handleChange}
+                    disabled={projectsLoading}
                     className="mt-2 flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="">Select a research project (Optional)</option>
-                    {projects.map((project) => (
-                      <option key={project._id} value={project._id}>
-                        {project.title}
-                      </option>
-                    ))}
+                    {projectsLoading ? (
+                      <option value="">Loading projects...</option>
+                    ) : projects.length === 0 ? (
+                      <option value="">No projects available</option>
+                    ) : (
+                      <>
+                        <option value="">Select a research project (Optional)</option>
+                        {projects.map((project) => (
+                          <option key={project._id} value={project._id}>
+                            {project.title}
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
-                  <p className="text-xs text-black/50 mt-2">Selecting a project helps us route your application to the right research lead.</p>
+                  <p className="text-xs text-black/50 mt-2">
+                    {projectsLoading
+                      ? 'Fetching available projects...'
+                      : projects.length > 0
+                        ? `${projects.length} project(s) available. Selecting one helps route your application.`
+                        : 'No projects currently available.'}
+                  </p>
                 </div>
               </div>
             </div>

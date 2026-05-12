@@ -106,14 +106,21 @@ export async function fetchPublishedProjects(
 ): Promise<ProjectListResult> {
   const cacheKey = `published-projects:${limit}:${page}`;
   const cached = clientCacheGet<ProjectListResult>(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    console.log(`[API] fetchPublishedProjects: Cache hit for ${cacheKey}`, cached);
+    return cached;
+  }
 
   // Use the new /fast endpoint — no $lookup joins, returns instantly
+  console.log(`[API] fetchPublishedProjects: Fetching from ${API_BASE}/projects/fast?status=published&limit=${limit}&page=${page}`);
   const res = await fetchWithTimeout(
     `${API_BASE}/projects/fast?status=published&limit=${limit}&page=${page}`,
     { signal }
   );
-  if (!res.ok) return { projects: [], total: 0, page: 1, totalPages: 1 };
+  if (!res.ok) {
+    console.error(`[API] fetchPublishedProjects: Failed to fetch projects. Status: ${res.status}`);
+    return { projects: [], total: 0, page: 1, totalPages: 1 };
+  }
   const data = await res.json();
   const result: ProjectListResult = {
     projects: data.projects || [],
@@ -122,6 +129,7 @@ export async function fetchPublishedProjects(
     totalPages: data.totalPages || 1,
   };
   clientCacheSet(cacheKey, result);
+  console.log(`[API] fetchPublishedProjects: Fetched ${result.projects.length} projects. Total: ${result.total}`);
   return result;
 }
 
