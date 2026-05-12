@@ -26,7 +26,7 @@ export function Apply() {
   });
 
   useEffect(() => {
-    fetchPublishedProjects(50, 1)
+    fetchPublishedProjects(20, 1)
       .then((data) => {
         if (data && data.projects) {
           setProjects(data.projects);
@@ -36,7 +36,7 @@ export function Apply() {
   }, []);
 
   const renderHero = () => (
-    <section className="relative overflow-hidden bg-black text-white aspect-[16/5] flex items-center justify-center">
+    <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-[16/5] flex items-center justify-center">
       <img
         src="/image.gif"
         alt="Apply hero"

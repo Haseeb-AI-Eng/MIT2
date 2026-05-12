@@ -116,7 +116,7 @@ export function ProjectDetail() {
     <div className="min-h-screen bg-white">
 
       {/* ── Hero banner ── */}
-      <section className="relative bg-[#2d4a3e] text-white flex items-center justify-center text-center" style={{ minHeight: '260px', maxHeight: '360px', height: '28vw', paddingTop: '5rem' }}>
+      <section data-hero-section className="relative bg-[#2d4a3e] text-white flex items-center justify-center text-center" style={{ minHeight: '260px', maxHeight: '360px', height: '28vw', paddingTop: '5rem' }}>
         <div className="absolute inset-0">
           <img
             src={project.coverImage || project.cover_image || '/image.gif'}

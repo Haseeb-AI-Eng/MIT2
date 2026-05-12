@@ -4,7 +4,7 @@ export function Foundations() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Section */}
-      <section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
+      <section data-hero-section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
         <img
           src="/pexels-davidelocatelli-2383649.jpg"
           alt="Foundations background"

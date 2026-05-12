@@ -1,7 +1,7 @@
 export function MASGraduateProgram() {
   return (
     <div className="min-h-screen bg-white">
-      <section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
+      <section data-hero-section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
         <img src="/image.gif" alt="MAS background" className="absolute inset-0 w-full h-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative mx-auto max-w-[1200px] px-6 text-center">

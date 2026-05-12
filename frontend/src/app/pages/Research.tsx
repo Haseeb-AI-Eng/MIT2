@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchPublishedProjects } from '../api';
 import { ResearchCard } from '../components/ResearchCard';
 
 const cyclingWords = ['#health', '#design', '#AI', '#robotics', '#climate', '#education'];
+const PAGE_SIZE = 12;
 
 function makeLogoText(text: string) {
   const parts = text
@@ -29,22 +30,71 @@ function getAuthorName(project: any): string | undefined {
   return undefined;
 }
 
+function ResearchCardSkeleton() {
+  return (
+    <div className="w-full bg-white border-b border-r border-black/12 animate-pulse"
+      style={{ borderBottom: '1px solid rgba(0,0,0,0.12)', borderRight: '1px solid rgba(0,0,0,0.12)' }}>
+      <div className="p-7 flex flex-col gap-4 min-h-[280px]">
+        <div className="flex items-center gap-4">
+          <div className="w-[72px] h-[72px] bg-gray-200 rounded" />
+          <div className="h-5 bg-gray-200 rounded w-32" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-100 rounded" />
+          <div className="h-4 bg-gray-100 rounded w-4/5" />
+          <div className="h-4 bg-gray-100 rounded w-3/5" />
+        </div>
+        <div className="h-3 bg-gray-100 rounded w-1/2" />
+        <div className="h-3 bg-gray-100 rounded w-1/3" />
+      </div>
+    </div>
+  );
+}
+
 export function Research() {
   const navigate = useNavigate();
   const [wordIndex, setWordIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const loadProjects = useCallback(async (pageNum: number, replace: boolean) => {
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    if (replace) setLoading(true);
+    else setLoadingMore(true);
+    setError(false);
+
+    try {
+      const data = await fetchPublishedProjects(PAGE_SIZE, pageNum, controller.signal);
+      if (replace) {
+        setProjects(data.projects);
+      } else {
+        setProjects(prev => [...prev, ...data.projects]);
+      }
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+      setPage(pageNum);
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') setError(true);
+    } finally {
+      if (replace) setLoading(false);
+      else setLoadingMore(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchPublishedProjects(100, 1)
-      .then((data) => {
-        setProjects(data.projects || []);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
+    loadProjects(1, true);
+    return () => { abortRef.current?.abort(); };
+  }, [loadProjects]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -63,21 +113,19 @@ export function Research() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section className="relative overflow-hidden bg-black text-white">
+      <section data-hero-section className="relative overflow-hidden bg-black text-white">
         <img
           src="/image.gif"
           alt="Research hero"
           className="absolute inset-0 w-full h-full object-cover opacity-60"
+          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-black/50" />
-
         <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">
             EI research
           </p>
-          <h1
-            className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto"
-          >
+          <h1 className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto">
             We are an interdisciplinary research lab working to invent the future of{' '}
             <span
               className="text-[#3b82f6] inline-block transition-opacity duration-300"
@@ -97,38 +145,56 @@ export function Research() {
             </p>
           </div>
           <p className="text-black/50">
-            {loading ? 'Loading research…' : `${projects.length} research projects`}
+            {loading ? '' : `${total} research project${total !== 1 ? 's' : ''}`}
           </p>
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-black/50">Loading research...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
+            style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}>
+            {Array.from({ length: PAGE_SIZE }).map((_, i) => <ResearchCardSkeleton key={i} />)}
+          </div>
         ) : error ? (
-          <div className="py-20 text-center text-red-600">Unable to load research projects.</div>
+          <div className="py-20 text-center text-red-600">
+            Unable to load research projects.{' '}
+            <button className="underline text-blue-600" onClick={() => loadProjects(1, true)}>Retry</button>
+          </div>
         ) : projects.length === 0 ? (
           <div className="py-20 text-center text-black/60">
             No projects are published yet. Add them through the admin system.
           </div>
         ) : (
-          /* Grid with shared borders — no gap so borders connect */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
-            style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}
-          >
-            {projects.map((project) => (
-              <ResearchCard
-                key={project._id ?? project.slug}
-                title={project.title}
-                subtitle={toShortDescription(project.description || '', 100)}
-                logoText={makeLogoText(project.title)}
-                tags={(project.tags || []).slice(0, 3)}
-                teamCount={project.team?.length || 0}
-                status={project.status || 'published'}
-                authorName={getAuthorName(project)}
-                onClick={() => navigate(`/projects/${project.slug || project._id}`)}
-                onDelete={() => handleDeleteProject(project._id ?? project.slug)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
+              style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}>
+              {projects.map((project) => (
+                <ResearchCard
+                  key={project._id ?? project.slug}
+                  title={project.title}
+                  subtitle={toShortDescription(project.description || '', 100)}
+                  logoText={makeLogoText(project.title)}
+                  tags={(project.tags || []).slice(0, 3)}
+                  teamCount={project.teamCount ?? project.team?.length ?? 0}
+                  status={project.status || 'published'}
+                  authorName={getAuthorName(project)}
+                  onClick={() => navigate(`/projects/${project.slug || project._id}`)}
+                  onDelete={() => handleDeleteProject(project._id ?? project.slug)}
+                />
+              ))}
+              {loadingMore && Array.from({ length: 3 }).map((_, i) => <ResearchCardSkeleton key={`more-${i}`} />)}
+            </div>
+
+            {page < totalPages && !loadingMore && (
+              <div className="mt-10 flex justify-center">
+                <button
+                  onClick={() => loadProjects(page + 1, false)}
+                  className="px-8 py-3 border border-black text-black text-[14px] tracking-widest uppercase hover:bg-black hover:text-white transition-colors duration-200"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {!loading && !error && projects.length > 0 && (

@@ -21,6 +21,7 @@ import { AdminLogin } from './pages/AdminLogin';
 import { AdminSignup } from './pages/AdminSignup';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { useKeepAlive } from '../hooks/useKeepAlive';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -54,6 +55,10 @@ function LayoutNoSidebar({ children, onMenuClick }: { children: React.ReactNode;
 export default function App() {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
+  // 🔥 Keep Railway backend warm — fires an immediate ping on load,
+  // then every 4 min so the server never cold-starts on News/Research pages.
+  useKeepAlive();
+
   return (
     <>
       <ScrollToTop />
@@ -72,7 +77,7 @@ export default function App() {
         <Route path="/apply" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Apply /></Layout>} />
         <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={() => setIsNavOpen(true)}><ArticleDetail /></LayoutNoSidebar>} />
         <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={() => setIsNavOpen(true)}><ProjectDetail /></LayoutNoSidebar>} />
-        
+
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/signup" element={<AdminSignup />} />

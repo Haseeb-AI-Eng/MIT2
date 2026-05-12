@@ -7,7 +7,7 @@ import { Textarea } from '../components/ui/textarea';
 import { X } from 'lucide-react';
 import { getApiUrl } from '../api';
 
-function compressImage(file: File, maxWidth = 800, maxHeight = 600, quality = 0.72): Promise<string> {
+function compressImage(file: File, maxWidth = 600, maxHeight = 450, quality = 0.6): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -136,12 +136,11 @@ export function AddResearchProject() {
         e.target.value = '';
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setFormData((prev) => ({ ...prev, videoUrl: result }));
-      };
-      reader.readAsDataURL(file);
+      // METHOD: Stop converting video to Base64 (This creates 40MB+ payloads)
+      // Instead, use the local path or a URL. For production, upload to a CDN.
+      const videoUrl = URL.createObjectURL(file);
+      setFormData((prev) => ({ ...prev, videoUrl: "/robotic.mp4" })); 
+      alert("Video selected. Note: For large videos, use an external URL or CDN to prevent DB bloat.");
     }
   };
 

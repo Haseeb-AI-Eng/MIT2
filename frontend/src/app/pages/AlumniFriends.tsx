@@ -85,7 +85,7 @@ export function AlumniFriends() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero section with graduation image */}
-      <section className="relative overflow-hidden bg-black text-white aspect-[16/5] flex items-center justify-center">
+      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-[16/5] flex items-center justify-center">
         <img
           src="/pexels-pavel-danilyuk-7944238.jpg"
           alt="Alumni and Friends"

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 export function SupportMediaLab() {
   return (
     <div className="min-h-screen bg-white">
-      <section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
+      <section data-hero-section className="relative bg-black text-white aspect-[16/5] flex items-center justify-center overflow-hidden">
         <img
           src="/image.gif"
           alt="Support the Media Lab background"

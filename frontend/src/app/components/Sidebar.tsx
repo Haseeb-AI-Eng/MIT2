@@ -10,22 +10,40 @@ export function Sidebar() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      const viewportHeight = window.innerHeight;
-      const initialTop = viewportHeight * 0.5;
-      const minTop = 16;
-      const offset = Math.max(minTop, initialTop - scrollY);
+
+      // Try to find hero section height dynamically
+      const heroSection = document.querySelector('[data-hero-section]') as HTMLElement | null;
+      const heroBottom = heroSection
+        ? heroSection.offsetTop + heroSection.offsetHeight
+        : window.innerHeight * 0.62; // fallback: ~62vh
+
+      // Sidebar starts at 50vh and floats up as you scroll past the hero
+      // Once fully past hero, it sticks just below the fixed header (~64px)
+      const HEADER_HEIGHT = 64;
+      const initialTop = window.innerHeight * 0.5;
+
+      let offset: number;
+
+      if (scrollY < heroBottom - window.innerHeight * 0.5) {
+        // Still in hero zone — slide upward naturally
+        offset = Math.max(HEADER_HEIGHT, initialTop - scrollY);
+      } else {
+        // Past hero — pin just below the header
+        offset = HEADER_HEIGHT;
+      }
+
       setTopOffset(`${offset}px`);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
-    handleScroll();
+    handleScroll(); // run once on mount
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, []);
+  }, [location.pathname]); // re-run when page changes so heroSection lookup is fresh
 
   const sections = [
     'News + Updates',
@@ -36,7 +54,7 @@ export function Sidebar() {
     'People',
     'Alumni + Friends',
     'Events',
-    'For Press + Media'
+    'For Press + Media',
   ];
 
   const routeMap: Record<string, string> = {
@@ -54,7 +72,6 @@ export function Sidebar() {
 
   useEffect(() => {
     const currentPath = location.pathname;
-
     if (currentPath === '/') {
       setActiveSection('News + Updates');
     } else if (currentPath.startsWith('/research') || currentPath.startsWith('/projects')) {
@@ -80,7 +97,7 @@ export function Sidebar() {
         height: 'auto',
         bottom: 'auto',
         zIndex: 40,
-        transition: 'top 0.2s ease-out',
+        transition: 'top 0.15s ease-out',
       }}
     >
       <nav className="py-4 flex flex-col justify-between" style={{ minHeight: '100%' }}>

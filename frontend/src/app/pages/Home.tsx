@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { NewsCard } from '../components/NewsCard';
+import { HeroVideo } from './HeroVideo'; // Fixed path: HeroVideo is in the same folder as Home.tsx
 import { fetchPublishedProjects } from '../api';
 
 export function Home() {
@@ -33,15 +34,7 @@ export function Home() {
         className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[62vh] md:min-h-0 flex items-center justify-center overflow-hidden"
       >
         <div className="absolute inset-0">
-          <video
-            src="/robotic.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="w-full h-full object-cover opacity-60"
-            style={{ filter: 'grayscale(100%)' }}
-          />
+          <HeroVideo /> {/* Use the new HeroVideo component here */}
         </div>
         <div className="relative w-full max-w-[90vw] px-4 sm:px-6">
           <motion.h1

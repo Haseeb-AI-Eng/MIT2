@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Menu } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { SearchPanel } from './SearchPanel';
 
 interface HeaderProps {
@@ -10,34 +10,35 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const location = useLocation();
+  const scrollThreshold = 80; // Define a scroll threshold for pages without a specific hero section
 
   useEffect(() => {
-    // Find the hero section using the data attribute set in Home.tsx
+    // The header should always start transparent and become visible on scroll.
+    // The initial state of `isScrolled` (from useState(false)) will be updated
+    // immediately by the observer or scroll listener.
+
+    // Try to find a hero section dynamically
     const heroSection = document.querySelector('[data-hero-section]');
 
     if (!heroSection) {
-      // Fallback: use scroll position if hero section not found
-      const handleScroll = () => setIsScrolled(window.scrollY > 80);
+      // Fallback for pages without a data-hero-section, or if heroSection isn't found
+      const handleScroll = () => setIsScrolled(window.scrollY > scrollThreshold);
       window.addEventListener('scroll', handleScroll, { passive: true });
+      handleScroll(); // Run once on mount to set initial state based on current scroll position
       return () => window.removeEventListener('scroll', handleScroll);
     }
 
-    // IntersectionObserver fires when hero leaves the viewport
+    // For pages with a data-hero-section, use IntersectionObserver
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // isScrolled = true when hero is NO longer intersecting (scrolled past it)
         setIsScrolled(!entry.isIntersecting);
       },
-      {
-        root: null,
-        // Trigger when the bottom 10% of the hero is about to leave
-        threshold: 0.1,
-      }
+      { root: null, threshold: 0.1 }
     );
-
     observer.observe(heroSection);
     return () => observer.disconnect();
-  }, []);
+  }, [location.pathname]); // Re-run effect when the page changes
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -130,7 +131,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
             </button>
 
-            {/* MIT logo — desktop */}
+            {/* EI logo — desktop */}
             <svg
               width={isScrolled ? '28' : '40'}
               height={isScrolled ? '28' : '40'}
@@ -142,7 +143,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize="42" fontWeight="900" fill="currentColor" fontFamily="sans-serif" letterSpacing="1">EI</text>
             </svg>
 
-            {/* MIT logo — mobile */}
+            {/* EI logo — mobile */}
             <svg
               width="24"
               height="24"

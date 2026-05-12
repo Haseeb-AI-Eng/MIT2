@@ -100,6 +100,7 @@ export function ArticleDetail() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section
+        data-hero-section
         className="relative text-white flex items-center text-left"
         style={{
           minHeight: '260px',
