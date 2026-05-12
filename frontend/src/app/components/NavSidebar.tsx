@@ -37,15 +37,14 @@ export function NavSidebar({ isOpen, onClose }: NavSidebarProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed top-0 right-0 h-screen bg-white z-[1001] shadow-[-4px_0_20px_rgba(0,0,0,0.08)] flex flex-col overflow-y-auto"
-            style={{ width: 'min(750px, 50vw)' }}
+            className="fixed top-0 right-0 h-screen bg-white z-[1001] shadow-[-4px_0_20px_rgba(0,0,0,0.08)] flex flex-col overflow-y-auto w-screen md:w-[50vw] md:max-w-[750px]"
           >
             {/* Top Row Utility Icons */}
-            <div className="flex justify-end items-center gap-6 pt-[60px] pr-[40px]">
-              <User size={18} className="text-[#999] cursor-pointer hover:text-black transition-colors" />
-              <Search size={18} className="text-[#999] cursor-pointer hover:text-black transition-colors" />
+            <div className="flex justify-end items-center gap-6 pt-[50px] pr-[20px] md:pt-[60px] md:pr-[40px]">
+              <User size={20} className="text-[#999] cursor-pointer hover:text-black transition-colors" />
+              <Search size={20} className="text-[#999] cursor-pointer hover:text-black transition-colors" />
               <button onClick={onClose} className="p-1 hover:bg-slate-50 rounded-full transition-colors flex items-center justify-center">
-                <X size={18} className="text-[#999] cursor-pointer" />
+                <X size={20} className="text-[#999] cursor-pointer" />
               </button>
             </div>
 

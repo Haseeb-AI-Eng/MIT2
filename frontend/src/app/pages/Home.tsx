@@ -1,18 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { NewsCard } from '../components/NewsCard';
 import { HeroVideo } from './HeroVideo'; // Fixed path: HeroVideo is in the same folder as Home.tsx
 import { fetchPublishedProjects } from '../api';
 
-export function Home() {
+export const Home = React.memo(function Home() {
   const navigate = useNavigate();
   const [publishedProjects, setPublishedProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetchPublishedProjects(12, 1)
+    fetchPublishedProjects(50, 1)
       .then((publishedResponse) => {
         setPublishedProjects(publishedResponse.projects || []);
       })
@@ -121,4 +121,4 @@ export function Home() {
       </section>
     </div>
   );
-}
+});

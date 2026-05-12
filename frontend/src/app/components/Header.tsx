@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { SearchPanel } from './SearchPanel';
@@ -7,25 +7,36 @@ interface HeaderProps {
   onMenuClick?: () => void;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
-  const [isScrolled, setIsScrolled] = useState(false);
+export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
+  const [isScrolled, setIsScrolled] = useState(() =>
+    typeof window !== 'undefined' ? window.scrollY > 80 : false
+  );
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
   const scrollThreshold = 80; // Define a scroll threshold for pages without a specific hero section
 
   useEffect(() => {
-    // The header should always start transparent and become visible on scroll.
-    // The initial state of `isScrolled` (from useState(false)) will be updated
-    // immediately by the observer or scroll listener.
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    // The header should be hidden while hero is visible (on desktop), visible when past hero, hidden again when back up.
+    // On mobile/tablet, always visible.
 
     // Try to find a hero section dynamically
     const heroSection = document.querySelector('[data-hero-section]');
 
     if (!heroSection) {
-      // Fallback for pages without a data-hero-section, or if heroSection isn't found
+      // Fallback for pages without a data-hero-section
       const handleScroll = () => setIsScrolled(window.scrollY > scrollThreshold);
       window.addEventListener('scroll', handleScroll, { passive: true });
-      handleScroll(); // Run once on mount to set initial state based on current scroll position
+      handleScroll();
       return () => window.removeEventListener('scroll', handleScroll);
     }
 
@@ -38,7 +49,7 @@ export function Header({ onMenuClick }: HeaderProps) {
     );
     observer.observe(heroSection);
     return () => observer.disconnect();
-  }, [location.pathname]); // Re-run effect when the page changes
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -54,8 +65,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-white shadow-sm' : 'bg-transparent'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 will-change-[opacity] ${
+          isScrolled || isMobile ? 'bg-white shadow-sm opacity-100' : 'bg-transparent opacity-0 pointer-events-none'
         }`}
       >
         <div
@@ -74,7 +85,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 height={isScrolled ? '36' : '48'}
                 viewBox="0 0 72 72"
                 className={`transition-all duration-300 hidden md:block ${
-                  isScrolled ? 'text-black' : 'text-white'
+                  isScrolled || isMobile ? 'text-black' : 'text-white'
                 }`}
               >
                 <path
@@ -90,7 +101,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 height="30"
                 viewBox="0 0 72 72"
                 className={`transition-all duration-300 md:hidden ${
-                  isScrolled ? 'text-black' : 'text-white'
+                  isScrolled || isMobile ? 'text-black' : 'text-white'
                 }`}
               >
                 <path
@@ -103,7 +114,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               {/* "> 30" text — desktop only */}
               <span
                 className={`font-bold tracking-tight transition-all duration-300 hidden md:inline ${
-                  isScrolled ? 'text-black text-[28px]' : 'text-white text-[48px]'
+                  isScrolled || isMobile ? 'text-black text-[28px]' : 'text-white text-[48px]'
                 }`}
                 style={{ fontFamily: "'Courier New', monospace" }}
               >
@@ -117,7 +128,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             <button
               onClick={() => setSearchOpen(true)}
               className={`p-2 md:p-2.5 rounded-full transition-colors ${
-                isScrolled ? 'hover:bg-black/5 text-black' : 'hover:bg-white/10 text-white'
+                isScrolled || isMobile ? 'hover:bg-black/5 text-black' : 'hover:bg-white/10 text-white'
               }`}
             >
               <Search className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
@@ -125,7 +136,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             <button
               onClick={onMenuClick}
               className={`p-2 md:p-2.5 rounded-full transition-colors ${
-                isScrolled ? 'hover:bg-black/5 text-black' : 'hover:bg-white/10 text-white'
+                isScrolled || isMobile ? 'hover:bg-black/5 text-black' : 'hover:bg-white/10 text-white'
               }`}
             >
               <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
@@ -137,7 +148,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               height={isScrolled ? '28' : '40'}
               viewBox="0 0 80 50"
               className={`transition-all duration-300 hidden md:block ${
-                isScrolled ? 'text-black' : 'text-white'
+                isScrolled || isMobile ? 'text-black' : 'text-white'
               }`}
             >
               <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize="42" fontWeight="900" fill="currentColor" fontFamily="sans-serif" letterSpacing="1">EI</text>
@@ -149,7 +160,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               height="24"
               viewBox="0 0 80 50"
               className={`transition-all duration-300 md:hidden ${
-                isScrolled ? 'text-black' : 'text-white'
+                isScrolled || isMobile ? 'text-black' : 'text-white'
               }`}
             >
               <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="currentColor" fontFamily="sans-serif" letterSpacing="1">EI</text>
@@ -161,4 +172,4 @@ export function Header({ onMenuClick }: HeaderProps) {
       <SearchPanel isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
-}
+});

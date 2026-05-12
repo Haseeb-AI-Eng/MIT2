@@ -1,37 +1,52 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export function Sidebar() {
+export const Sidebar = React.memo(function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('News + Updates');
+  const [heroPassed, setHeroPassed] = useState(false);
   const [topOffset, setTopOffset] = useState('50vh');
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      // Sidebar starts at 50vh and floats up as you scroll past the hero
-      // Once fully past hero, it sticks just below the fixed header (~64px)
-      const HEADER_HEIGHT = 64;
-      const initialTop = window.innerHeight * 0.5;
+    const heroSection = document.querySelector('[data-hero-section]');
+    if (!heroSection) {
+      // Fallback: assume hero is passed if scrolled > 100
+      const handleScroll = () => setHeroPassed(window.scrollY > 100);
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      handleScroll();
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
 
-      // Calculate the top offset:
-      // It starts at initialTop (50vh). As scrollY increases, initialTop - scrollY decreases.
-      // Math.max ensures it never goes above the HEADER_HEIGHT (i.e., it sticks at HEADER_HEIGHT).
-      const offset = Math.max(HEADER_HEIGHT, initialTop - scrollY);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeroPassed(!entry.isIntersecting);
+      },
+      { root: null, threshold: 0.1 }
+    );
+    observer.observe(heroSection);
+    return () => observer.disconnect();
+  }, [location.pathname]);
 
-      setTopOffset(`${offset}px`);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
-    handleScroll(); // run once on mount
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
-  }, [location.pathname]); // re-run when page changes so heroSection lookup is fresh
+  useEffect(() => {
+    if (heroPassed) {
+      setTopOffset('64px'); // Stick below header
+    } else {
+      const handleScroll = () => {
+        const scrollY = window.scrollY;
+        const initialTop = window.innerHeight * 0.5;
+        const offset = Math.max(64, initialTop - scrollY);
+        setTopOffset(`${offset}px`);
+      };
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      window.addEventListener('resize', handleScroll, { passive: true });
+      handleScroll();
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleScroll);
+      };
+    }
+  }, [heroPassed, location.pathname]);
 
   const sections = [
     'News + Updates',
@@ -79,7 +94,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="fixed left-0 w-80 bg-white border-r border-black/10 hidden lg:block overflow-hidden will-change-transform"
+      className="fixed left-0 w-80 bg-white border-r border-black/10 hidden lg:block overflow-hidden will-change-[top]"
       style={{
         top: topOffset,
         height: 'auto',
@@ -123,4 +138,4 @@ export function Sidebar() {
       </nav>
     </aside>
   );
-}
+});
