@@ -1,7 +1,7 @@
 /**
  * useKeepAlive.ts
  *
- * Pings the Railway backend every 4 minutes so the server never cold-starts.
+ * Pings the Replit backend every 4 minutes so the server never cold-starts.
  * Import and call this ONCE at the top of your App (or any root component).
  *
  * Also does an immediate warm-up ping on first mount so the first data
@@ -10,13 +10,13 @@
 
 import { useEffect } from 'react';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://mit-2-production.up.railway.app')
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://fa4e55f3-ea39-4816-8922-f3fd2de36bb8-00-36ew1zcapayw1.pike.replit.dev')
   .replace(/\/$/, '');
 
 // Lightweight health endpoint — returns {status:'ok'} instantly
 const PING_URL = `${API_BASE}/api/health`;
 
-// Ping every 4 minutes (Railway idles after ~5 min of inactivity)
+// Ping every 4 minutes (Replit idles after a period of inactivity)
 const PING_INTERVAL_MS = 4 * 60 * 1000;
 
 let globalPingTimer: ReturnType<typeof setInterval> | null = null;
