@@ -49,10 +49,12 @@ function gzipResponse(req, res, next) {
   next();
 }
 
-const PORT = parseInt(process.env.PORT || '4000', 10);
+const PORT = parseInt(process.env.PORT || '8080', 10);
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://hima21517_db_user:64nGo0W9xSCUpPwb@mitdb.xrxuxql.mongodb.net/?appName=MITDB';
 const DB_NAME = process.env.DB_NAME || 'research';
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey_change_me';
+const REPLIT_DOMAIN = (process.env.REPLIT_DOMAINS || '').split(',')[0].trim();
+const API_BASE_URL = REPLIT_DOMAIN ? `https://${REPLIT_DOMAIN}` : '';
 
 const app = express();
 app.use(cors());
@@ -388,36 +390,50 @@ app.get('/api/projects/fast', async (req, res) => {
       return res.json(cached);
     }
 
-    // Simple find — no aggregation, no joins — returns in <100ms
+    // Use aggregation to compute hasImage in MongoDB — never transfers base64 to Node.js
     const [projects, total] = await Promise.all([
-      projectsCollection
-        .find(filter, {
-          projection: {
+      projectsCollection.aggregate([
+        { $match: filter },
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $addFields: {
+            hasImage: {
+              $gt: [
+                { $strLenCP: { $ifNull: [{ $ifNull: ['$coverImage', '$cover_image'] }, ''] } },
+                100,
+              ],
+            },
+          },
+        },
+        {
+          $project: {
             title: 1,
             slug: 1,
             tags: 1,
             status: 1,
-            description: 1,
-            coverImage: 1,
-            cover_image: 1,
+            description: { $substrCP: [{ $ifNull: ['$description', ''] }, 0, 150] },
             featured: 1,
             createdAt: 1,
             teamCount: 1,
+            hasImage: 1,
           },
-        })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
+        },
+      ]).toArray(),
       projectsCollection.countDocuments(filter),
     ]);
 
-    // Trim description to 150 chars in JS (avoids $substr aggregation overhead)
-    const trimmed = projects.map(p => ({
-      ...p,
-      description: p.description ? p.description.slice(0, 150) : '',
-      hasImage: !!(p.coverImage && p.coverImage.length > 100),
-    }));
+    // Build coverImage as a full URL for the frontend — no base64 involved
+    const trimmed = projects.map(p => {
+      const imgUrl = p.hasImage ? `${API_BASE_URL}/api/projects/${p._id}/image` : null;
+      return {
+        ...p,
+        coverImage: imgUrl,
+        cover_image: imgUrl,
+        coverImageUrl: imgUrl,
+      };
+    });
 
     const result = { projects: trimmed, total, page, totalPages: Math.ceil(total / limit) };
     cacheSet(cacheKey, result);
@@ -1316,45 +1332,48 @@ function findFreePort(startPort) {
 async function start() {
   await connectDB();
 
-  console.log('\n🔧 Syncing project team members with lead emails...');
-  const projectsWithLead = await projectsCollection.find({ leadEmail: { $exists: true, $ne: '' } }).toArray();
-  let synced = 0;
-  for (const project of projectsWithLead) {
-    const lead = await usersCollection.findOne({ email: project.leadEmail.toLowerCase() });
-    if (lead) {
-      const existing = await projectMembersCollection.findOne({ projectId: project._id, userId: lead._id });
-      if (!existing) {
-        await projectMembersCollection.insertOne({ projectId: project._id, userId: lead._id, role: 'Lead Researcher', createdAt: new Date() });
-        synced++;
-      }
-    }
-  }
-  if (synced > 0) console.log(`✅ Added ${synced} project leads to team members`);
-
-  const count = await articlesCollection.countDocuments();
-  if (count === 0) {
-    console.log('\n📭 Database empty. Running initial scrape...\n');
-    await scrapeAll();
-  } else {
-    console.log(`\n📊 Database has ${count} articles.`);
-  }
-
-  startCronJob();
-
+  // Listen immediately so the port is open and health checks pass
   const availablePort = await findFreePort(PORT);
   if (availablePort !== PORT) {
     console.log(`\n⚠️  Port ${PORT} is in use. Starting on port ${availablePort} instead.`);
   }
+  app.listen(availablePort, () => {
+    console.log(`🚀 Backend running on http://localhost:${availablePort}`);
+  });
 
-  if (process.env.NODE_ENV !== 'production') {
-    app.listen(availablePort, () => {
-      console.log(`🚀 Backend running on http://localhost:${availablePort}`);
-    });
-  }
+  // Run background tasks after server is up
+  setImmediate(async () => {
+    try {
+      console.log('\n🔧 Syncing project team members with lead emails...');
+      const projectsWithLead = await projectsCollection.find({ leadEmail: { $exists: true, $ne: '' } }).toArray();
+      let synced = 0;
+      for (const project of projectsWithLead) {
+        const lead = await usersCollection.findOne({ email: project.leadEmail.toLowerCase() });
+        if (lead) {
+          const existing = await projectMembersCollection.findOne({ projectId: project._id, userId: lead._id });
+          if (!existing) {
+            await projectMembersCollection.insertOne({ projectId: project._id, userId: lead._id, role: 'Lead Researcher', createdAt: new Date() });
+            synced++;
+          }
+        }
+      }
+      if (synced > 0) console.log(`✅ Added ${synced} project leads to team members`);
+
+      const count = await articlesCollection.countDocuments();
+      if (count === 0) {
+        console.log('\n📭 Database empty. Running initial scrape in background...\n');
+        scrapeAll().catch(console.error);
+      } else {
+        console.log(`\n📊 Database has ${count} articles.`);
+      }
+
+      startCronJob();
+    } catch (err) {
+      console.error('Background init error:', err);
+    }
+  });
 }
 
-if (process.env.NODE_ENV !== 'production') {
-  start().catch(console.error);
-}
+start().catch(console.error);
 
 export default app;

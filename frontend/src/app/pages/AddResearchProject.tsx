@@ -5,8 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { X } from 'lucide-react';
-import { getApiUrl } from '../api';
-
+import { getApiUrl, clientCacheInvalidate } from '../api';
 function compressImage(file: File, maxWidth = 600, maxHeight = 450, quality = 0.6): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -31,10 +30,10 @@ function compressImage(file: File, maxWidth = 600, maxHeight = 450, quality = 0.
     img.src = url;
   });
 }
-
 export function AddResearchProject() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -43,27 +42,22 @@ export function AddResearchProject() {
     email: '',
     status: 'published',
     image: '',
-    videoUrl: '/16521670-hd_1920_1080_25fps.mp4',
+    videoUrl: '',
     teamMembers: [{ name: '', role: '' }],
   });
-
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.image) {
       alert('Please upload a project image.');
       return;
     }
-
     setLoading(true);
     try {
       const response = await fetch(`${getApiUrl()}/projects`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
@@ -76,7 +70,6 @@ export function AddResearchProject() {
           teamMembers: formData.teamMembers.filter((m) => m.name.trim()),
         }),
       });
-
       if (!response.ok) {
         let errorMessage = 'Failed to create project';
         const contentType = response.headers.get('content-type');
@@ -88,7 +81,8 @@ export function AddResearchProject() {
         }
         throw new Error(errorMessage);
       }
-
+      clientCacheInvalidate('published-projects:');
+      clientCacheInvalidate('projects:fast:');
       alert('Research project added and published successfully!');
       navigate(-1);
     } catch (err: any) {
@@ -98,26 +92,19 @@ export function AddResearchProject() {
       setLoading(false);
     }
   };
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.size > 10 * 1024 * 1024) {
       alert('Image is too large. Please upload an image under 10MB.');
       e.target.value = '';
       return;
     }
-
     try {
       const compressed = await compressImage(file, 800, 600, 0.72);
       setImagePreview(compressed);
@@ -127,43 +114,48 @@ export function AddResearchProject() {
       e.target.value = '';
     }
   };
-
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 20 * 1024 * 1024) {
-        alert('Video is too large. Please upload a video under 20MB.');
-        e.target.value = '';
-        return;
-      }
-      // METHOD: Stop converting video to Base64 (This creates 40MB+ payloads)
-      // Instead, use the local path or a URL. For production, upload to a CDN.
-      const videoUrl = URL.createObjectURL(file);
-      setFormData((prev) => ({ ...prev, videoUrl: "/robotic.mp4" })); 
-      alert("Video selected. Note: For large videos, use an external URL or CDN to prevent DB bloat.");
+    if (!file) return;
+    if (file.size > 100 * 1024 * 1024) {
+      alert('Video is too large. Please upload a video under 100MB.');
+      e.target.value = '';
+      return;
+    }
+    setVideoUploading(true);
+    const localPreview = URL.createObjectURL(file);
+    setVideoPreview(localPreview);
+    try {
+      const formPayload = new FormData();
+      formPayload.append('video', file);
+      const res = await fetch(`${getApiUrl()}/upload/video`, {
+        method: 'POST',
+        body: formPayload,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      setFormData((prev) => ({ ...prev, videoUrl: data.videoUrl }));
+    } catch (err) {
+      console.error('Video upload error:', err);
+      alert('Failed to upload video. Please try again or paste a video URL below.');
+      setVideoPreview(null);
+      setFormData((prev) => ({ ...prev, videoUrl: '' }));
+      e.target.value = '';
+    } finally {
+      setVideoUploading(false);
     }
   };
-
   const handleTeamMemberChange = (index: number, field: 'name' | 'role', value: string) => {
     const newMembers = [...formData.teamMembers];
     newMembers[index] = { ...newMembers[index], [field]: value };
     setFormData({ ...formData, teamMembers: newMembers });
   };
-
   const addTeamMember = () => {
-    setFormData({
-      ...formData,
-      teamMembers: [...formData.teamMembers, { name: '', role: '' }],
-    });
+    setFormData({ ...formData, teamMembers: [...formData.teamMembers, { name: '', role: '' }] });
   };
-
   const removeTeamMember = (index: number) => {
-    setFormData({
-      ...formData,
-      teamMembers: formData.teamMembers.filter((_, i) => i !== index),
-    });
+    setFormData({ ...formData, teamMembers: formData.teamMembers.filter((_, i) => i !== index) });
   };
-
   return (
     <div className="min-h-screen bg-white">
       <section className="relative overflow-hidden bg-black text-white">
@@ -173,7 +165,6 @@ export function AddResearchProject() {
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-black/50" />
-
         <div className="relative mx-auto max-w-[1200px] px-6 py-32 text-center">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">Submit Research</p>
           <h1 className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto">
@@ -184,49 +175,26 @@ export function AddResearchProject() {
           </p>
         </div>
       </section>
-
       <main className="lg:ml-80 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
         <div className="mb-12">
           <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">New Project Form</p>
         </div>
-
         <Card className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium mb-2">
-                    Project Title *
-                  </label>
-                  <Input
-                    id="title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    placeholder="Enter project title"
-                    required
-                    className="w-full"
-                  />
+                  <label htmlFor="title" className="block text-sm font-medium mb-2">Project Title *</label>
+                  <Input id="title" name="title" value={formData.title} onChange={handleChange} placeholder="Enter project title" required className="w-full" />
                 </div>
-
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium mb-2">
-                    Description *
-                  </label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Describe your research project"
-                    required
-                    className="w-full min-h-[150px]"
-                  />
+                  <label htmlFor="description" className="block text-sm font-medium mb-2">Description *</label>
+                  <Textarea id="description" name="description" value={formData.description} onChange={handleChange} placeholder="Describe your research project" required className="w-full min-h-[150px]" />
                 </div>
-
+                {/* ── VIDEO SECTION ── */}
                 <div>
                   <label htmlFor="videoUpload" className="block text-sm font-medium mb-2">
-                    Project Video <span className="text-gray-400 font-normal">(max 20MB)</span>
+                    Project Video <span className="text-gray-400 font-normal">(max 100MB)</span>
                   </label>
                   <div className="space-y-3">
                     <Input
@@ -234,50 +202,47 @@ export function AddResearchProject() {
                       type="file"
                       accept="video/*"
                       onChange={handleVideoUpload}
+                      disabled={videoUploading}
                       className="w-full"
                     />
                     <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
                       <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">
                         Current Video Status:
                       </p>
-                      {formData.videoUrl.startsWith('data:') ? (
+                      {videoUploading ? (
+                        <p className="text-xs text-blue-600 font-medium animate-pulse">
+                          Uploading video to server…
+                        </p>
+                      ) : videoPreview && formData.videoUrl ? (
                         <div className="space-y-2">
-                          <video
-                            className="w-full max-h-48 rounded bg-black"
-                            controls
-                            key={formData.videoUrl}
-                          >
-                            <source src={formData.videoUrl} />
-                          </video>
-                          <p className="text-[11px] text-blue-600 font-medium">
-                            ✓ Custom video uploaded from system
-                          </p>
+                          <video className="w-full max-h-48 rounded bg-black" controls src={videoPreview} />
+                          <p className="text-[11px] text-green-600 font-medium">✓ Custom video uploaded successfully</p>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600 truncate mr-2">{formData.videoUrl}</span>
-                          <span className="text-[10px] bg-gray-200 px-2 py-0.5 rounded text-gray-600 uppercase font-bold tracking-tighter">
-                            Default
-                          </span>
+                          <span className="text-xs text-gray-500">No video selected — default video will be used</span>
+                          <span className="text-[10px] bg-gray-200 px-2 py-0.5 rounded text-gray-600 uppercase font-bold tracking-tighter">Default</span>
                         </div>
                       )}
                     </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Or paste a video URL (YouTube, Vimeo, CDN link):
+                      </label>
+                      <Input
+                        name="videoUrl"
+                        value={formData.videoUrl}
+                        onChange={handleChange}
+                        placeholder="https://..."
+                        className="w-full text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="category" className="block text-sm font-medium mb-2">
-                      Category *
-                    </label>
-                    <select
-                      id="category"
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
+                    <label htmlFor="category" className="block text-sm font-medium mb-2">Category *</label>
+                    <select id="category" name="category" value={formData.category} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                       <option value="">Select a category</option>
                       <option value="AI">AI & Machine Learning</option>
                       <option value="HCI">Human-Computer Interaction</option>
@@ -286,79 +251,37 @@ export function AddResearchProject() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
-
                   <div>
-                    <label htmlFor="status" className="block text-sm font-medium mb-2">
-                      Status
-                    </label>
-                    <select
-                      id="status"
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
+                    <label htmlFor="status" className="block text-sm font-medium mb-2">Status</label>
+                    <select id="status" name="status" value={formData.status} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                       <option value="published">Published</option>
                       <option value="review">Under Review</option>
                       <option value="draft">Draft</option>
                     </select>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="lead" className="block text-sm font-medium mb-2">
-                      Project Lead *
-                    </label>
-                    <Input
-                      id="lead"
-                      name="lead"
-                      value={formData.lead}
-                      onChange={handleChange}
-                      placeholder="Your name"
-                      required
-                      className="w-full"
-                    />
+                    <label htmlFor="lead" className="block text-sm font-medium mb-2">Project Lead *</label>
+                    <Input id="lead" name="lead" value={formData.lead} onChange={handleChange} placeholder="Your name" required className="w-full" />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-2">
-                      Lead Email *
-                    </label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="your.email@mit.edu"
-                      required
-                      className="w-full"
-                    />
+                    <label htmlFor="email" className="block text-sm font-medium mb-2">Lead Email *</label>
+                    <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="your.email@mit.edu" required className="w-full" />
                   </div>
                 </div>
               </div>
-
               <div className="lg:col-span-1">
                 <div>
                   <label htmlFor="image" className="block text-sm font-medium mb-2">
                     Project Image * <span className="text-gray-400 font-normal">(auto-compressed)</span>
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-gray-400 transition">
-                    <input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
+                    <input id="image" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     <label htmlFor="image" className="cursor-pointer block">
                       {imagePreview ? (
                         <div className="space-y-2">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-full h-48 object-cover rounded-lg"
-                          />
+                          <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
                           <p className="text-xs text-gray-500">Click to change image</p>
                         </div>
                       ) : (
@@ -372,48 +295,26 @@ export function AddResearchProject() {
                 </div>
               </div>
             </div>
-
             <div className="border-t pt-6">
               <div className="flex items-center justify-between mb-4">
-                <label className="block text-sm font-medium">
-                  Team Members ({formData.teamMembers.length})
-                </label>
-                <Button
-                  type="button"
-                  onClick={addTeamMember}
-                  className="bg-blue-600 text-white hover:bg-blue-700 text-sm"
-                >
+                <label className="block text-sm font-medium">Team Members ({formData.teamMembers.length})</label>
+                <Button type="button" onClick={addTeamMember} className="bg-blue-600 text-white hover:bg-blue-700 text-sm">
                   + Add Member
                 </Button>
               </div>
-
               <div className="space-y-4">
                 {formData.teamMembers.map((member, index) => (
                   <div key={index} className="flex gap-3 items-end">
                     <div className="flex-1">
                       <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
-                      <Input
-                        value={member.name}
-                        onChange={(e) => handleTeamMemberChange(index, 'name', e.target.value)}
-                        placeholder="Team member name"
-                        className="w-full"
-                      />
+                      <Input value={member.name} onChange={(e) => handleTeamMemberChange(index, 'name', e.target.value)} placeholder="Team member name" className="w-full" />
                     </div>
                     <div className="flex-1">
                       <label className="block text-xs font-medium text-gray-600 mb-1">Role</label>
-                      <Input
-                        value={member.role}
-                        onChange={(e) => handleTeamMemberChange(index, 'role', e.target.value)}
-                        placeholder="e.g., Researcher, Designer"
-                        className="w-full"
-                      />
+                      <Input value={member.role} onChange={(e) => handleTeamMemberChange(index, 'role', e.target.value)} placeholder="e.g., Researcher, Designer" className="w-full" />
                     </div>
                     {formData.teamMembers.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeTeamMember(index)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-md transition"
-                      >
+                      <button type="button" onClick={() => removeTeamMember(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-md transition">
                         <X size={20} />
                       </button>
                     )}
@@ -421,13 +322,8 @@ export function AddResearchProject() {
                 ))}
               </div>
             </div>
-
             <div className="flex gap-4 pt-4">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="bg-black text-white hover:bg-gray-800"
-              >
+              <Button type="submit" disabled={loading || videoUploading} className="bg-black text-white hover:bg-gray-800">
                 {loading ? 'Submitting...' : 'Submit Research Project'}
               </Button>
               <Button type="button" variant="outline" onClick={() => window.history.back()}>
