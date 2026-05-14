@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { X } from 'lucide-react';
 import { getApiUrl, clientCacheInvalidate } from '../api';
+
 function compressImage(file: File, maxWidth = 600, maxHeight = 450, quality = 0.6): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -81,6 +82,7 @@ export function AddResearchProject() {
         }
         throw new Error(errorMessage);
       }
+
       clientCacheInvalidate('published-projects:');
       clientCacheInvalidate('projects:fast:');
       alert('Research project added and published successfully!');

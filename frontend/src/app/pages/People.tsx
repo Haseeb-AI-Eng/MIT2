@@ -94,12 +94,12 @@ export function People() {
         const data = await response.json();
         const members = Array.isArray(data.members)
           ? data.members
-              .filter((member: BackendTeamMember) => member.name)
-              .map((member: BackendTeamMember) => ({
-                name: member.name,
-                title: buildMemberTitle(member.roles),
-                description: buildMemberDescription(member.name, member.roles),
-              }))
+            .filter((member: BackendTeamMember) => member.name)
+            .map((member: BackendTeamMember) => ({
+              name: member.name,
+              title: buildMemberTitle(member.roles),
+              description: buildMemberDescription(member.name, member.roles),
+            }))
           : [];
 
         setProjectTeamMembers(members);
@@ -117,19 +117,28 @@ export function People() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section className="relative overflow-hidden bg-slate-950 text-white aspect-[16/5]">
-        <img
-          src="/image.gif"
-          alt="People background"
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-        />
-        <div className="absolute inset-0 bg-slate-950/80" />
-        <div className="relative mx-auto max-w-[1200px] px-6 h-full flex flex-col items-center justify-center text-center">
-          <p className="text-sm uppercase tracking-[0.35em] text-red-400 mb-4">People</p>
-          <h1 className="text-[36px] md:text-[56px] font-semibold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
+      <section className="relative overflow-hidden bg-slate-950 text-white aspect-auto md:aspect-[16/5] min-h-[500px] md:min-h-0 flex items-center">
+        {/* Background Layer */}
+        <div className="absolute inset-0">
+          <img
+            src="/image.gif"
+            alt="People background"
+            className="w-full h-full object-cover opacity-60"
+          />
+          <div className="absolute inset-0 bg-slate-950/80" />
+        </div>
+
+        {/* Content Layer */}
+        <div className="relative mx-auto max-w-[1200px] px-6 py-20 md:py-0 w-full flex flex-col items-center justify-center text-center">
+          <p className="text-[12px] md:text-sm uppercase tracking-[0.25em] md:tracking-[0.35em] text-red-400 mb-4">
+            People
+          </p>
+
+          <h1 className="text-[30px] sm:text-[38px] md:text-[56px] font-semibold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
             We are a diverse group of thinkers and inventors
           </h1>
-          <p className="mt-6 mx-auto max-w-3xl text-[17px] md:text-[18px] leading-8 text-slate-200">
+
+          <p className="mt-6 mx-auto max-w-3xl text-[15px] md:text-[18px] leading-relaxed md:leading-8 text-slate-200">
             All team members are part of different research projects and work together to shape the future of EI Arts and Sciences.
           </p>
         </div>

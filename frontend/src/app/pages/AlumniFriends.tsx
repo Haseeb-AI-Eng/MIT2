@@ -85,25 +85,34 @@ export function AlumniFriends() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero section with graduation image */}
-      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-[16/5] flex items-center justify-center">
-        <img
-          src="/pexels-pavel-danilyuk-7944238.jpg"
-          alt="Alumni and Friends"
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-        />
-        <div className="absolute inset-0 bg-black/50" />
+      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[450px] md:min-h-0 flex items-center justify-center">
+        {/* Background Layer */}
+        <div className="absolute inset-0">
+          <img
+            src="/pexels-pavel-danilyuk-7944238.jpg"
+            alt="Alumni and Friends"
+            className="w-full h-full object-cover opacity-60"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
 
-        <div className="relative mx-auto max-w-[1200px] px-6 text-center">
-          <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+        {/* Content Layer */}
+        <div className="relative mx-auto max-w-[1200px] px-6 py-16 md:py-0 text-center z-10">
+          <p
+            className="text-[10px] md:text-[12px] uppercase tracking-[0.25em] md:tracking-[0.35em] text-white/60 mb-4"
+            style={{ fontFamily: 'Georgia, serif' }}
+          >
             Community
           </p>
+
           <h1
-            className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto"
+            className="text-[32px] sm:text-[40px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto"
             style={{ fontFamily: 'Georgia, serif' }}
           >
             Alumni + Friends
           </h1>
-          <p className="max-w-3xl mx-auto text-white/70 mt-6 text-[16px] md:text-[18px]">
+
+          <p className="max-w-3xl mx-auto text-white/70 mt-6 text-[15px] md:text-[18px] leading-relaxed">
             Share updates, opportunities, and stories with our community
           </p>
         </div>
@@ -113,13 +122,13 @@ export function AlumniFriends() {
         <div className="mb-10 flex justify-between items-center">
           <div>
             <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Announcements</p>
-            <h2 className="text-[32px] md:text-[42px] font-semibold text-black" style={{ fontFamily: 'Georgia, serif' }}>
+            <h2 className="text-[25px] md:text-[42px] font-semibold text-black" style={{ fontFamily: 'Georgia, serif' }}>
               Community Updates
             </h2>
           </div>
           <Button
             onClick={() => setShowForm(!showForm)}
-            className="bg-black text-white hover:bg-gray-800"
+            className="bg-black text-white hover:bg-gray-800 w-42 md:w-auto"
           >
             {showForm ? 'Cancel' : '+ Post Announcement'}
           </Button>

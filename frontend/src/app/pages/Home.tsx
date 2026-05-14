@@ -41,7 +41,7 @@ export const Home = React.memo(function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative w-full text-[24px] sm:text-[32px] md:text-[56px] text-center leading-[1.05] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none z-10 font-sans font-semibold"
+            className="relative w-full text-[36px] sm:text-[40px] md:text-[56px] text-bottom leading-[1.05] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none z-10 font-sans font-semibold"
             style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             Imagine what we can become.

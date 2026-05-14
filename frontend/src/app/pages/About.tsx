@@ -159,15 +159,28 @@ export function About() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-[16/5]">
-        <img src="/image.gif" alt="About background" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-        <div className="absolute inset-0 bg-black/50" />
-        <div className="relative mx-auto max-w-[1200px] px-6 h-full flex flex-col items-center justify-center text-center">
-          <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">About the Lab</p>
-          <h1 className="text-[36px] md:text-[56px] font-semibold leading-tight md:leading-[1.05] max-w-4xl mx-auto">
+      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[400px] md:min-h-0 flex items-center">
+        {/* Background Layer */}
+        <div className="absolute inset-0">
+          <img
+            src="/image.gif"
+            alt="About background"
+            className="w-full h-full object-cover opacity-60"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+
+        {/* Content Layer */}
+        <div className="relative mx-auto max-w-[1200px] px-6 py-16 md:py-0 w-full flex flex-col items-center justify-center text-center">
+          <p className="text-[10px] md:text-[12px] uppercase tracking-[0.25em] md:tracking-[0.35em] text-white/60 mb-4">
+            About the Lab
+          </p>
+
+          <h1 className="text-[28px] sm:text-[36px] md:text-[56px] font-semibold理论 leading-tight md:leading-[1.05] max-w-4xl mx-auto">
             Imagine what we can become.
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-[16px] text-white/70 leading-relaxed">
+
+          <p className="mx-auto mt-6 max-w-2xl text-[14px] md:text-[16px] text-white/70理论 leading-relaxed">
             The lab brings research, design, and community together to create work that matters. Every project is built on curiosity, equity, and the possibility of a more just future.
           </p>
         </div>
