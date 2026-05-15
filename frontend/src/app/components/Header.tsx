@@ -93,8 +93,8 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
 
               {/* Mobile SVG logo */}
               <svg
-                width="35"
-                height="35"
+                width="60"
+                height="60"
                 viewBox="0 0 72 72"
                 className={`transition-all duration-300 md:hidden ${isScrolled ? 'text-black' : 'text-white'
                   }`}
