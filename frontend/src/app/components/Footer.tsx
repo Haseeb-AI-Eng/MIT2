@@ -65,13 +65,13 @@ export function Footer() {
           </div>
           <nav className="flex flex-col gap-3">
             {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'EL Graduate Program', 'People', 'Events', 'Member Portal', 'For Press + Media'].map((link) => (
-              <button key={link} onClick={() => handleNavigate(link)} className="text-left text-[14px] text-black/80 hover:text-black transition-colors cursor-pointer">{link}</button>
+              <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
             ))}
           </nav>
           <div className="flex flex-col gap-3">
             <span className="text-[14px] font-semibold text-black/50 mb-1">More ways to explore</span>
             {['Publications', 'Contact'].map((link) => (
-              <button key={link} onClick={() => handleNavigate(link)} className="text-left text-[14px] text-black/80 hover:text-black transition-colors cursor-pointer">{link}</button>
+              <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
             ))}
             <Link to="/add-research-project" className="text-[14px] text-black/80 hover:text-black transition-colors font-semibold">+ Add Research Project</Link>
           </div>

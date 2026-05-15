@@ -73,9 +73,10 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
             }`}
         >
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 md:gap-3">
-            <div className="flex items-center gap-1 md:gap-2 transition-all duration-300">
-              {/* Desktop SVG logo */}
+          <Link to="/" className="flex items-center shrink-0">
+            <div className="flex items-center gap-1 md:gap-2 transition-all duration-300 h-[80px]">
+
+              {/* Desktop SVG logo - Changed width='auto' to a numeric value or fixed aspect ratio */}
               <svg
                 width={isScrolled ? '36' : '48'}
                 height={isScrolled ? '36' : '48'}
@@ -102,12 +103,12 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                   d="M4 8h8v8h-8zM12 8h8v8h-8zM12 16h8v8h-8zM20 16h8v8h-8zM20 24h8v8h-8zM12 24h8v8h-8zM4 24h8v8h-8z"
                   fill="currentColor"
                 />
-                <text x="36" y="48" fontSize="28" fontWeight="bold" fill="currentColor" fontFamily="monospace">EI</text>
+                <text x="36" y="48" fontSize="15" fontWeight="bold" fill="currentColor" fontFamily="monospace">EI</text>
               </svg>
 
-              {/* "> 30" text */}
+              {/* "> 30" text - Added whitespace-nowrap and items-center alignment */}
               <span
-                className={`font-bold tracking-tight transition-all duration-300 hidden md:inline ${isScrolled ? 'text-black text-[28px]' : 'text-white text-[48px]'
+                className={`font-bold tracking-tight transition-all duration-300 hidden md:inline whitespace-nowrap leading-none ${isScrolled ? 'text-black text-[20px]' : 'text-white text-[48px]'
                   }`}
                 style={{ fontFamily: "'Courier New', monospace" }}
               >
@@ -120,10 +121,10 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
           <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={() => setSearchOpen(true)}
-              className={`p-2 md:p-2.5 rounded-full transition-colors ${isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
+              className={`p-2 md:p-2.5 rounded-full transition-colors ${isScrolled ? 'text-black font-bold hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
             >
-              <Search className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
+              <Search className="w-5 h-5 md:w-5 md:h-5" strokeWidth={3.5} />
             </button>
 
             <button
@@ -131,7 +132,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
               className={`p-2 md:p-2.5 rounded-full transition-colors ${isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
             >
-              <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
+              <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={4} />
             </button>
 
             {/* EI logo SVG - Right Side */}
@@ -141,7 +142,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
               aria-label="Home"
             >
               <svg
-                width={isScrolled ? '28' : '40'}
+                width="auto"
                 height={isScrolled ? '28' : '40'}
                 viewBox="0 0 80 50"
                 className={`transition-all duration-300 ${isScrolled ? 'text-black' : 'text-white'

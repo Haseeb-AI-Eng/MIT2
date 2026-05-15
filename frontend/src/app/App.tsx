@@ -2,8 +2,8 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { NavSidebar } from './components/NavSidebar';
 import { Footer } from './components/Footer';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
+import { Routes, Route } from 'react-router-dom'; // Removed useLocation from here as it's handled in ScrollToTop
+import React, { useState } from 'react';
 import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Research } from './pages/Research';
@@ -22,63 +22,73 @@ import { AdminSignup } from './pages/AdminSignup';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useKeepAlive } from '../hooks/useKeepAlive';
+import ScrollToTop from '../app/ScrollToTop'; // Using the external component
 
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
+// --- Layout Components ---
+
+interface LayoutProps {
+  children: React.ReactNode;
+  onMenuClick: () => void;
 }
 
-function Layout({ children, onMenuClick }: { children: React.ReactNode; onMenuClick: () => void }) {
+function Layout({ children, onMenuClick }: LayoutProps) {
   return (
     <div className="min-h-screen bg-white">
       <Header onMenuClick={onMenuClick} />
       <Sidebar />
-      {children}
+      <main>{children}</main>
       <Footer />
     </div>
   );
 }
 
-function LayoutNoSidebar({ children, onMenuClick }: { children: React.ReactNode; onMenuClick: () => void }) {
+function LayoutNoSidebar({ children, onMenuClick }: LayoutProps) {
   return (
     <div className="min-h-screen bg-white">
       <Header onMenuClick={onMenuClick} />
-      {children}
+      <main>{children}</main>
       <Footer />
     </div>
   );
 }
+
+// --- Main App Component ---
 
 export default function App() {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
-  // 🔥 Keep Railway backend warm — fires an immediate ping on load,
-  // then every 4 min so the server never cold-starts on News/Research pages.
+  // 🔥 Keep Railway backend warm
   useKeepAlive();
+
+  const toggleNav = () => setIsNavOpen(true);
 
   return (
     <>
+      {/* 1. ScrollToTop is placed here to monitor route changes globally */}
       <ScrollToTop />
-      <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
-      <Routes>
-        <Route path="/" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Home /></Layout>} />
-        <Route path="/about" element={<Layout onMenuClick={() => setIsNavOpen(true)}><About /></Layout>} />
-        <Route path="/research" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Research /></Layout>} />
-        <Route path="/foundations" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Foundations /></Layout>} />
-        <Route path="/projects" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Projects /></Layout>} />
-        <Route path="/support-media-lab" element={<Layout onMenuClick={() => setIsNavOpen(true)}><SupportMediaLab /></Layout>} />
-        <Route path="/mas-graduate-program" element={<Layout onMenuClick={() => setIsNavOpen(true)}><MASGraduateProgram /></Layout>} />
-        <Route path="/people" element={<Layout onMenuClick={() => setIsNavOpen(true)}><People /></Layout>} />
-        <Route path="/alumni-friends" element={<Layout onMenuClick={() => setIsNavOpen(true)}><AlumniFriends /></Layout>} />
-        <Route path="/add-research-project" element={<Layout onMenuClick={() => setIsNavOpen(true)}><AddResearchProject /></Layout>} />
-        <Route path="/apply" element={<Layout onMenuClick={() => setIsNavOpen(true)}><Apply /></Layout>} />
-        <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={() => setIsNavOpen(true)}><ArticleDetail /></LayoutNoSidebar>} />
-        <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={() => setIsNavOpen(true)}><ProjectDetail /></LayoutNoSidebar>} />
 
-        {/* Admin Routes */}
+      {/* 2. Global Navigation Sidebar */}
+      <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
+
+      {/* 3. Routing Logic */}
+      <Routes>
+        <Route path="/" element={<Layout onMenuClick={toggleNav}><Home /></Layout>} />
+        <Route path="/about" element={<Layout onMenuClick={toggleNav}><About /></Layout>} />
+        <Route path="/research" element={<Layout onMenuClick={toggleNav}><Research /></Layout>} />
+        <Route path="/foundations" element={<Layout onMenuClick={toggleNav}><Foundations /></Layout>} />
+        <Route path="/projects" element={<Layout onMenuClick={toggleNav}><Projects /></Layout>} />
+        <Route path="/support-media-lab" element={<Layout onMenuClick={toggleNav}><SupportMediaLab /></Layout>} />
+        <Route path="/mas-graduate-program" element={<Layout onMenuClick={toggleNav}><MASGraduateProgram /></Layout>} />
+        <Route path="/people" element={<Layout onMenuClick={toggleNav}><People /></Layout>} />
+        <Route path="/alumni-friends" element={<Layout onMenuClick={toggleNav}><AlumniFriends /></Layout>} />
+        <Route path="/add-research-project" element={<Layout onMenuClick={toggleNav}><AddResearchProject /></Layout>} />
+        <Route path="/apply" element={<Layout onMenuClick={toggleNav}><Apply /></Layout>} />
+
+        {/* Dynamic Detail Routes without Sidebar */}
+        <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ArticleDetail /></LayoutNoSidebar>} />
+        <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ProjectDetail /></LayoutNoSidebar>} />
+
+        {/* Admin Routes (No Layout or Custom Layout) */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/signup" element={<AdminSignup />} />
         <Route path="/admin/dashboard" element={
