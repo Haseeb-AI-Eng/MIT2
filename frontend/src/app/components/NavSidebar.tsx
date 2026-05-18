@@ -16,7 +16,7 @@ const navLinks = [
   { label: 'People', path: '/people' },
   { label: 'Alumni + Friends', path: '/alumni-friends' },
   { label: 'Events', path: '/' },
-  { label: 'For Press + Media', path: '/' },
+  { label: 'Add Research Project', path: '/add-research-project' },
 ];
 
 export function NavSidebar({ isOpen, onClose }: NavSidebarProps) {
@@ -52,7 +52,7 @@ export function NavSidebar({ isOpen, onClose }: NavSidebarProps) {
             <nav className="flex flex-col mt-[60px] pl-[60px] md:pl-[70px] space-y-[20px] md:space-y-[24px] pb-12">
               {navLinks.map((link) => (
                 <Link
-                  key={link.path}
+                  key={link.label}
                   to={link.path}
                   onClick={onClose}
                   className={`text-[30px] md:text-[34px] font-bold leading-[1.3] tracking-tight transition-colors hover:text-[#e6007e] ${

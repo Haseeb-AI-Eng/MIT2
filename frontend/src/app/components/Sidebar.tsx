@@ -57,7 +57,7 @@ export const Sidebar = React.memo(function Sidebar() {
     'People',
     'Alumni + Friends',
     'Events',
-    'For Press + Media',
+    'Add Research Project',
   ];
 
   const routeMap: Record<string, string> = {
@@ -70,7 +70,7 @@ export const Sidebar = React.memo(function Sidebar() {
     People: '/people',
     'Alumni + Friends': '/alumni-friends',
     Events: '/',
-    'For Press + Media': '/',
+    'Add Research Project': '/add-research-project',
   };
 
   useEffect(() => {
@@ -89,6 +89,8 @@ export const Sidebar = React.memo(function Sidebar() {
       setActiveSection('People');
     } else if (currentPath === '/alumni-friends') {
       setActiveSection('Alumni + Friends');
+    } else if (currentPath === '/add-research-project') {
+      setActiveSection('Add Research Project');
     }
   }, [location.pathname]);
 
