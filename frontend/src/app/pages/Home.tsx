@@ -3,30 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { NewsCard } from '../components/NewsCard';
 import { HeroVideo } from './HeroVideo';
-import { fetchPublishedProjects } from '../api';
-
-const STORAGE_VIEW_COUNTS_KEY = 'project_views';
-
-function getStoredProjectViews(): Record<string, number> {
-  if (typeof window === 'undefined') return {};
-  try {
-    const value = window.localStorage.getItem(STORAGE_VIEW_COUNTS_KEY);
-    if (!value) return {};
-    const parsed = JSON.parse(value);
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveProjectViews(views: Record<string, number>) {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(STORAGE_VIEW_COUNTS_KEY, JSON.stringify(views));
-  } catch {
-    // ignore localStorage write errors
-  }
-}
+import {
+  fetchPublishedProjects,
+  getLocalProjectViews,
+  markLocalProjectViewed,
+} from '../api';
 
 function getProjectId(project: any): string | undefined {
   if (!project) return undefined;
@@ -72,7 +53,7 @@ interface AssignedCard {
 export const Home = React.memo(function Home() {
   const navigate = useNavigate();
   const [publishedProjects, setPublishedProjects] = useState<any[]>([]);
-  const [projectViews, setProjectViews] = useState<Record<string, number>>(getStoredProjectViews);
+  const [projectViews, setProjectViews] = useState<Record<string, number>>(getLocalProjectViews);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -89,21 +70,11 @@ export const Home = React.memo(function Home() {
         return;
       }
 
-      const viewedKey = `viewed_project_${projectId}`;
-      const alreadyViewed = window.localStorage.getItem(viewedKey) === 'true';
-
-      if (!alreadyViewed) {
-        setProjectViews((prevViews) => {
-          const nextViews = {
-            ...prevViews,
-            [projectId]: (prevViews[projectId] ?? 0) + 1,
-          };
-          saveProjectViews(nextViews);
-          return nextViews;
-        });
-        window.localStorage.setItem(viewedKey, 'true');
-      }
-
+      const nextCount = markLocalProjectViewed(projectId);
+      setProjectViews((prevViews) => ({
+        ...prevViews,
+        [projectId]: nextCount,
+      }));
       navigate(`/projects/${projectId}`);
     },
     [navigate]

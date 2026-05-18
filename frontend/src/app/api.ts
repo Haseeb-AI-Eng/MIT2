@@ -140,6 +140,54 @@ export async function fetchProjectByIdOrSlug(idOrSlug: string, signal?: AbortSig
   return data.project;
 }
 
+const LOCAL_PROJECT_VIEWS_KEY = 'project_views';
+
+function readLocalJSON<T>(key: string): T | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalJSON(key: string, value: unknown) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore storage failures
+  }
+}
+
+export function getLocalProjectViews(): Record<string, number> {
+  const stored = readLocalJSON<Record<string, number>>(LOCAL_PROJECT_VIEWS_KEY);
+  return stored && typeof stored === 'object' ? stored : {};
+}
+
+export function getLocalProjectViewCount(projectId: string): number {
+  const views = getLocalProjectViews();
+  return views[projectId] ?? 0;
+}
+
+export function markLocalProjectViewed(projectId: string): number {
+  if (typeof window === 'undefined' || !projectId) return 0;
+  const viewedKey = `viewed_project_${projectId}`;
+  if (window.localStorage.getItem(viewedKey) === 'true') {
+    return getLocalProjectViewCount(projectId);
+  }
+  const views = getLocalProjectViews();
+  const nextViews = {
+    ...views,
+    [projectId]: (views[projectId] ?? 0) + 1,
+  };
+  writeLocalJSON(LOCAL_PROJECT_VIEWS_KEY, nextViews);
+  window.localStorage.setItem(viewedKey, 'true');
+  return nextViews[projectId];
+}
+
 export async function submitMasApplication(payload: Record<string, unknown>) {
   const res = await fetch(`${API_BASE}/form-submissions`, {
     method: 'POST',
