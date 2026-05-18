@@ -5,6 +5,37 @@ import { NewsCard } from '../components/NewsCard';
 import { HeroVideo } from './HeroVideo';
 import { fetchPublishedProjects } from '../api';
 
+const STORAGE_VIEW_COUNTS_KEY = 'project_views';
+
+function getStoredProjectViews(): Record<string, number> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const value = window.localStorage.getItem(STORAGE_VIEW_COUNTS_KEY);
+    if (!value) return {};
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveProjectViews(views: Record<string, number>) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(STORAGE_VIEW_COUNTS_KEY, JSON.stringify(views));
+  } catch {
+    // ignore localStorage write errors
+  }
+}
+
+function getProjectId(project: any): string | undefined {
+  if (!project) return undefined;
+  return (
+    project.slug ||
+    (typeof project._id === 'string' ? project._id : project._id?.toString())
+  );
+}
+
 // ─── Row layout definitions ──────────────────────────────────────────────────
 // Each row pattern consumes exactly the projects it defines.
 // 'wide'   = 2-column featured card (aspect-[16/8])
@@ -41,6 +72,7 @@ interface AssignedCard {
 export const Home = React.memo(function Home() {
   const navigate = useNavigate();
   const [publishedProjects, setPublishedProjects] = useState<any[]>([]);
+  const [projectViews, setProjectViews] = useState<Record<string, number>>(getStoredProjectViews);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -52,8 +84,27 @@ export const Home = React.memo(function Home() {
   }, []);
 
   const handleProjectClick = useCallback(
-    (slug: string | undefined, id: string | undefined) => {
-      navigate(`/projects/${slug || id}`);
+    (projectId: string | undefined) => {
+      if (!projectId || typeof window === 'undefined') {
+        return;
+      }
+
+      const viewedKey = `viewed_project_${projectId}`;
+      const alreadyViewed = window.localStorage.getItem(viewedKey) === 'true';
+
+      if (!alreadyViewed) {
+        setProjectViews((prevViews) => {
+          const nextViews = {
+            ...prevViews,
+            [projectId]: (prevViews[projectId] ?? 0) + 1,
+          };
+          saveProjectViews(nextViews);
+          return nextViews;
+        });
+        window.localStorage.setItem(viewedKey, 'true');
+      }
+
+      navigate(`/projects/${projectId}`);
     },
     [navigate]
   );
@@ -154,31 +205,34 @@ export const Home = React.memo(function Home() {
           {/* ── Masonry grid ── */}
           {!loading && !error && publishedProjects.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[3px] items-start">
-              {assignedCards.map(({ project, role, colSpan }, index) => (
-                <motion.div
-                  key={project._id ?? project.slug}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.35, ease: 'easeOut', delay: (index % 6) * 0.05 }}
-                  // On mobile everything is 1 col; on sm 2-col; on lg use dynamic span
-                  className={
-                    role === 'wide'
-                      ? 'col-span-1 sm:col-span-2 lg:col-span-2'
-                      : 'col-span-1'
-                  }
-                >
-                  <NewsCard
-                    image={project.coverImage || project.cover_image || ''}
-                    title={project.title}
-                    description={project.description}
-                    category={project.tags?.[0] || 'Research'}
-                    onClick={() => handleProjectClick(project.slug, project._id)}
-                    size={role === 'wide' ? 'large' : role === 'side' ? 'medium' : 'medium'}
-                    aspect={role === 'wide' ? 'wide' : role === 'side' ? 'side' : 'normal'}
-                  />
-                </motion.div>
-              ))}
+              {assignedCards.map(({ project, role, colSpan }, index) => {
+                const projectId = getProjectId(project);
+                return (
+                  <motion.div
+                    key={project._id ?? project.slug}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-60px' }}
+                    transition={{ duration: 0.35, ease: 'easeOut', delay: (index % 6) * 0.05 }}
+                    className={
+                      role === 'wide'
+                        ? 'col-span-1 sm:col-span-2 lg:col-span-2'
+                        : 'col-span-1'
+                    }
+                  >
+                    <NewsCard
+                      image={project.coverImage || project.cover_image || ''}
+                      title={project.title}
+                      description={project.description}
+                      category={project.tags?.[0] || 'Research'}
+                      onClick={() => handleProjectClick(projectId)}
+                      viewCount={projectId ? projectViews[projectId] ?? 0 : 0}
+                      size={role === 'wide' ? 'large' : role === 'side' ? 'medium' : 'medium'}
+                      aspect={role === 'wide' ? 'wide' : role === 'side' ? 'side' : 'normal'}
+                    />
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </div>

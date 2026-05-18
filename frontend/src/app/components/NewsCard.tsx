@@ -1,3 +1,4 @@
+import { Eye } from 'lucide-react';
 import { motion } from 'motion/react';
 import { memo } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -8,6 +9,7 @@ interface NewsCardProps {
   description?: string;
   category?: string;
   date?: string;
+  viewCount?: number;
   size?: 'small' | 'medium' | 'large';
   aspect?: 'normal' | 'tall' | 'wide' | 'side';
   onClick?: () => void;
@@ -29,6 +31,7 @@ function NewsCardComponent({
   description,
   category,
   date,
+  viewCount = 0,
   size = 'medium',
   aspect = 'normal',
   onClick,
@@ -62,6 +65,12 @@ function NewsCardComponent({
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
         />
+        <div className="absolute left-3 top-3 z-20">
+          <div className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[12px] font-semibold text-slate-900 shadow-[0_2px_10px_rgba(0,0,0,0.12)] border border-slate-200">
+            <Eye size={14} />
+            <span>{viewCount ?? 0}</span>
+          </div>
+        </div>
         <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#199BD8] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-10" />
         <div className="absolute left-[45%] bottom-0 -translate-x-1/2 translate-y-1/2 h-0 w-0 border-l-[18px] border-r-[18px] border-b-[18px] border-l-transparent border-r-transparent group-hover:border-b-[#199BD8] border-b-white transition-colors duration-500 pointer-events-none z-20" />
       </div>
