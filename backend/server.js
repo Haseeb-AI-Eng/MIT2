@@ -49,7 +49,7 @@ function gzipResponse(req, res, next) {
   next();
 }
 
-const PORT = parseInt(process.env.PORT || '8080', 10);
+const PORT = parseInt(process.env.PORT || '4000', 10);
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://hima21517_db_user:64nGo0W9xSCUpPwb@mitdb.xrxuxql.mongodb.net/?appName=MITDB';
 const DB_NAME = process.env.DB_NAME || 'research';
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey_change_me';

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "cross-env PORT=8080 node server.js",
     "start": "node server.js"
   },
   "dependencies": {
@@ -20,5 +20,8 @@
     "nodemailer": "^6.9.4",
     "rss-parser": "^3.13.0",
     "twilio": "^5.3.4"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
