@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Eye } from 'lucide-react';
 
 interface ResearchCardProps {
   logoText: string;
@@ -9,6 +9,7 @@ interface ResearchCardProps {
   teamCount: number;
   status: string;
   authorName?: string;
+  viewCount?: number;
   onClick?: () => void;
   onDelete?: () => void;
 }
@@ -52,6 +53,7 @@ export function ResearchCard({
   teamCount,
   status,
   authorName,
+  viewCount = 0,
   onClick,
   onDelete,
 }: ResearchCardProps) {
@@ -111,6 +113,14 @@ export function ResearchCard({
             <span className="ml-1">+{extraCount} more</span>
           )}
         </p>
+
+        {/* View count with eye icon */}
+        {viewCount > 0 && (
+          <div className="flex items-center gap-1.5 text-[13px] text-black/50">
+            <Eye size={14} />
+            <span>{viewCount} {viewCount === 1 ? 'view' : 'views'}</span>
+          </div>
+        )}
 
         {/* Delete button — top right, subtle */}
         {onDelete && (

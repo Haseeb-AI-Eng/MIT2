@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProjectCard } from '../components/ProjectCard';
-import { fetchPublishedProjects } from '../api';
+import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount } from '../api';
 
 const PAGE_SIZE = 12;
 
@@ -24,6 +24,7 @@ export function Projects() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const abortRef = useRef<AbortController | null>(null);
   const navigate = useNavigate();
 
@@ -60,8 +61,46 @@ export function Projects() {
     return () => { abortRef.current?.abort(); };
   }, [loadProjects]);
 
+  // Fetch view counts when projects change
+  useEffect(() => {
+    if (projects.length === 0) return;
+    
+    const fetchViews = async () => {
+      const counts: Record<string, number> = {};
+      for (const project of projects) {
+        const projectId = project._id ?? project.slug;
+        if (!projectId) continue;
+        const count = await fetchProjectViewCount(projectId);
+        counts[projectId] = count;
+      }
+      setViewCounts(counts);
+    };
+    
+    fetchViews();
+  }, [projects]);
+
   const handleDeleteProject = (projectId: string) => {
     setProjects(projects.filter((p) => (p._id ?? p.slug) !== projectId));
+  };
+
+  const handleProjectClick = async (project: any) => {
+    const projectId = project._id ?? project.slug;
+    
+    // Track view on the server
+    try {
+      const count = await trackProjectView(projectId);
+      if (count !== null) {
+        setViewCounts(prev => ({
+          ...prev,
+          [projectId]: count,
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to track view:', err);
+    }
+    
+    // Navigate to project detail
+    navigate(`/projects/${project.slug || project._id}`);
   };
   return (
     <div className="min-h-screen bg-white">
@@ -111,7 +150,8 @@ export function Projects() {
                   title={project.title}
                   category={project.tags?.[0] || 'Research'}
                   teamLabel={`${project.teamCount ?? project.team?.length ?? 0} team member${(project.teamCount ?? project.team?.length ?? 0) !== 1 ? 's' : ''}`}
-                  onClick={() => navigate(`/projects/${project.slug || project._id}`)}
+                  viewCount={viewCounts[project._id ?? project.slug] ?? 0}
+                  onClick={() => handleProjectClick(project)}
                   onDelete={() => handleDeleteProject(project._id ?? project.slug)}
                 />
               ))}

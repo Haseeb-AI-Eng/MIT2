@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchPublishedProjects } from '../api';
+import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount } from '../api';
 import { ResearchCard } from '../components/ResearchCard';
 
 const cyclingWords = ['#health', '#design', '#AI', '#robotics', '#climate', '#education'];
@@ -62,6 +62,7 @@ export function Research() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const abortRef = useRef<AbortController | null>(null);
 
   const loadProjects = useCallback(async (pageNum: number, replace: boolean) => {
@@ -96,6 +97,24 @@ export function Research() {
     return () => { abortRef.current?.abort(); };
   }, [loadProjects]);
 
+  // Fetch view counts when projects change
+  useEffect(() => {
+    if (projects.length === 0) return;
+    
+    const fetchViews = async () => {
+      const counts: Record<string, number> = {};
+      for (const project of projects) {
+        const projectId = project._id ?? project.slug;
+        if (!projectId) continue;
+        const count = await fetchProjectViewCount(projectId);
+        counts[projectId] = count;
+      }
+      setViewCounts(counts);
+    };
+    
+    fetchViews();
+  }, [projects]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setFade(false);
@@ -109,6 +128,26 @@ export function Research() {
 
   const handleDeleteProject = (projectId: string) => {
     setProjects(projects.filter((p) => (p._id ?? p.slug) !== projectId));
+  };
+
+  const handleProjectClick = async (project: any) => {
+    const projectId = project._id ?? project.slug;
+    
+    // Track view on the server
+    try {
+      const count = await trackProjectView(projectId);
+      if (count !== null) {
+        setViewCounts(prev => ({
+          ...prev,
+          [projectId]: count,
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to track view:', err);
+    }
+    
+    // Navigate to project detail
+    navigate(`/projects/${project.slug || project._id}`);
   };
 
   return (
@@ -177,7 +216,8 @@ export function Research() {
                   teamCount={project.teamCount ?? project.team?.length ?? 0}
                   status={project.status || 'published'}
                   authorName={getAuthorName(project)}
-                  onClick={() => navigate(`/projects/${project.slug || project._id}`)}
+                  viewCount={viewCounts[project._id ?? project.slug] ?? 0}
+                  onClick={() => handleProjectClick(project)}
                   onDelete={() => handleDeleteProject(project._id ?? project.slug)}
                 />
               ))}

@@ -54,7 +54,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://hima21517_db_user:64nG
 const DB_NAME = process.env.DB_NAME || 'research';
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey_change_me';
 const REPLIT_DOMAIN = (process.env.REPLIT_DOMAINS || '').split(',')[0].trim();
-const API_BASE_URL = REPLIT_DOMAIN ? `https://${REPLIT_DOMAIN}` : '';
+const API_BASE_URL = process.env.API_BASE_URL || (REPLIT_DOMAIN ? `https://${REPLIT_DOMAIN}` : `http://localhost:${PORT}`);
 
 const app = express();
 app.use(cors());
@@ -70,6 +70,7 @@ let articlesCollection;
 let tagsCollection;
 let formSubmissionsCollection;
 let announcementsCollection;
+let projectViewsCollection;
 
 const USER_ROLES = ['admin', 'researcher', 'student'];
 const PROJECT_STATUSES = ['draft', 'review', 'published'];
@@ -87,6 +88,7 @@ async function connectDB() {
   tagsCollection = db.collection('tags');
   formSubmissionsCollection = db.collection('form_submissions');
   announcementsCollection = db.collection('announcements');
+  projectViewsCollection = db.collection('project_views');
 
   await usersCollection.createIndex({ email: 1 }, { unique: true });
   await labsCollection.createIndex({ name: 1 }, { unique: true });
@@ -98,6 +100,9 @@ async function connectDB() {
   await projectsCollection.createIndex({ featured: 1, status: 1, createdAt: -1 });
   await projectMembersCollection.createIndex({ projectId: 1 });
   await projectMembersCollection.createIndex({ userId: 1 });
+  await projectViewsCollection.createIndex({ projectId: 1 });
+  await projectViewsCollection.createIndex({ projectId: 1, ipAddress: 1, deviceFingerprint: 1 }, { unique: true });
+  await projectViewsCollection.createIndex({ viewedAt: 1 }, { expireAfterSeconds: 7776000 });
   await tagsCollection.createIndex({ name: 1 }, { unique: true });
   await formSubmissionsCollection.createIndex({ createdAt: -1 });
   await formSubmissionsCollection.createIndex({ email: 1 }, { unique: true });
@@ -722,12 +727,20 @@ app.post('/api/projects', async (req, res) => {
     const slug = await generateUniqueSlug(projectsCollection, slugBase);
 
     const project = {
-      title, description, coverImage, status, tags,
+      title,
+      description,
+      coverImage,
+      videoUrl: req.body.videoUrl || req.body.video_url || '',
+      status,
+      tags,
       labId: req.body.labId && ObjectId.isValid(req.body.labId) ? new ObjectId(req.body.labId) : null,
       createdBy: userId,
       lead: req.body.lead || '',
       leadEmail: req.body.email ? req.body.email.toLowerCase().trim() : '',
-      createdAt: new Date(), updatedAt: new Date(), featured, slug,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      featured,
+      slug,
     };
 
     const result = await projectsCollection.insertOne(project);
@@ -819,6 +832,7 @@ app.put('/api/projects/:id', authenticate, requireAdmin, async (req, res) => {
     if (req.body.title) updates.title = req.body.title.trim();
     if (req.body.description) updates.description = req.body.description;
     if (req.body.coverImage || req.body.cover_image) updates.coverImage = req.body.coverImage || req.body.cover_image;
+    if (req.body.videoUrl || req.body.video_url) updates.videoUrl = req.body.videoUrl || req.body.video_url;
     if (req.body.tags) updates.tags = Array.isArray(req.body.tags) ? req.body.tags : [];
     if (req.body.featured !== undefined) updates.featured = req.body.featured === true;
     if (req.body.status && validateProjectStatus(req.body.status)) updates.status = req.body.status;
@@ -897,6 +911,90 @@ app.delete('/api/projects/:id', authenticate, requireAdmin, async (req, res) => 
     cacheInvalidate('projects:fast:');
     cacheInvalidate('projects:list:');
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---- Project Views Tracking ----
+app.post('/api/projects/:id/view', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { deviceFingerprint } = req.body;
+    
+    // Validate project exists
+    const projectMatch = ObjectId.isValid(id) ? { _id: new ObjectId(id) } : { slug: id };
+    const projectExists = await projectsCollection.findOne(projectMatch);
+    if (!projectExists) return res.status(404).json({ error: 'Project not found' });
+    
+    const projectId = projectExists._id.toString();
+    
+    // Get IP address (handle proxies)
+    const ipAddress = req.headers['x-forwarded-for']?.split(',')[0].trim() || 
+                     req.socket.remoteAddress || 
+                     req.connection.remoteAddress ||
+                     'unknown';
+    
+    // Create unique view identifier
+    const fingerprint = deviceFingerprint || req.headers['user-agent'] || 'unknown';
+    
+    try {
+      // Try to update or insert - one view per IP+device combination
+      const result = await projectViewsCollection.updateOne(
+        {
+          projectId: new ObjectId(projectId),
+          ipAddress,
+          deviceFingerprint: fingerprint
+        },
+        {
+          $set: {
+            projectId: new ObjectId(projectId),
+            ipAddress,
+            deviceFingerprint: fingerprint,
+            viewedAt: new Date(),
+          }
+        },
+        { upsert: true }
+      );
+      
+      // Get total view count
+      const viewCount = await projectViewsCollection.countDocuments({
+        projectId: new ObjectId(projectId)
+      });
+      
+      res.json({ success: true, viewCount, isNewView: result.upsertedId ? true : false });
+    } catch (dbErr) {
+      // Handle unique constraint error gracefully (means view already exists)
+      if (dbErr.code === 11000) {
+        const viewCount = await projectViewsCollection.countDocuments({
+          projectId: new ObjectId(projectId)
+        });
+        return res.json({ success: true, viewCount, isNewView: false });
+      }
+      throw dbErr;
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/projects/:id/views', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Validate project exists
+    const projectMatch = ObjectId.isValid(id) ? { _id: new ObjectId(id) } : { slug: id };
+    const projectExists = await projectsCollection.findOne(projectMatch);
+    if (!projectExists) return res.status(404).json({ error: 'Project not found' });
+    
+    const projectId = projectExists._id.toString();
+    const viewCount = await projectViewsCollection.countDocuments({
+      projectId: new ObjectId(projectId)
+    });
+    
+    res.json({ viewCount });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

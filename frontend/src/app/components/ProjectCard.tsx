@@ -1,16 +1,17 @@
 import { motion } from 'motion/react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Eye } from 'lucide-react';
 
 interface ProjectCardProps {
   image: string;
   title: string;
   category: string;
   teamLabel: string;
+  viewCount?: number;
   onClick?: () => void;
   onDelete?: () => void;
 }
 
-export function ProjectCard({ image, title, category, teamLabel, onClick, onDelete }: ProjectCardProps) {
+export function ProjectCard({ image, title, category, teamLabel, viewCount = 0, onClick, onDelete }: ProjectCardProps) {
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onDelete) {
@@ -62,6 +63,12 @@ export function ProjectCard({ image, title, category, teamLabel, onClick, onDele
         </h3>
         <p className="text-[14px] text-black/60 mb-1 font-serif transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">{category}</p>
         <p className="text-[13px] text-black/40 font-serif transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">{teamLabel}</p>
+        {viewCount > 0 && (
+          <div className="flex items-center gap-1.5 text-[13px] text-black/40 font-serif mt-2">
+            <Eye size={13} />
+            <span>{viewCount} {viewCount === 1 ? 'view' : 'views'}</span>
+          </div>
+        )}
       </button>
     </motion.div>
   );

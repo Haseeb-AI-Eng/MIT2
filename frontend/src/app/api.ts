@@ -188,6 +188,38 @@ export function markLocalProjectViewed(projectId: string): number {
   return nextViews[projectId];
 }
 
+// ---- Server-side View Tracking ----
+export async function trackProjectView(projectIdOrSlug: string) {
+  try {
+    // Generate a simple device fingerprint
+    const deviceFingerprint = `${navigator.userAgent}`;
+    
+    const res = await fetch(`${API_BASE}/projects/${projectIdOrSlug}/view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceFingerprint }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.viewCount;
+  } catch (err) {
+    console.error('Failed to track project view:', err);
+    return null;
+  }
+}
+
+export async function fetchProjectViewCount(projectIdOrSlug: string): Promise<number> {
+  try {
+    const res = await fetch(`${API_BASE}/projects/${projectIdOrSlug}/views`);
+    if (!res.ok) return 0;
+    const data = await res.json();
+    return data.viewCount ?? 0;
+  } catch (err) {
+    console.error('Failed to fetch project view count:', err);
+    return 0;
+  }
+}
+
 export async function submitMasApplication(payload: Record<string, unknown>) {
   const res = await fetch(`${API_BASE}/form-submissions`, {
     method: 'POST',
