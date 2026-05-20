@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { Search } from 'lucide-react';
 import { NewsCard } from '../components/NewsCard';
 import { HeroVideo } from './HeroVideo';
 import {
@@ -44,6 +45,18 @@ const ROW_PATTERNS: RowPattern[] = [
   { roles: ['side', 'wide'],             cols: [1, 2] },
 ];
 
+const MAX_VISIBLE_PROJECTS = 30;
+const ROTATION_INTERVAL_MS = 60_000;
+const ROTATION_SWAP_SIZE = 10;
+
+function getRandomIndices(count: number, max: number) {
+  const indices = new Set<number>();
+  while (indices.size < count) {
+    indices.add(Math.floor(Math.random() * max));
+  }
+  return Array.from(indices);
+}
+
 interface AssignedCard {
   project: any;
   role: CardRole;
@@ -53,16 +66,140 @@ interface AssignedCard {
 export const Home = React.memo(function Home() {
   const navigate = useNavigate();
   const [publishedProjects, setPublishedProjects] = useState<any[]>([]);
+  const [visibleProjects, setVisibleProjects] = useState<any[]>([]);
+  const [hiddenProjects, setHiddenProjects] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(false);
   const [projectViews, setProjectViews] = useState<Record<string, number>>(getLocalProjectViews);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const intervalRef = useRef<number | null>(null);
+  const visibleRef = useRef<any[]>([]);
+  const hiddenRef = useRef<any[]>([]);
+  const searchAbortRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
-    fetchPublishedProjects(50, 1)
-      .then((res) => setPublishedProjects(res.projects || []))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+    let active = true;
+    fetchPublishedProjects(100, 1)
+      .then((res) => {
+        if (!active) return;
+        const projects = res.projects || [];
+        setPublishedProjects(projects);
+        setVisibleProjects(projects.slice(0, MAX_VISIBLE_PROJECTS));
+        setHiddenProjects(projects.slice(MAX_VISIBLE_PROJECTS));
+      })
+      .catch(() => {
+        if (active) setError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
+
+  useEffect(() => {
+    visibleRef.current = visibleProjects;
+  }, [visibleProjects]);
+
+  useEffect(() => {
+    hiddenRef.current = hiddenProjects;
+  }, [hiddenProjects]);
+
+  useEffect(() => {
+    if (intervalRef.current) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    if (hiddenProjects.length === 0 || visibleProjects.length === 0) {
+      return;
+    }
+
+    intervalRef.current = window.setInterval(() => {
+      const currentVisible = visibleRef.current;
+      const currentHidden = hiddenRef.current;
+      if (currentVisible.length === 0 || currentHidden.length === 0) {
+        return;
+      }
+
+      const swapCount = Math.min(ROTATION_SWAP_SIZE, currentHidden.length, currentVisible.length);
+      if (swapCount === 0) return;
+
+      const visibleIndices = getRandomIndices(swapCount, currentVisible.length);
+      const hiddenIndices = getRandomIndices(swapCount, currentHidden.length);
+      const nextVisible = [...currentVisible];
+      const nextHidden = [...currentHidden];
+
+      for (let i = 0; i < swapCount; i++) {
+        const visibleIndex = visibleIndices[i];
+        const hiddenIndex = hiddenIndices[i];
+        [nextVisible[visibleIndex], nextHidden[hiddenIndex]] = [
+          nextHidden[hiddenIndex],
+          nextVisible[visibleIndex],
+        ];
+      }
+
+      setVisibleProjects(nextVisible);
+      setHiddenProjects(nextHidden);
+    }, ROTATION_INTERVAL_MS);
+
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [hiddenProjects.length, visibleProjects.length]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSearchError(false);
+      setSearchLoading(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    const query = searchQuery.toLowerCase().trim();
+    const matchedProjects = publishedProjects.filter((project) => {
+      const title = project.title?.toString().toLowerCase() || '';
+      const category = (project.tags?.[0] || project.category || '').toString().toLowerCase();
+      const slug = project.slug?.toString().toLowerCase() || '';
+      const tags = (project.tags || []).map(String).join(' ').toLowerCase();
+      return (
+        title.includes(query) ||
+        category.includes(query) ||
+        tags.includes(query) ||
+        slug.includes(query)
+      );
+    });
+
+    setSearchResults(matchedProjects);
+    setSearchError(false);
+    setSearchLoading(false);
+  }, [searchQuery, publishedProjects]);
+
+  const filteredProjects = useMemo(() => {
+    return searchQuery.trim() ? searchResults : visibleProjects;
+  }, [searchQuery, searchResults, visibleProjects]);
+
+  const handleSearchSelect = useCallback(
+    (result: any) => {
+      setSearchQuery('');
+      setSearchResults([]);
+      if (searchAbortRef.current) {
+        searchAbortRef.current.abort();
+        searchAbortRef.current = null;
+      }
+      navigate(`/projects/${result.slug || result._id}`);
+    },
+    [navigate]
+  );
 
   const handleProjectClick = useCallback(
     (projectId: string | undefined) => {
@@ -86,15 +223,15 @@ export const Home = React.memo(function Home() {
     let projectIdx = 0;
     let patternIdx = 0;
 
-    while (projectIdx < publishedProjects.length) {
+    while (projectIdx < filteredProjects.length) {
       const pattern = ROW_PATTERNS[patternIdx % ROW_PATTERNS.length];
-      const remaining = publishedProjects.length - projectIdx;
+      const remaining = filteredProjects.length - projectIdx;
 
       // If not enough projects to fill this pattern, fall back to normal cards
       if (remaining < pattern.roles.length) {
         for (let i = 0; i < remaining; i++) {
           result.push({
-            project: publishedProjects[projectIdx++],
+            project: filteredProjects[projectIdx++],
             role: 'normal',
             colSpan: 1,
           });
@@ -105,7 +242,7 @@ export const Home = React.memo(function Home() {
       // Assign roles from this pattern
       for (let i = 0; i < pattern.roles.length; i++) {
         result.push({
-          project: publishedProjects[projectIdx++],
+          project: filteredProjects[projectIdx++],
           role: pattern.roles[i],
           colSpan: pattern.cols[i],
         });
@@ -115,7 +252,7 @@ export const Home = React.memo(function Home() {
     }
 
     return result;
-  }, [publishedProjects]);
+  }, [filteredProjects]);
 
   return (
     <div>
@@ -145,12 +282,48 @@ export const Home = React.memo(function Home() {
         <div className="mb-10">
 
           {/* Header row */}
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
-            <p className="text-[12px] uppercase tracking-[0.24em] text-black/40">Latest Research</p>
-            {!loading && (
-              <p className="text-[14px] text-black/50">{publishedProjects.length} projects shown</p>
-            )}
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between mb-6">
+            <div className="min-w-0">
+              <p className="text-[12px] uppercase tracking-[0.24em] text-black/40">Latest Research</p>
+              {!loading && (
+                <p className="mt-2 text-[14px] text-black/50">
+                {searchQuery.trim()
+                  ? `Showing ${filteredProjects.length} matching projects.`
+                  : `Showing ${visibleProjects.length} of ${publishedProjects.length} projects on the homepage.`}
+              </p>
+              )}
+            </div>
+
+            <div className="w-full xl:w-[440px]">
+              <div className="relative rounded-xl border border-black/10 bg-white px-3 py-2 shadow-sm shadow-black/5 transition hover:border-black/20 focus-within:border-black/20 focus-within:ring-2 focus-within:ring-black/10">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-black/30" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Filter projects by title, category, or tags"
+                  className="w-full rounded-xl border-none bg-transparent pl-11 pr-3 py-1.5 text-black text-[15px] placeholder:text-black/35 focus:outline-none"
+                />
+              </div>
+            </div>
           </div>
+
+          {searchQuery.trim() && searchError && (
+            <div className="mb-6 rounded-[28px] border border-black/10 bg-white p-4 shadow-sm shadow-black/5">
+              <div className="text-[14px] text-red-600">Unable to filter right now. Please try again.</div>
+            </div>
+          )}
+
+          {searchQuery.trim() && !searchError && !searchLoading && filteredProjects.length === 0 && (
+            <div className="mb-4 text-[14px] text-black/50">
+              No research projects match “{searchQuery}”.
+            </div>
+          )}
+
+          {!searchQuery.trim() && publishedProjects.length > MAX_VISIBLE_PROJECTS && (
+            <div className="mb-6 rounded-[28px] border border-black/10 bg-white/80 px-5 py-4 text-black/70 text-[14px] shadow-sm shadow-black/5">
+              Only the latest {MAX_VISIBLE_PROJECTS} projects display on the homepage. Search to find any additional projects instantly.
+            </div>
+          )}
 
           {/* ── Loading skeleton ── */}
           {loading && (
@@ -174,7 +347,7 @@ export const Home = React.memo(function Home() {
           )}
 
           {/* ── Masonry grid ── */}
-          {!loading && !error && publishedProjects.length > 0 && (
+          {!loading && !error && filteredProjects.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[3px] items-start">
               {assignedCards.map(({ project, role, colSpan }, index) => {
                 const projectId = getProjectId(project);
