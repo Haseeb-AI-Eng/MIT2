@@ -327,7 +327,7 @@ export const Home = React.memo(function Home() {
 
           {/* ── Loading skeleton ── */}
           {loading && (
-            <div className="grid grid-cols-3 gap-[3px]">
+            <div className="grid grid-cols-3 gap-0">
               <div className="col-span-2 animate-pulse bg-black/5" style={{ aspectRatio: '16/8' }} />
               <div className="col-span-1 animate-pulse bg-black/5" style={{ aspectRatio: '4/5' }} />
               <div className="col-span-1 animate-pulse bg-black/5 h-64" />
@@ -348,7 +348,7 @@ export const Home = React.memo(function Home() {
 
           {/* ── Masonry grid ── */}
           {!loading && !error && filteredProjects.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[3px] items-start">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 items-start">
               {assignedCards.map(({ project, role, colSpan }, index) => {
                 const projectId = getProjectId(project);
                 return (
