@@ -142,11 +142,11 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
               aria-label="Home"
             >
               <svg
-                width="auto"
                 height={isScrolled ? '28' : '40'}
                 viewBox="0 0 80 50"
                 className={`transition-all duration-300 ${isScrolled ? 'text-black' : 'text-white'
                   }`}
+                preserveAspectRatio="xMidYMid meet"
               >
                 <text
                   x="50%"
