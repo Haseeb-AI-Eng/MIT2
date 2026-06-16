@@ -1,5 +1,5 @@
 // Ensure the base URL points to production by default if the environment variable is missing
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://backend-forever--syedtech26.replit.app').replace(/\/$/, '') + (import.meta.env.VITE_API_URL?.endsWith('/api') ? '' : '/api');
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://hi-there--alisorab423.replit.app').replace(/\/$/, '') + (import.meta.env.VITE_API_URL?.endsWith('/api') ? '' : '/api');
 
 export const getApiUrl = () => API_BASE;
 
