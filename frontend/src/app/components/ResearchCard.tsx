@@ -78,10 +78,10 @@ export function ResearchCard({
       style={{ borderBottom: '1px solid rgba(0,0,0,0.12)', borderRight: '1px solid rgba(0,0,0,0.12)' }}
       onClick={onClick}
     >
-      <div className="p-7 flex flex-col gap-4 min-h-[280px]">
+      <div className="p-8 flex flex-col gap-4 min-h-[280px]">
 
         {/* Top row: logo + group name */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
           <GeometricLogo text={logoText} />
           <span
             className="text-[15px] font-bold text-black leading-tight"

@@ -3,6 +3,19 @@ import { motion } from 'motion/react';
 import { memo } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
+function ProjectCardLogo() {
+  return (
+    <div className="w-10 h-10 flex items-center justify-center pointer-events-none">
+      <svg width="40" height="40" viewBox="0 0 72 72" fill="none" shapeRendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="4" width="64" height="64" stroke="white" strokeWidth="8" fill="none" strokeLinejoin="miter" strokeLinecap="square" />
+        <rect x="18" y="18" width="36" height="36" fill="white" />
+        <rect x="26" y="26" width="20" height="20" fill="transparent" />
+        <rect x="46" y="46" width="10" height="10" fill="white" />
+      </svg>
+    </div>
+  );
+}
+
 interface NewsCardProps {
   image?: string;
   title: string;
@@ -70,6 +83,9 @@ function NewsCardComponent({
             <Eye size={14} />
             <span>{viewCount ?? 0}</span>
           </div>
+        </div>
+        <div className="absolute left-3 bottom-3 z-20">
+          <ProjectCardLogo label={category || title} />
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#199BD8] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-10" />
         <div className="absolute left-[45%] bottom-0 -translate-x-1/2 translate-y-1/2 h-0 w-0 border-l-[18px] border-r-[18px] border-b-[18px] border-l-transparent border-r-transparent group-hover:border-b-[#199BD8] border-b-white transition-colors duration-500 pointer-events-none z-20" />
