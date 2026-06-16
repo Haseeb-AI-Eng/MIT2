@@ -10,7 +10,7 @@
 
 import { useEffect } from 'react';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://hi-there--alisorab423.replit.app')
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://backend-forever--syedtech26.replit.app')
   .replace(/\/$/, '');
 
 // Lightweight health endpoint — returns {status:'ok'} instantly

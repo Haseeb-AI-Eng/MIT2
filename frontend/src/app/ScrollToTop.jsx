@@ -10,6 +10,7 @@ const ScrollToTop = () => {
             document.body.scrollTop = 0;
             document.documentElement.scrollTop = 0;
         };
+        
 
         window.requestAnimationFrame(scrollToTop);
     }, [pathname]);
