@@ -5,7 +5,7 @@ import { Search } from 'lucide-react';
 import { NewsCard } from '../components/NewsCard';
 import { HeroVideo } from './HeroVideo';
 import {
-  fetchPublishedProjects,
+  fetchAllPublishedProjects,
   getLocalProjectViews,
   markLocalProjectViewed,
 } from '../api';
@@ -79,11 +79,10 @@ export const Home = React.memo(function Home() {
   const intervalRef = useRef<number | null>(null);
   const visibleRef = useRef<any[]>([]);
   const hiddenRef = useRef<any[]>([]);
-  const searchAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let active = true;
-    fetchPublishedProjects(100, 1)
+    fetchAllPublishedProjects()
       .then((res) => {
         if (!active) return;
         const projects = res.projects || [];
@@ -188,19 +187,6 @@ export const Home = React.memo(function Home() {
     return searchQuery.trim() ? searchResults : visibleProjects;
   }, [searchQuery, searchResults, visibleProjects]);
 
-  const handleSearchSelect = useCallback(
-    (result: any) => {
-      setSearchQuery('');
-      setSearchResults([]);
-      if (searchAbortRef.current) {
-        searchAbortRef.current.abort();
-        searchAbortRef.current = null;
-      }
-      navigate(`/projects/${result.slug || result._id}`);
-    },
-    [navigate]
-  );
-
   const handleProjectClick = useCallback(
     (projectId: string | undefined) => {
       if (!projectId || typeof window === 'undefined') {
@@ -269,7 +255,7 @@ export const Home = React.memo(function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative w-full text-[36px] sm:text-[40px] md:text-[40px] md:ml-30 leading-[1.05] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none z-10 font-sans font-semibold"
+            className="relative w-full text-[36px] sm:text-[40px] md:text-[40px] md:ml-36 leading-[1.05] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none z-10 font-sans font-semibold"
             style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             Imagine what we can become.
@@ -285,13 +271,6 @@ export const Home = React.memo(function Home() {
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between mb-6">
             <div className="min-w-0">
               <p className="text-[12px] uppercase tracking-[0.24em] text-black/40">Latest Research</p>
-              {!loading && (
-                <p className="mt-2 text-[14px] text-black/50">
-                {searchQuery.trim()
-                  ? `Showing ${filteredProjects.length} matching projects.`
-                  : `Showing ${visibleProjects.length} of ${publishedProjects.length} projects on the homepage.`}
-              </p>
-              )}
             </div>
 
             <div className="w-full xl:w-[440px]">
@@ -301,6 +280,7 @@ export const Home = React.memo(function Home() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Filter projects by title, category, or tags"
+                  aria-label="Filter projects by title, category, or tags"
                   className="w-full rounded-xl border-none bg-transparent pl-11 pr-3 py-1.5 text-black text-[15px] placeholder:text-black/35 focus:outline-none"
                 />
               </div>
@@ -319,16 +299,10 @@ export const Home = React.memo(function Home() {
             </div>
           )}
 
-          {!searchQuery.trim() && publishedProjects.length > MAX_VISIBLE_PROJECTS && (
-            <div className="mb-6 rounded-[28px] border border-black/10 bg-white/80 px-5 py-4 text-black/70 text-[14px] shadow-sm shadow-black/5">
-              Only the latest {MAX_VISIBLE_PROJECTS} projects display on the homepage. Search to find any additional projects instantly.
-            </div>
-          )}
-
           {/* ── Loading skeleton ── */}
           {loading && (
-            <div className="grid grid-cols-3 gap-0">
-              <div className="col-span-2 animate-pulse bg-black/5" style={{ aspectRatio: '16/8' }} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0">
+              <div className="col-span-1 sm:col-span-2 lg:col-span-2 animate-pulse bg-black/5" style={{ aspectRatio: '16/8' }} />
               <div className="col-span-1 animate-pulse bg-black/5" style={{ aspectRatio: '4/5' }} />
               <div className="col-span-1 animate-pulse bg-black/5 h-64" />
               <div className="col-span-1 animate-pulse bg-black/5 h-64" />
@@ -349,7 +323,7 @@ export const Home = React.memo(function Home() {
           {/* ── Masonry grid ── */}
           {!loading && !error && filteredProjects.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 items-start">
-              {assignedCards.map(({ project, role, colSpan }, index) => {
+              {assignedCards.map(({ project, role }, index) => {
                 const projectId = getProjectId(project);
                 return (
                   <motion.div

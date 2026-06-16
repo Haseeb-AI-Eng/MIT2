@@ -27,3 +27,7 @@ pnpm-debug.log*
 # OS temp files
 *.tmp
 *.bak
+
+# Archives
+frontend.zip
+*.zip

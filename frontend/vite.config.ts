@@ -29,6 +29,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      react: path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
   },
   assetsInclude: ['**/*.svg', '**/*.csv'],
@@ -52,6 +54,14 @@ export default defineConfig({
     hmr: true,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'motion/react'],
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-router-dom',
+      'motion/react',
+    ],
   },
 });

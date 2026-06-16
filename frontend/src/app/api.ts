@@ -133,6 +133,26 @@ export async function fetchPublishedProjects(
   return result;
 }
 
+export async function fetchAllPublishedProjects(signal?: AbortSignal): Promise<ProjectListResult> {
+  const firstPage = await fetchPublishedProjects(100, 1, signal);
+  if (firstPage.totalPages <= 1) {
+    return firstPage;
+  }
+
+  const pagePromises: Promise<ProjectListResult>[] = [];
+  for (let page = 2; page <= firstPage.totalPages; page += 1) {
+    pagePromises.push(fetchPublishedProjects(100, page, signal));
+  }
+
+  const remainingPages = await Promise.all(pagePromises);
+  const allProjects = [firstPage.projects, ...remainingPages.map((pageResult) => pageResult.projects)].flat();
+
+  return {
+    ...firstPage,
+    projects: allProjects,
+  };
+}
+
 export async function fetchProjectByIdOrSlug(idOrSlug: string, signal?: AbortSignal) {
   const res = await fetch(`${API_BASE}/projects/${idOrSlug}`, { signal });
   if (!res.ok) return null;

@@ -1,9 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ProjectCard } from '../components/ProjectCard';
+import { ResearchProjectCard, ResearchProjectCardType } from '../components/ResearchProjectCard';
 import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount } from '../api';
 
 const PAGE_SIZE = 12;
+
+function getProjectCardType(project: any, index: number): ResearchProjectCardType {
+  if (project.featured || index === 0) return 'featured';
+  if (project.videoUrl || project.video_url) return 'video';
+  if (index % 7 === 0) return 'category';
+  if (index % 5 === 0) return 'text';
+  if (index % 4 === 0) return 'statistic';
+  return 'standard';
+}
 
 function ProjectCardSkeleton() {
   return (
@@ -110,10 +119,10 @@ export function Projects() {
         <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">Research Projects</p>
           <h1 className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto">
-            A curated collection of MIT-style projects, built for review and publication.
+            A modern research showcase inspired by MIT Media Lab.
           </h1>
           <p className="max-w-3xl mx-auto text-white/70 mt-6 text-[16px] md:text-[18px]">
-            Browse featured work, team members, and approval status for each research initiative.
+            Browse featured work across mixed-height cards: image-led features, text highlights, demo previews, and research stats.
           </p>
         </div>
       </section>
@@ -122,7 +131,7 @@ export function Projects() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-8">
           <div>
             <p className="text-[12px] uppercase tracking-[0.25em] text-black/40 mb-2">Published Projects</p>
-            <h2 className="text-[28px] md:text-[36px] font-semibold text-black">Latest research, engineered for public launch.</h2>
+            <h2 className="text-[28px] md:text-[36px] font-semibold text-black">Responsive masonry showcase for active research.</h2>
           </div>
           <p className="text-black/60">
             {loading ? '' : `${total} project${total !== 1 ? 's' : ''} available`}
@@ -142,20 +151,20 @@ export function Projects() {
           <div className="py-20 text-center text-black/60">No published projects are available yet.</div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {projects.map((project) => (
-                <ProjectCard
-                  key={project._id ?? project.slug}
-                  image={project.coverImage || project.cover_image || '/image.gif'}
-                  title={project.title}
-                  category={project.tags?.[0] || 'Research'}
-                  teamLabel={`${project.teamCount ?? project.team?.length ?? 0} team member${(project.teamCount ?? project.team?.length ?? 0) !== 1 ? 's' : ''}`}
-                  viewCount={viewCounts[project._id ?? project.slug] ?? 0}
-                  onClick={() => handleProjectClick(project)}
-                  onDelete={() => handleDeleteProject(project._id ?? project.slug)}
-                />
+            <div className="masonry-layout">
+              {projects.map((project, index) => (
+                <div key={project._id ?? project.slug} className="masonry-item">
+                  <ResearchProjectCard
+                    project={project}
+                    cardType={getProjectCardType(project, index)}
+                    viewCount={viewCounts[project._id ?? project.slug] ?? 0}
+                    onClick={() => handleProjectClick(project)}
+                  />
+                </div>
               ))}
-              {loadingMore && Array.from({ length: 3 }).map((_, i) => <ProjectCardSkeleton key={`more-${i}`} />)}
+              {loadingMore && Array.from({ length: 3 }).map((_, i) => (
+                <div key={`more-${i}`} className="masonry-item rounded-[32px] bg-slate-100 p-6 animate-pulse h-[320px]" />
+              ))}
             </div>
 
             {page < totalPages && !loadingMore && (
