@@ -195,7 +195,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
               <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={4} />
             </button>
 
-            {/* Stacked wordmark: ELEMENTS / INTERACTIVE — both white, widths matched via letter-spacing */}
+            {/* Stacked wordmark: ELEMENTS / INTERACTIVE — both white, regular weight, widths matched via letter-spacing */}
             <Link
               to="/"
               className="flex flex-col items-start leading-none transition-transform hover:scale-105 active:scale-95"
@@ -204,13 +204,13 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
             >
               <span
                 ref={elementsTextRef}
-                className="font-bold uppercase text-white text-[19px] md:text-[28px] inline-block"
+                className="font-normal uppercase text-white text-[19px] md:text-[28px] inline-block"
               >
                 ELEMENTS
               </span>
               <span
                 ref={interactiveTextRef}
-                className="font-bold uppercase text-white text-[19px] md:text-[28px] inline-block"
+                className="font-normal uppercase text-white text-[19px] md:text-[28px] inline-block"
                 style={{ letterSpacing: '-0.035em' }}
               >
                 INTERACTIVE
