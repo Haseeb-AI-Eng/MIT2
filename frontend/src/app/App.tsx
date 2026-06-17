@@ -36,7 +36,7 @@ function Layout({ children, onMenuClick }: LayoutProps) {
     <div className="min-h-screen bg-white">
       <Header onMenuClick={onMenuClick} />
       <Sidebar />
-      <main>{children}</main>
+      <main className="pt-[80px] md:pt-0">{children}</main>
       <Footer />
     </div>
   );
@@ -46,7 +46,7 @@ function LayoutNoSidebar({ children, onMenuClick }: LayoutProps) {
   return (
     <div className="min-h-screen bg-white">
       <Header onMenuClick={onMenuClick} />
-      <main>{children}</main>
+      <main className="pt-[0px]">{children}</main>
       <Footer />
     </div>
   );

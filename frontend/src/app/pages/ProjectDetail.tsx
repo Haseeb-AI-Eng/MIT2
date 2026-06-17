@@ -116,15 +116,15 @@ export function ProjectDetail() {
     <div className="min-h-screen bg-white">
 
       {/* ── Hero banner ── */}
-      <section data-hero-section className="relative bg-[#2d4a3e] text-white flex items-center justify-center text-center" style={{ minHeight: '260px', maxHeight: '360px', height: '28vw', paddingTop: '5rem' }}>
+      <section data-hero-section className="relative bg-black text-white flex items-center justify-center text-center" style={{ minHeight: '260px', maxHeight: '360px', height: '28vw', paddingTop: '80px' }}>
         <div className="absolute inset-0">
           <img
             src={project.coverImage || project.cover_image || '/image.gif'}
             alt=""
-            className="w-full h-full object-cover opacity-50"
+            className="w-full h-full object-cover opacity-60"
           />
-          {/* dark-teal overlay matching screenshot */}
-          <div className="absolute inset-0 bg-[#1e3530]/60" />
+          {/* neutral dark overlay */}
+          <div className="absolute inset-0 bg-black/40" />
         </div>
 
         {/* top-right label */}
