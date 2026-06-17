@@ -127,7 +127,7 @@ export function Projects() {
         </div>
       </section>
 
-      <div className="lg:ml-80 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
+      <div className="px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-8">
           <div>
             <p className="text-[12px] uppercase tracking-[0.25em] text-black/40 mb-2">Published Projects</p>

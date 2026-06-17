@@ -71,7 +71,6 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
   const location = useLocation();
   const scrollThreshold = 80;
 
-  // Refs used to widen "ELEMENTS" via letter-spacing until it matches "INTERACTIVE"'s width
   const elementsTextRef = useRef<HTMLSpanElement>(null);
   const interactiveTextRef = useRef<HTMLSpanElement>(null);
 
@@ -82,16 +81,22 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // On every route change, re-check scroll state and set up observer/listener
   useEffect(() => {
+    // Immediately reset scroll state on route change
+    setIsScrolled(window.scrollY > scrollThreshold);
+
     const heroSection = document.querySelector('[data-hero-section]');
 
     if (!heroSection) {
+      // No hero: use plain scroll listener on every page
       const handleScroll = () => setIsScrolled(window.scrollY > scrollThreshold);
       window.addEventListener('scroll', handleScroll, { passive: true });
       handleScroll();
       return () => window.removeEventListener('scroll', handleScroll);
     }
 
+    // Has hero: use IntersectionObserver so navbar turns white once hero scrolls out
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsScrolled(!entry.isIntersecting);
@@ -99,7 +104,15 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
       { root: null, threshold: 0.1 }
     );
     observer.observe(heroSection);
-    return () => observer.disconnect();
+
+    // Also keep a scroll fallback so it still works if observer fires late
+    const handleScroll = () => setIsScrolled(window.scrollY > scrollThreshold);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, [location.pathname]);
 
   useEffect(() => {
@@ -113,7 +126,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // Widen the gaps between letters of "ELEMENTS" so its total width equals "INTERACTIVE"'s width
+  // Match ELEMENTS letter-spacing to INTERACTIVE width
   useLayoutEffect(() => {
     const elementsEl = elementsTextRef.current;
     const interactiveEl = interactiveTextRef.current;
@@ -123,7 +136,6 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
       const text = elementsEl.textContent || '';
       const gaps = Math.max(text.length - 1, 1);
 
-      // Reset to measure natural (zero letter-spacing) width
       elementsEl.style.letterSpacing = '0px';
       const targetWidth = interactiveEl.getBoundingClientRect().width;
       const naturalWidth = elementsEl.getBoundingClientRect().width;
@@ -131,7 +143,6 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
       let spacing = (targetWidth - naturalWidth) / gaps;
       elementsEl.style.letterSpacing = `${spacing}px`;
 
-      // Correct once for browser rounding / trailing-gap differences
       const appliedWidth = elementsEl.getBoundingClientRect().width;
       const residual = targetWidth - appliedWidth;
       if (Math.abs(residual) > 0.5) {
@@ -150,26 +161,31 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
     return () => window.removeEventListener('resize', applySpacing);
   }, [isMobile]);
 
+  // Derived colors — all driven by isScrolled
   const chevronColor = isScrolled ? 'text-black' : 'text-white';
   const outlineColor = isScrolled ? '#000000' : '#FFFFFF';
+  const wordmarkColor = isScrolled ? 'text-black' : 'text-white';
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 will-change-[opacity] ${isScrolled ? 'bg-white shadow-sm' : 'bg-transparent'
-          }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 will-change-[opacity] ${
+          isScrolled ? 'bg-white shadow-sm' : 'bg-transparent'
+        }`}
       >
         <div
-          className={`px-4 md:px-6 flex items-center justify-between border-b transition-all duration-300 ${isScrolled ? 'border-black/10 py-3' : 'border-transparent pt-6 md:pt-12 pb-2 md:pb-4'
-            }`}
+          className={`px-4 md:px-6 flex items-center justify-between border-b transition-all duration-300 ${
+            isScrolled ? 'border-black/10 py-3' : 'border-transparent pt-6 md:pt-12 pb-2 md:pb-4'
+          }`}
         >
           {/* Logo: icon + chevron */}
           <Link to="/" className="flex items-center shrink-0">
             <div className="flex items-center gap-1 md:gap-2 transition-all duration-300 h-[80px]">
-              <LogoIcon height={isMobile ? 56 : (isScrolled ? 42 : 56)} outlineColor={outlineColor} />
+              <LogoIcon height={isMobile ? 56 : isScrolled ? 42 : 56} outlineColor={outlineColor} />
               <span
-                className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap leading-none ${chevronColor} ${isScrolled ? 'text-[22px]' : 'text-[44px] md:text-[54px]'
-                  }`}
+                className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap leading-none ${chevronColor} ${
+                  isScrolled ? 'text-[22px]' : 'text-[44px] md:text-[54px]'
+                }`}
                 style={{ fontFamily: "'Courier New', monospace" }}
               >
                 &gt;
@@ -181,21 +197,23 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
           <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={() => setSearchOpen(true)}
-              className={`p-2 md:p-2.5 rounded-full transition-colors ${isScrolled ? 'text-black font-bold hover:bg-black/5' : 'text-white hover:bg-white/10'
-                }`}
+              className={`p-2 md:p-2.5 rounded-full transition-colors ${
+                isScrolled ? 'text-black font-bold hover:bg-black/5' : 'text-white hover:bg-white/10'
+              }`}
             >
               <Search className="w-5 h-5 md:w-5 md:h-5" strokeWidth={3.5} />
             </button>
 
             <button
               onClick={onMenuClick}
-              className={`p-2 md:p-2.5 rounded-full transition-colors ${isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
-                }`}
+              className={`p-2 md:p-2.5 rounded-full transition-colors ${
+                isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
+              }`}
             >
               <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={4} />
             </button>
 
-            {/* Stacked wordmark: ELEMENTS / INTERACTIVE — both white, regular weight, widths matched via letter-spacing */}
+            {/* Stacked wordmark: ELEMENTS / INTERACTIVE — color follows scroll state */}
             <Link
               to="/"
               className="flex flex-col items-start leading-none transition-transform hover:scale-105 active:scale-95"
@@ -204,13 +222,13 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
             >
               <span
                 ref={elementsTextRef}
-                className="font-normal uppercase text-white text-[19px] md:text-[28px] inline-block"
+                className={`font-normal uppercase text-[19px] md:text-[28px] inline-block transition-colors duration-300 ${wordmarkColor}`}
               >
                 ELEMENTS
               </span>
               <span
                 ref={interactiveTextRef}
-                className="font-normal uppercase text-white text-[19px] md:text-[28px] inline-block"
+                className={`font-normal uppercase text-[19px] md:text-[28px] inline-block transition-colors duration-300 ${wordmarkColor}`}
                 style={{ letterSpacing: '-0.035em' }}
               >
                 INTERACTIVE

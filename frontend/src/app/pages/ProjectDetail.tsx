@@ -116,15 +116,15 @@ export function ProjectDetail() {
     <div className="min-h-screen bg-white">
 
       {/* ── Hero banner ── */}
-      <section data-hero-section className="relative bg-black text-white flex items-center justify-center text-center" style={{ minHeight: '260px', maxHeight: '360px', height: '28vw', paddingTop: '80px' }}>
+      <section data-hero-section className="relative bg-black text-white flex items-center justify-center text-center" style={{ minHeight: '260px', maxHeight: '360px', height: '28vw', paddingTop: '5rem' }}>
         <div className="absolute inset-0">
           <img
             src={project.coverImage || project.cover_image || '/image.gif'}
             alt=""
-            className="w-full h-full object-cover opacity-60"
+            className="w-full h-full object-cover"
           />
-          {/* neutral dark overlay */}
-          <div className="absolute inset-0 bg-black/40" />
+          {/* Dark overlay without green tint */}
+          <div className="absolute inset-0 bg-black/60" />
         </div>
 
         {/* top-right label */}
@@ -338,83 +338,17 @@ export function ProjectDetail() {
           </div>
 
           {/* Status badge + tags */}
-          <div className="flex flex-wrap items-center gap-2 mb-10">
-            <span
-              className="border border-black/20 px-3 py-1 text-[12px] uppercase tracking-[0.18em] text-black/60"
-             
-            >
-              {project.status || 'published'}
-            </span>
+          <div className="flex flex-wrap items-center gap-3 mt-12 pt-6 border-t border-black/10">
+            {project.status && (
+              <span className="px-3 py-1 bg-black/5 border border-black/10 rounded-full text-[12px] text-black/60 uppercase tracking-wider">
+                {project.status}
+              </span>
+            )}
             {tags.map((tag) => (
-              <span
-                key={tag}
-                className="border border-black/10 px-3 py-1 text-[12px] text-black/50"
-               
-              >
+              <span key={tag} className="px-3 py-1 bg-black/5 border border-black/10 rounded-full text-[12px] text-black/60">
                 {tag}
               </span>
             ))}
-          </div>
-
-          {/* Project details row */}
-          <div className="border-t border-black/10 pt-6 mb-10 grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Status</p>
-              <p className="text-[14px] text-black/80">{project.status || 'Draft'}</p>
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Published</p>
-              <p className="text-[14px] text-black/80">{formatDate(project.createdAt)}</p>
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Team size</p>
-              <p className="text-[14px] text-black/80">{teamMembers.length}</p>
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Lead role</p>
-              <p className="text-[14px] text-black/80">{teamMembers[0]?.role || 'Lead Researcher'}</p>
-            </div>
-          </div>
-
-          {/* Team cards — only shown if members exist */}
-          {teamMembers.length > 0 && (
-            <div className="border-t border-black/10 pt-6">
-              <h3
-                className="text-[13px] uppercase tracking-[0.18em] text-black/40 mb-5"
-               
-              >
-                Project team
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {teamMembers.map((member, i) => (
-                  <div key={i} className="flex items-center gap-4 border border-black/8 bg-slate-50 rounded-xl p-4">
-                    <div
-                      className="flex-shrink-0 flex items-center justify-center rounded-full bg-black/10 text-black/70 text-sm font-semibold"
-                      style={{ width: 48, height: 48 }}
-                    >
-                      {getInitials(member.name)}
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-black">{member.name}</p>
-                      <p className="text-[13px] text-black/55">{member.role}</p>
-                      {member.email && (
-                        <p className="text-[12px] text-black/40">{member.email}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Why this matters */}
-          <div className="border-t border-black/10 pt-6 mt-10">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-3">
-              Why this matters
-            </p>
-            <p className="text-[15px] text-black/65 leading-relaxed">
-              Projects on this platform go through a draft → review → published workflow, so every public project has been prepared for the community.
-            </p>
           </div>
         </main>
       </div>

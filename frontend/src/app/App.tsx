@@ -76,7 +76,7 @@ export default function App() {
         <Route path="/about" element={<Layout onMenuClick={toggleNav}><About /></Layout>} />
         <Route path="/research" element={<Layout onMenuClick={toggleNav}><Research /></Layout>} />
         <Route path="/foundations" element={<Layout onMenuClick={toggleNav}><Foundations /></Layout>} />
-        <Route path="/projects" element={<Layout onMenuClick={toggleNav}><Projects /></Layout>} />
+        <Route path="/projects" element={<LayoutNoSidebar onMenuClick={toggleNav}><Projects /></LayoutNoSidebar>} />
         <Route path="/support-media-lab" element={<Layout onMenuClick={toggleNav}><SupportMediaLab /></Layout>} />
         <Route path="/mas-graduate-program" element={<Layout onMenuClick={toggleNav}><MASGraduateProgram /></Layout>} />
         <Route path="/people" element={<Layout onMenuClick={toggleNav}><People /></Layout>} />

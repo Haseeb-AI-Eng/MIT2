@@ -111,7 +111,6 @@ export function ArticleDetail() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          paddingTop: '80px'
         }}
       >
         <div className="absolute inset-0 bg-black/60" />
@@ -140,23 +139,9 @@ export function ArticleDetail() {
           </Link>
           <div className="text-sm text-black/70 leading-relaxed">
             {article.source && <p className="mb-1">{article.source}</p>}
-            <p className="mb-1">{article.authorName || 'By Rubina Veerakone'}</p>
+            <p className="mb-1">By Rubina Veerakone</p>
             {article.date && <p className="text-black/50">{article.date}</p>}
           </div>
-
-          {/* Dynamic Members Section */}
-          {article.team && article.team.length > 0 && (
-            <div className="mt-8 pt-8 border-t border-black/10">
-              <p className="text-[12px] font-semibold text-black/50 uppercase tracking-wide mb-4">Members</p>
-              <div className="space-y-2">
-                {article.team.map((member: any, i: number) => (
-                  <p key={i} className="text-[13px] text-black/70">
-                    {typeof member === 'string' ? member : (member.name || member.user?.name)}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
 
           {related.length > 0 && (
             <div className="mt-8 pt-8 border-t border-black/10">
