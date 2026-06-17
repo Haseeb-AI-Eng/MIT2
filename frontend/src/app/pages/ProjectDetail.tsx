@@ -89,18 +89,14 @@ export function ProjectDetail() {
     );
   }
 
-  // Normalize team — handle both populated objects and flat strings
   const teamMembers: Array<{ name: string; role: string; email?: string }> = (project.team || [])
     .map((member: any) => {
-      // Case 1: { user: { name, email }, role }
       if (member?.user?.name) {
         return { name: member.user.name, role: member.role || 'Researcher', email: member.user.email };
       }
-      // Case 2: { name, role } directly on member
       if (member?.name) {
         return { name: member.name, role: member.role || 'Researcher', email: member.email };
       }
-      // Case 3: member is a string (just a name)
       if (typeof member === 'string') {
         return { name: member, role: 'Researcher' };
       }
@@ -116,18 +112,20 @@ export function ProjectDetail() {
     <div className="min-h-screen bg-white">
 
       {/* ── Hero banner ── */}
-      <section data-hero-section className="relative bg-black text-white flex items-center justify-center text-center" style={{ minHeight: '260px', maxHeight: '360px', height: '28vw', paddingTop: '5rem' }}>
+      <section
+        data-hero-section
+        className="relative bg-black text-white flex items-center justify-center text-center"
+        style={{ minHeight: '260px', maxHeight: '360px', height: '28vw' }}
+      >
         <div className="absolute inset-0">
           <img
             src={project.coverImage || project.cover_image || '/image.gif'}
             alt=""
             className="w-full h-full object-cover"
           />
-          {/* Dark overlay without green tint */}
           <div className="absolute inset-0 bg-black/60" />
         </div>
 
-        {/* top-right label */}
         <div className="absolute top-4 right-5 z-10">
           <span className="text-white/80 text-[13px] tracking-wide">
             {project.groupName || project.group || 'Research Project'}
@@ -139,7 +137,6 @@ export function ProjectDetail() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="relative z-10 text-[28px] md:text-[44px] font-bold leading-snug px-6 max-w-4xl"
-         
         >
           {project.title}
         </motion.h1>
@@ -149,22 +146,23 @@ export function ProjectDetail() {
       <div className="flex min-h-[calc(100vh-280px)]">
 
         {/* ── LEFT SIDEBAR ── */}
+        {/* relative z-10 keeps this above the hero's absolutely positioned image/overlay.
+            -mt-8 pulls the card up into the bottom of the hero photo (adjust to taste).
+            bg-white + the upward shadow make it read as a floating card rather than a clipped edge. */}
         <aside
-          className="hidden md:flex flex-col flex-shrink-0 border-r border-black/10"
-          style={{ width: '260px', minWidth: '220px', padding: '2rem 1.5rem' }}
+          className="hidden md:flex flex-col flex-shrink-0 border-r border-black/10 relative z-10 -mt-24 bg-white shadow-[0_-16px_24px_-12px_rgba(0,0,0,0.18)]"
+          style={{ width: '320px', minWidth: '280px', padding: '1.5rem 1.5rem 2rem' }}
         >
           {/* Back link */}
           <button
             type="button"
-            onClick={() => navigate('/projects')}
-            className="flex items-center gap-1 text-[13px] text-black/60 hover:text-black mb-6 transition-colors"
-           
+            onClick={() => navigate('/research')}
+            className="flex items-center gap-1 text-[13px] text-black/60 hover:text-black mb-5 transition-colors"
           >
-            ‹ Member Portal
+            ‹ Research
           </button>
 
           <div className="border-t border-black/10 pt-5 mb-5">
-            {/* Author / Published */}
             {teamMembers.length > 0 && (
               <div className="mb-1">
                 <p className="text-[13px] text-black/80">
@@ -178,7 +176,6 @@ export function ProjectDetail() {
           </div>
 
           <div className="border-t border-black/10 pt-5 mb-5">
-            {/* Groups / tags used as group labels */}
             <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-2">
               Groups
             </p>
@@ -191,12 +188,8 @@ export function ProjectDetail() {
                 ))
               ) : (
                 <>
-                  <p className="text-[13px] text-black/60">
-                    {project.group || "Director's Office"}
-                  </p>
-                  <p className="text-[13px] text-black/60">
-                    External Relations
-                  </p>
+                  <p className="text-[13px] text-black/60">{project.group || "Director's Office"}</p>
+                  <p className="text-[13px] text-black/60">External Relations</p>
                 </>
               )}
             </div>
@@ -207,25 +200,21 @@ export function ProjectDetail() {
               Share this post
             </p>
             <div className="flex gap-3">
-              {/* X / Twitter */}
               <a href="#" className="text-black/50 hover:text-black transition-colors" aria-label="Share on X">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
-              {/* Facebook */}
               <a href="#" className="text-black/50 hover:text-black transition-colors" aria-label="Share on Facebook">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
               </a>
-              {/* LinkedIn */}
               <a href="#" className="text-black/50 hover:text-black transition-colors" aria-label="Share on LinkedIn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                 </svg>
               </a>
-              {/* Bluesky */}
               <a href="#" className="text-black/50 hover:text-black transition-colors" aria-label="Share on Bluesky">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z"/>
@@ -234,17 +223,21 @@ export function ProjectDetail() {
             </div>
           </div>
 
-          {/* Team members section in sidebar */}
+          {/* ── Team members ── */}
           {teamMembers.length > 0 && (
             <div className="border-t border-black/10 pt-5 mt-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-4">
                 Team
               </p>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {teamMembers.map((member, i) => (
                   <div key={i}>
-                    <p className="text-[13px] font-semibold text-black/80">{member.name}</p>
-                    <p className="text-[12px] text-black/50">{member.role}</p>
+                    <p className="text-[14px] font-bold text-black leading-tight">
+                      {member.name}
+                    </p>
+                    <p className="text-[12px] text-black/50 mt-0.5">
+                      {member.role}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -258,35 +251,9 @@ export function ProjectDetail() {
               className="w-16 h-16 flex items-center justify-center"
               title="Back to Research"
             >
-              {/* Main icon */}
-              <svg 
-                width="64" 
-                height="64" 
-                viewBox="0 0 64 64" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Outer square */}
-                <rect 
-                  x="8" 
-                  y="8" 
-                  width="48" 
-                  height="48"
-                  stroke="currentColor" 
-                  strokeWidth="5" 
-                  className="text-black"
-                />
-                
-                {/* Inner square */}
-                <rect 
-                  x="22" 
-                  y="22" 
-                  width="20" 
-                  height="20"
-                  stroke="currentColor" 
-                  strokeWidth="5"
-                  className="text-black"
-                />
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="8" width="48" height="48" stroke="currentColor" strokeWidth="5" className="text-black" />
+                <rect x="22" y="22" width="20" height="20" stroke="currentColor" strokeWidth="5" className="text-black" />
               </svg>
             </button>
           </div>
@@ -295,35 +262,23 @@ export function ProjectDetail() {
         {/* ── MAIN CONTENT ── */}
         <main className="flex-1 px-6 md:px-12 py-10 max-w-[860px]">
 
-          {/* Mobile back link */}
           <button
             type="button"
             onClick={() => navigate('/projects')}
             className="flex md:hidden items-center gap-1 text-[13px] text-black/60 hover:text-black mb-6 transition-colors"
-           
           >
             ← Back to projects
           </button>
 
-          {/* Description / article body */}
           <div className="mb-10">
-            {/* Bold intro line like MIT Media Lab style */}
-            <p
-              className="text-[17px] md:text-[19px] font-bold leading-snug mb-5"
-             
-            >
+            <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-5">
               {project.subtitle || project.shortDescription || project.title}
             </p>
-
-            <p
-              className="text-[15px] md:text-[16px] text-black/80 leading-relaxed"
-             
-            >
+            <p className="text-[15px] md:text-[16px] text-black/80 leading-relaxed">
               {project.description}
             </p>
           </div>
 
-          {/* Video Section */}
           <div className="mb-10 rounded-2xl overflow-hidden border border-black/10 bg-black aspect-video">
             <video controls className="w-full h-full object-cover">
               <source src={videoSrc} type="video/mp4" />
@@ -337,7 +292,6 @@ export function ProjectDetail() {
             ))}
           </div>
 
-          {/* Status badge + tags */}
           <div className="flex flex-wrap items-center gap-3 mt-12 pt-6 border-t border-black/10">
             {project.status && (
               <span className="px-3 py-1 bg-black/5 border border-black/10 rounded-full text-[12px] text-black/60 uppercase tracking-wider">

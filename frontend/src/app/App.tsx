@@ -2,7 +2,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { NavSidebar } from './components/NavSidebar';
 import { Footer } from './components/Footer';
-import { Routes, Route } from 'react-router-dom'; // Removed useLocation from here as it's handled in ScrollToTop
+import { Routes, Route } from 'react-router-dom';
 import React, { useState } from 'react';
 import { Home } from './pages/Home';
 import { About } from './pages/About';
@@ -22,9 +22,7 @@ import { AdminSignup } from './pages/AdminSignup';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useKeepAlive } from '../hooks/useKeepAlive';
-import ScrollToTop from '../app/ScrollToTop'; // Using the external component
-
-// --- Layout Components ---
+import ScrollToTop from '../app/ScrollToTop';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -46,31 +44,23 @@ function LayoutNoSidebar({ children, onMenuClick }: LayoutProps) {
   return (
     <div className="min-h-screen bg-white">
       <Header onMenuClick={onMenuClick} />
-      <main className="pt-[0px]">{children}</main>
+      <main>{children}</main>
       <Footer />
     </div>
   );
 }
 
-// --- Main App Component ---
-
 export default function App() {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
-  // 🔥 Keep Railway backend warm
   useKeepAlive();
 
   const toggleNav = () => setIsNavOpen(true);
 
   return (
     <>
-      {/* 1. ScrollToTop is placed here to monitor route changes globally */}
       <ScrollToTop />
-
-      {/* 2. Global Navigation Sidebar */}
       <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
-
-      {/* 3. Routing Logic */}
       <Routes>
         <Route path="/" element={<Layout onMenuClick={toggleNav}><Home /></Layout>} />
         <Route path="/about" element={<Layout onMenuClick={toggleNav}><About /></Layout>} />
@@ -83,12 +73,8 @@ export default function App() {
         <Route path="/alumni-friends" element={<Layout onMenuClick={toggleNav}><AlumniFriends /></Layout>} />
         <Route path="/add-research-project" element={<Layout onMenuClick={toggleNav}><AddResearchProject /></Layout>} />
         <Route path="/apply" element={<Layout onMenuClick={toggleNav}><Apply /></Layout>} />
-
-        {/* Dynamic Detail Routes without Sidebar */}
         <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ArticleDetail /></LayoutNoSidebar>} />
         <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ProjectDetail /></LayoutNoSidebar>} />
-
-        {/* Admin Routes (No Layout or Custom Layout) */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/signup" element={<AdminSignup />} />
         <Route path="/admin/dashboard" element={
