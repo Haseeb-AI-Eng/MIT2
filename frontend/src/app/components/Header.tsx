@@ -7,6 +7,59 @@ interface HeaderProps {
   onMenuClick?: () => void;
 }
 
+// 4 columns x 6 rows. 'outline' = empty cell, just a bordered square.
+const LOGO_GRID: ('red' | 'white' | 'outline')[][] = [
+  ['red', 'red', 'red', 'outline'],
+  ['red', 'white', 'white', 'white'],
+  ['red', 'red', 'red', 'white'],
+  ['red', 'white', 'white', 'white'],
+  ['red', 'red', 'red', 'white'],
+  ['outline', 'white', 'white', 'white'],
+];
+
+const RED = '#910B08';
+const COLS = 4;
+const ROWS = 6;
+const CELL = 16;
+const GAP = 2.5;
+
+function LogoIcon({ height, outlineColor }: { height: number; outlineColor: string }) {
+  const width = height * (COLS / ROWS);
+  const vbW = COLS * CELL;
+  const vbH = ROWS * CELL;
+
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${vbW} ${vbH}`} className="shrink-0">
+      {LOGO_GRID.map((row, r) =>
+        row.map((type, c) => {
+          const x = c * CELL + GAP / 2;
+          const y = r * CELL + GAP / 2;
+          const s = CELL - GAP;
+
+          if (type === 'red') {
+            return <rect key={`${r}-${c}`} x={x} y={y} width={s} height={s} fill={RED} />;
+          }
+          if (type === 'white') {
+            return <rect key={`${r}-${c}`} x={x} y={y} width={s} height={s} fill="#FFFFFF" />;
+          }
+          return (
+            <rect
+              key={`${r}-${c}`}
+              x={x + 1}
+              y={y + 1}
+              width={s - 2}
+              height={s - 2}
+              fill="none"
+              stroke={outlineColor}
+              strokeWidth={1.5}
+            />
+          );
+        })
+      )}
+    </svg>
+  );
+}
+
 export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(() =>
     typeof window !== 'undefined' ? window.scrollY > 80 : false
@@ -16,7 +69,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
-  const scrollThreshold = 80; // Define a scroll threshold for pages without a specific hero section
+  const scrollThreshold = 80;
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -26,21 +79,15 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
   }, []);
 
   useEffect(() => {
-    // The header should be hidden while hero is visible (on desktop), visible when past hero, hidden again when back up.
-    // On mobile/tablet, always visible.
-
-    // Try to find a hero section dynamically
     const heroSection = document.querySelector('[data-hero-section]');
 
     if (!heroSection) {
-      // Fallback for pages without a data-hero-section
       const handleScroll = () => setIsScrolled(window.scrollY > scrollThreshold);
       window.addEventListener('scroll', handleScroll, { passive: true });
       handleScroll();
       return () => window.removeEventListener('scroll', handleScroll);
     }
 
-    // For pages with a data-hero-section, use IntersectionObserver
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsScrolled(!entry.isIntersecting);
@@ -62,6 +109,9 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
+  const chevronColor = isScrolled ? 'text-black' : 'text-white';
+  const outlineColor = isScrolled ? '#000000' : '#FFFFFF';
+
   return (
     <>
       <header
@@ -72,47 +122,16 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
           className={`px-4 md:px-6 flex items-center justify-between border-b transition-all duration-300 ${isScrolled ? 'border-black/10 py-3' : 'border-transparent pt-6 md:pt-12 pb-2 md:pb-4'
             }`}
         >
-          {/* Logo */}
+          {/* Logo: icon + chevron */}
           <Link to="/" className="flex items-center shrink-0">
             <div className="flex items-center gap-1 md:gap-2 transition-all duration-300 h-[80px]">
-
-              {/* Desktop SVG logo - Changed width='auto' to a numeric value or fixed aspect ratio */}
-              <svg
-                width={isScrolled ? '36' : '48'}
-                height={isScrolled ? '36' : '48'}
-                viewBox="0 0 72 72"
-                className={`transition-all duration-300 hidden md:block ${isScrolled ? 'text-black' : 'text-white'
-                  }`}
-              >
-                <path
-                  d="M4 8h8v8h-8zM12 8h8v8h-8zM12 16h8v8h-8zM20 16h8v8h-8zM20 24h8v8h-8zM12 24h8v8h-8zM4 24h8v8h-8z"
-                  fill="currentColor"
-                />
-                <text x="36" y="48" fontSize="32" fontWeight="bold" fill="currentColor" fontFamily="monospace">EI</text>
-              </svg>
-
-              {/* Mobile SVG logo */}
-              <svg
-                width="60"
-                height="60"
-                viewBox="0 0 72 72"
-                className={`transition-all duration-300 md:hidden ${isScrolled ? 'text-black' : 'text-white'
-                  }`}
-              >
-                <path
-                  d="M4 8h8v8h-8zM12 8h8v8h-8zM12 16h8v8h-8zM20 16h8v8h-8zM20 24h8v8h-8zM12 24h8v8h-8zM4 24h8v8h-8z"
-                  fill="currentColor"
-                />
-                <text x="36" y="48" fontSize="15" fontWeight="bold" fill="currentColor" fontFamily="monospace">EI</text>
-              </svg>
-
-              {/* "> 30" text - Added whitespace-nowrap and items-center alignment */}
+              <LogoIcon height={isMobile ? 48 : (isScrolled ? 36 : 48)} outlineColor={outlineColor} />
               <span
-                className={`font-bold tracking-tight transition-all duration-300 hidden md:inline whitespace-nowrap leading-none ${isScrolled ? 'text-black text-[20px]' : 'text-white text-[48px]'
+                className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap leading-none ${chevronColor} ${isScrolled ? 'text-[20px]' : 'text-[40px] md:text-[48px]'
                   }`}
                 style={{ fontFamily: "'Courier New', monospace" }}
               >
-                &gt; 30
+                &gt;
               </span>
             </div>
           </Link>
@@ -135,32 +154,22 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
               <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={4} />
             </button>
 
-            {/* EI logo SVG - Right Side */}
+            {/* Stacked wordmark: ELEMENTS / INTERACTIVE */}
             <Link
               to="/"
-              className="flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+              className="flex flex-col items-start leading-none transition-transform hover:scale-105 active:scale-95"
               aria-label="Home"
+              style={{ fontFamily: "'Oswald', 'Arial Narrow', sans-serif" }}
             >
-              <svg
-                height={isScrolled ? '28' : '40'}
-                viewBox="0 0 80 50"
-                className={`transition-all duration-300 ${isScrolled ? 'text-black' : 'text-white'
-                  }`}
-                preserveAspectRatio="xMidYMid meet"
+              <span className="font-bold uppercase text-black text-[16px] md:text-[22px] tracking-tight">
+                ELEMENTS
+              </span>
+              <span
+                className="font-bold uppercase text-[16px] md:text-[22px] tracking-tight"
+                style={{ color: RED }}
               >
-                <text
-                  x="50%"
-                  y="58%"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={isScrolled ? "28" : "42"}
-                  fontWeight="900"
-                  fill="currentColor"
-                  fontFamily="sans-serif"
-                >
-                  EI
-                </text>
-              </svg>
+                INTERACTIVE
+              </span>
             </Link>
           </div>
         </div>
