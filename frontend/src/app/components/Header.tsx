@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { Search, Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { SearchPanel } from './SearchPanel';
@@ -71,6 +71,10 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
   const location = useLocation();
   const scrollThreshold = 80;
 
+  // Refs used to widen "ELEMENTS" via letter-spacing until it matches "INTERACTIVE"'s width
+  const elementsTextRef = useRef<HTMLSpanElement>(null);
+  const interactiveTextRef = useRef<HTMLSpanElement>(null);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -109,6 +113,43 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
+  // Widen the gaps between letters of "ELEMENTS" so its total width equals "INTERACTIVE"'s width
+  useLayoutEffect(() => {
+    const elementsEl = elementsTextRef.current;
+    const interactiveEl = interactiveTextRef.current;
+    if (!elementsEl || !interactiveEl) return;
+
+    const applySpacing = () => {
+      const text = elementsEl.textContent || '';
+      const gaps = Math.max(text.length - 1, 1);
+
+      // Reset to measure natural (zero letter-spacing) width
+      elementsEl.style.letterSpacing = '0px';
+      const targetWidth = interactiveEl.getBoundingClientRect().width;
+      const naturalWidth = elementsEl.getBoundingClientRect().width;
+
+      let spacing = (targetWidth - naturalWidth) / gaps;
+      elementsEl.style.letterSpacing = `${spacing}px`;
+
+      // Correct once for browser rounding / trailing-gap differences
+      const appliedWidth = elementsEl.getBoundingClientRect().width;
+      const residual = targetWidth - appliedWidth;
+      if (Math.abs(residual) > 0.5) {
+        spacing += residual / gaps;
+        elementsEl.style.letterSpacing = `${spacing}px`;
+      }
+    };
+
+    applySpacing();
+    window.addEventListener('resize', applySpacing);
+
+    if (typeof document !== 'undefined' && (document as any).fonts?.ready) {
+      (document as any).fonts.ready.then(applySpacing);
+    }
+
+    return () => window.removeEventListener('resize', applySpacing);
+  }, [isMobile]);
+
   const chevronColor = isScrolled ? 'text-black' : 'text-white';
   const outlineColor = isScrolled ? '#000000' : '#FFFFFF';
 
@@ -125,9 +166,9 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
           {/* Logo: icon + chevron */}
           <Link to="/" className="flex items-center shrink-0">
             <div className="flex items-center gap-1 md:gap-2 transition-all duration-300 h-[80px]">
-              <LogoIcon height={isMobile ? 48 : (isScrolled ? 36 : 48)} outlineColor={outlineColor} />
+              <LogoIcon height={isMobile ? 56 : (isScrolled ? 42 : 56)} outlineColor={outlineColor} />
               <span
-                className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap leading-none ${chevronColor} ${isScrolled ? 'text-[20px]' : 'text-[40px] md:text-[48px]'
+                className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap leading-none ${chevronColor} ${isScrolled ? 'text-[22px]' : 'text-[44px] md:text-[54px]'
                   }`}
                 style={{ fontFamily: "'Courier New', monospace" }}
               >
@@ -154,19 +195,23 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
               <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={4} />
             </button>
 
-            {/* Stacked wordmark: ELEMENTS / INTERACTIVE */}
+            {/* Stacked wordmark: ELEMENTS / INTERACTIVE — both white, widths matched via letter-spacing */}
             <Link
               to="/"
               className="flex flex-col items-start leading-none transition-transform hover:scale-105 active:scale-95"
               aria-label="Home"
               style={{ fontFamily: "'Oswald', 'Arial Narrow', sans-serif" }}
             >
-              <span className="font-bold uppercase text-black text-[16px] md:text-[22px] tracking-tight">
+              <span
+                ref={elementsTextRef}
+                className="font-bold uppercase text-white text-[19px] md:text-[28px] inline-block"
+              >
                 ELEMENTS
               </span>
               <span
-                className="font-bold uppercase text-[16px] md:text-[22px] tracking-tight"
-                style={{ color: RED }}
+                ref={interactiveTextRef}
+                className="font-bold uppercase text-white text-[19px] md:text-[28px] inline-block"
+                style={{ letterSpacing: '-0.035em' }}
               >
                 INTERACTIVE
               </span>
