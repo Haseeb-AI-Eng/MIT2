@@ -81,37 +81,66 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // On every route change, re-check scroll state and set up observer/listener
   useEffect(() => {
     // Immediately reset scroll state on route change
     setIsScrolled(window.scrollY > scrollThreshold);
 
-    const heroSection = document.querySelector('[data-hero-section]');
+    let scrollListener: (() => void) | null = null;
+    let observer: IntersectionObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
 
-    if (!heroSection) {
-      // No hero: use plain scroll listener on every page
-      const handleScroll = () => setIsScrolled(window.scrollY > scrollThreshold);
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      handleScroll();
-      return () => window.removeEventListener('scroll', handleScroll);
+    function attachToHero(heroSection: Element) {
+      // Clean up any plain scroll listener since we now have a hero
+      if (scrollListener) {
+        window.removeEventListener('scroll', scrollListener);
+        scrollListener = null;
+      }
+
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          setIsScrolled(!entry.isIntersecting);
+        },
+        { root: null, threshold: 0.1 }
+      );
+      observer.observe(heroSection);
+
+      // Scroll fallback so it still works if observer fires late
+      scrollListener = () => setIsScrolled(window.scrollY > scrollThreshold);
+      window.addEventListener('scroll', scrollListener, { passive: true });
     }
 
-    // Has hero: use IntersectionObserver so navbar turns white once hero scrolls out
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsScrolled(!entry.isIntersecting);
-      },
-      { root: null, threshold: 0.1 }
-    );
-    observer.observe(heroSection);
+    function tryAttach() {
+      const heroSection = document.querySelector('[data-hero-section]');
+      if (heroSection) {
+        // Hero already in DOM — attach immediately and stop watching
+        mutationObserver?.disconnect();
+        mutationObserver = null;
+        attachToHero(heroSection);
+        return true;
+      }
+      return false;
+    }
 
-    // Also keep a scroll fallback so it still works if observer fires late
-    const handleScroll = () => setIsScrolled(window.scrollY > scrollThreshold);
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    if (!tryAttach()) {
+      // Hero not in DOM yet (async page still loading) — fall back to scroll
+      // listener now, but keep watching the DOM so we can upgrade to the
+      // hero-aware IntersectionObserver once it mounts.
+      scrollListener = () => setIsScrolled(window.scrollY > scrollThreshold);
+      window.addEventListener('scroll', scrollListener, { passive: true });
+
+      mutationObserver = new MutationObserver(() => {
+        if (tryAttach()) {
+          mutationObserver?.disconnect();
+          mutationObserver = null;
+        }
+      });
+      mutationObserver.observe(document.body, { childList: true, subtree: true });
+    }
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener('scroll', handleScroll);
+      if (scrollListener) window.removeEventListener('scroll', scrollListener);
+      observer?.disconnect();
+      mutationObserver?.disconnect();
     };
   }, [location.pathname]);
 
