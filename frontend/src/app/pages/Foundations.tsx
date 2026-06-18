@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { SideNav } from '../components/SideNav';
 
 export function Foundations() {
   return (
@@ -28,8 +29,11 @@ export function Foundations() {
       </section>
 
       {/* Main Content Area */}
-      <div className="lg:ml-80 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
-        <div className="mb-10">
+      <section className="relative w-full overflow-visible">
+        <div className="flex w-full items-start gap-0">
+          <SideNav />
+          <div className="flex-1 min-w-0 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
+            <div className="mb-10">
           <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
             Our Principles
           </p>
@@ -41,9 +45,9 @@ export function Foundations() {
           </h2>
         </div>
 
-        <div className="max-w-[940px] space-y-10 text-black/80 leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
-          <div className="space-y-8">
-            <p className="text-[15px] md:text-[16px] leading-8">
+            <div className="max-w-[940px] space-y-10 text-black/80 leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
+              <div className="space-y-8">
+                <p className="text-[15px] md:text-[16px] leading-8">
               The foundations of our platform are built upon the belief that curiosity-driven research and open collaboration are essential for solving the world's most complex challenges.
             </p>
             <p className="text-[15px] md:text-[16px] leading-8">
@@ -57,10 +61,12 @@ export function Foundations() {
             </p>
             <p className="text-[15px] md:text-[16px] leading-8">
               By fostering a community built on generosity and shared discovery, we empower the next generation of inventors to move beyond traditional boundaries. Together, we are creating a future that is more imaginative, inclusive, and impactful.
-            </p>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { SideNav } from '../components/SideNav';
+
 export function MASGraduateProgram() {
   return (
     <div className="min-h-screen bg-white">
@@ -23,9 +25,12 @@ export function MASGraduateProgram() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12 max-w-[1400px] mx-auto lg:ml-80">
-        <main className="space-y-16">
-          <section className="space-y-8">
+      <section className="relative w-full overflow-visible">
+        <div className="flex w-full items-start gap-0">
+          <SideNav />
+          <div className="flex-1 min-w-0 px-4 md:px-8 lg:px-12 py-12 max-w-[1400px] mx-auto">
+            <main className="space-y-16">
+              <section className="space-y-8">
             <div>
               <h2 className="text-[28px] font-semibold text-black mb-6">About Media Arts & Sciences</h2>
               <div className="prose prose-lg max-w-none text-black/70 leading-relaxed" style={{ textAlign: 'justify' }}>
@@ -65,9 +70,11 @@ export function MASGraduateProgram() {
                 </p>
               </div>
             </div>
-          </section>
-        </main>
-      </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

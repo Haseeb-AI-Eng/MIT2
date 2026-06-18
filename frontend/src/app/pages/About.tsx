@@ -1,3 +1,5 @@
+import { SideNav } from '../components/SideNav';
+
 const aboutSections = [
   {
     id: 'about-building',
@@ -186,9 +188,12 @@ export function About() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12 max-w-[1400px] mx-auto lg:ml-80">
-        <main className="space-y-16">
-          <section className="grid gap-8 lg:grid-cols-[1.8fr_1.2fr]">
+      <section className="relative w-full overflow-visible">
+        <div className="flex w-full items-start gap-0">
+          <SideNav />
+          <div className="flex-1 min-w-0 px-4 md:px-8 lg:px-12 py-12 max-w-[1400px] mx-auto">
+            <main className="space-y-16">
+              <section className="grid gap-8 lg:grid-cols-[1.8fr_1.2fr]">
             <div className="space-y-6">
               <div className="rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm">
                 <p className="text-[12px] uppercase tracking-[0.3em] text-black/50 mb-4">Featured Story</p>
@@ -239,8 +244,8 @@ export function About() {
             </div>
           </section>
 
-          {sortedAboutSections.map((section) => (
-            <section key={section.id} id={section.id} className="space-y-8">
+              {sortedAboutSections.map((section) => (
+                <section key={section.id} id={section.id} className="space-y-8">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <p className="text-[12px] uppercase tracking-[0.3em] text-black/50 mb-3">{section.title}</p>
@@ -267,10 +272,12 @@ export function About() {
                   <img src={section.image} alt={section.title} className="block w-full h-full object-cover" />
                 </div>
               </div>
-            </section>
-          ))}
-        </main>
-      </div>
+                </section>
+              ))}
+            </main>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

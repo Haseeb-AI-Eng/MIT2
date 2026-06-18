@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import haseebImage from '../assets/pic.jpeg';
+import { SideNav } from '../components/SideNav';
 
 type TeamMember = {
   name: string;
@@ -144,8 +145,11 @@ export function People() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-16 max-w-[1400px] mx-auto lg:ml-80">
-        <div className="space-y-12">
+      <section className="relative w-full overflow-visible">
+        <div className="flex w-full items-start gap-0">
+          <SideNav />
+          <div className="flex-1 min-w-0 px-4 md:px-8 lg:px-12 py-16 max-w-[1400px] mx-auto">
+            <div className="space-y-12">
           <div className="rounded-[40px] overflow-hidden bg-slate-900 text-white shadow-2xl shadow-slate-900/20">
             <div className="relative h-[420px] bg-slate-800">
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/50 to-transparent" />
@@ -166,8 +170,8 @@ export function People() {
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {mergedTeamMembers.map((member) => (
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {mergedTeamMembers.map((member) => (
               <div key={member.name} className="rounded-[32px] border border-slate-200/10 bg-white p-6 shadow-sm shadow-slate-900/10">
                 <div className="h-64 overflow-hidden rounded-[28px] bg-slate-200">
                   <div className="h-full flex items-center justify-center bg-slate-100 text-slate-400">
@@ -180,10 +184,12 @@ export function People() {
                   <p className="text-[15px] leading-7 text-slate-600">{member.description}</p>
                 </div>
               </div>
-            ))}
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

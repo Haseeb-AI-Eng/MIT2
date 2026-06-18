@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount } from '../api';
 import { ResearchCard } from '../components/ResearchCard';
+import { SideNav } from '../components/SideNav';
 
 const cyclingWords = ['#health', '#design', '#AI', '#robotics', '#climate', '#education'];
 const PAGE_SIZE = 12;
@@ -176,84 +177,89 @@ export function Research() {
         </div>
       </section>
 
-      <div className="lg:ml-80 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-10">
-          <div>
-            <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">
-              Research Projects
-            </p>
-          </div>
-          <p className="text-black/50">
-            {loading ? '' : `${total} research project${total !== 1 ? 's' : ''}`}
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
-            style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}>
-            {Array.from({ length: PAGE_SIZE }).map((_, i) => <ResearchCardSkeleton key={i} />)}
-          </div>
-        ) : error ? (
-          <div className="py-20 text-center text-red-600">
-            Unable to load research projects.{' '}
-            <button className="underline text-blue-600" onClick={() => loadProjects(1, true)}>Retry</button>
-          </div>
-        ) : projects.length === 0 ? (
-          <div className="py-20 text-center text-black/60">
-            No projects are published yet. Add them through the admin system.
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
-              style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}>
-              {projects.map((project) => (
-                <ResearchCard
-                  key={project._id ?? project.slug}
-                  title={project.title}
-                  subtitle={toShortDescription(project.description || '', 100)}
-                  logoText={makeLogoText(project.title)}
-                  tags={(project.tags || []).slice(0, 3)}
-                  teamCount={project.teamCount ?? project.team?.length ?? 0}
-                  status={project.status || 'published'}
-                  authorName={getAuthorName(project)}
-                  viewCount={viewCounts[project._id ?? project.slug] ?? 0}
-                  onClick={() => handleProjectClick(project)}
-                  onDelete={() => handleDeleteProject(project._id ?? project.slug)}
-                />
-              ))}
-              {loadingMore && Array.from({ length: 3 }).map((_, i) => <ResearchCardSkeleton key={`more-${i}`} />)}
+      <section className="relative w-full overflow-visible">
+        <div className="flex w-full items-start gap-0">
+          <SideNav />
+          <div className="flex-1 min-w-0 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-10">
+              <div>
+                <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">
+                  Research Projects
+                </p>
+              </div>
+              <p className="text-black/50">
+                {loading ? '' : `${total} research project${total !== 1 ? 's' : ''}`}
+              </p>
             </div>
 
-            {page < totalPages && !loadingMore && (
-              <div className="mt-10 flex justify-center">
-                <button
-                  onClick={() => loadProjects(page + 1, false)}
-                  className="px-8 py-3 border border-black text-black text-[14px] tracking-widest uppercase hover:bg-black hover:text-white transition-colors duration-200"
-                >
-                  Load More
-                </button>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
+                style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}>
+                {Array.from({ length: PAGE_SIZE }).map((_, i) => <ResearchCardSkeleton key={i} />)}
+              </div>
+            ) : error ? (
+              <div className="py-20 text-center text-red-600">
+                Unable to load research projects.{' '}
+                <button className="underline text-blue-600" onClick={() => loadProjects(1, true)}>Retry</button>
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="py-20 text-center text-black/60">
+                No projects are published yet. Add them through the admin system.
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
+                  style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}>
+                  {projects.map((project) => (
+                    <ResearchCard
+                      key={project._id ?? project.slug}
+                      title={project.title}
+                      subtitle={toShortDescription(project.description || '', 100)}
+                      logoText={makeLogoText(project.title)}
+                      tags={(project.tags || []).slice(0, 3)}
+                      teamCount={project.teamCount ?? project.team?.length ?? 0}
+                      status={project.status || 'published'}
+                      authorName={getAuthorName(project)}
+                      viewCount={viewCounts[project._id ?? project.slug] ?? 0}
+                      onClick={() => handleProjectClick(project)}
+                      onDelete={() => handleDeleteProject(project._id ?? project.slug)}
+                    />
+                  ))}
+                  {loadingMore && Array.from({ length: 3 }).map((_, i) => <ResearchCardSkeleton key={`more-${i}`} />)}
+                </div>
+
+                {page < totalPages && !loadingMore && (
+                  <div className="mt-10 flex justify-center">
+                    <button
+                      onClick={() => loadProjects(page + 1, false)}
+                      className="px-8 py-3 border border-black text-black text-[14px] tracking-widest uppercase hover:bg-black hover:text-white transition-colors duration-200"
+                    >
+                      Load More
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {!loading && !error && projects.length > 0 && (
+              <div className="mt-12 space-y-5 text-[15px] md:text-[16px] text-black/80 leading-relaxed">
+                <p>
+                  The Affective Computing group creates and evaluates new ways of bringing together Emotion AI and other affective technologies in order to make people&apos;s lives better.
+                </p>
+                <p>
+                  Our primary motivations are to help people who are not flourishing or at risk of not flourishing. Our projects are diverse: from finding new ways to forecast and prevent depression; to inventing new solutions to help exceptional people who face communication, motivation, and emotion regulation challenges; to enabling robots and computers to respond intelligently to natural human emotional feedback; to enabling people to have better awareness of their own health and wellbeing; to giving people better control and protection over their most sensitive, private, personal data.
+                </p>
+                <p>
+                  Some of our work focuses on making contributions to basic theory and science, including new improvements to machine learning algorithms, while other projects focus on advancing research outside the lab, with applications aimed at improving the lives of individuals in their everyday environments.
+                </p>
+                <p>
+                  Purpose of research and what others can learn from this work is central to our mission: we share findings, methods, and tools so that teams across the world can build better systems, improve wellbeing, and design more humane technology.
+                </p>
               </div>
             )}
-          </>
-        )}
-
-        {!loading && !error && projects.length > 0 && (
-          <div className="mt-12 space-y-5 text-[15px] md:text-[16px] text-black/80 leading-relaxed">
-            <p>
-              The Affective Computing group creates and evaluates new ways of bringing together Emotion AI and other affective technologies in order to make people&apos;s lives better.
-            </p>
-            <p>
-              Our primary motivations are to help people who are not flourishing or at risk of not flourishing. Our projects are diverse: from finding new ways to forecast and prevent depression; to inventing new solutions to help exceptional people who face communication, motivation, and emotion regulation challenges; to enabling robots and computers to respond intelligently to natural human emotional feedback; to enabling people to have better awareness of their own health and wellbeing; to giving people better control and protection over their most sensitive, private, personal data.
-            </p>
-            <p>
-              Some of our work focuses on making contributions to basic theory and science, including new improvements to machine learning algorithms, while other projects focus on advancing research outside the lab, with applications aimed at improving the lives of individuals in their everyday environments.
-            </p>
-            <p>
-              Purpose of research and what others can learn from this work is central to our mission: we share findings, methods, and tools so that teams across the world can build better systems, improve wellbeing, and design more humane technology.
-            </p>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

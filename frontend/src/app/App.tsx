@@ -1,5 +1,4 @@
 import { Header } from './components/Header';
-import { Sidebar } from './components/Sidebar';
 import { NavSidebar } from './components/NavSidebar';
 import { Footer } from './components/Footer';
 import { Routes, Route } from 'react-router-dom';
@@ -31,10 +30,9 @@ interface LayoutProps {
 
 function Layout({ children, onMenuClick }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <Header onMenuClick={onMenuClick} />
-      <Sidebar />
-      <main className="pt-[80px] md:pt-0">{children}</main>
+      <main className="w-full overflow-x-hidden">{children}</main>
       <Footer />
     </div>
   );
@@ -42,9 +40,9 @@ function Layout({ children, onMenuClick }: LayoutProps) {
 
 function LayoutNoSidebar({ children, onMenuClick }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <Header onMenuClick={onMenuClick} />
-      <main>{children}</main>
+      <main className="w-full overflow-x-hidden">{children}</main>
       <Footer />
     </div>
   );

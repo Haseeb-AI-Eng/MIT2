@@ -35,8 +35,10 @@ function trimText(text: string, maxChars: number = 200): string {
   return text;
 }
 
-// Fixed image height shared by wide + side cards so they always match exactly
+// Use one consistent image height for non-featured cards so every row aligns cleanly.
+// The wide card is allowed a slightly taller image only to preserve the intended emphasis.
 const ROW_IMAGE_HEIGHT = '340px';
+const DOUBLE_ROW_IMAGE_HEIGHT = '500px';
 
 function NewsCardComponent({
   image,
@@ -51,12 +53,20 @@ function NewsCardComponent({
 }: NewsCardProps) {
   const trimmedDescription = description ? trimText(description) : undefined;
 
-  // wide and side use a fixed pixel height so both cards in the same row
-  // are always exactly the same height regardless of column width.
-  // normal/tall continue to use aspect-ratio as before.
+  // Keep the featured cards visually strong while letting standard cards stay square.
   const isFixedHeight = aspect === 'wide' || aspect === 'side';
+  const isDoubleHeight = aspect === 'wide';
   const imageAspectClass =
-    aspect === 'tall' ? 'aspect-[3/4]' : aspect === 'normal' ? 'aspect-square' : '';
+    aspect === 'tall'
+      ? 'aspect-[3/4]'
+      : aspect === 'normal'
+        ? 'aspect-square'
+        : '';
+  const imageStyle = isDoubleHeight
+    ? { height: DOUBLE_ROW_IMAGE_HEIGHT }
+    : isFixedHeight
+      ? { height: ROW_IMAGE_HEIGHT }
+      : undefined;
 
   return (
     <motion.div
@@ -64,13 +74,13 @@ function NewsCardComponent({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="group cursor-pointer overflow-hidden bg-white rounded-none flex flex-col h-full"
+      className="group cursor-pointer overflow-hidden bg-white rounded-none flex flex-col h-full w-full min-w-0"
       onClick={onClick}
     >
       {/* Image container */}
       <div
         className={`relative overflow-hidden bg-gray-100 flex-shrink-0 w-full ${imageAspectClass}`}
-        style={isFixedHeight ? { height: ROW_IMAGE_HEIGHT } : undefined}
+        style={imageStyle}
       >
         <ImageWithFallback
           src={image || ''}
@@ -92,7 +102,7 @@ function NewsCardComponent({
       </div>
 
       {/* Text below image */}
-      <div className="px-5 py-4 flex flex-col">
+      <div className="px-5 py-4 flex flex-col w-full min-w-0">
         {category && (
           <div className="uppercase tracking-wider mb-2 text-[12px] text-[#8a8a8a]">
             {category}

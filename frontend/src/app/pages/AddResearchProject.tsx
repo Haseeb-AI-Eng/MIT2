@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { X } from 'lucide-react';
 import { getApiUrl, clientCacheInvalidate } from '../api';
+import { SideNav } from '../components/SideNav';
 
 function compressImage(file: File, maxWidth = 600, maxHeight = 450, quality = 0.6): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -177,13 +178,16 @@ export function AddResearchProject() {
           </p>
         </div>
       </section>
-      <main className="lg:ml-80 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
-        <div className="mb-12">
-          <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">New Project Form</p>
-        </div>
-        <Card className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <section className="relative w-full overflow-visible">
+        <div className="flex w-full items-start gap-0">
+          <SideNav />
+          <div className="flex-1 min-w-0 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
+            <div className="mb-12">
+              <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">New Project Form</p>
+            </div>
+            <Card className="p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium mb-2">Project Title *</label>
@@ -332,9 +336,11 @@ export function AddResearchProject() {
                 Cancel
               </Button>
             </div>
-          </form>
-        </Card>
-      </main>
+              </form>
+            </Card>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
