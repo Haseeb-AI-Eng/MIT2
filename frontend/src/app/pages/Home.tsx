@@ -290,6 +290,13 @@ export const Home = React.memo(function Home() {
             </div>
           </aside>
 
+          {/* Header: Sits next to sidebar in row 1 */}
+          <div className="col-span-2 lg:col-start-2 lg:col-span-3 min-w-0 pt-4 pb-2 -mt-[40px] relative z-40 bg-white border-b border-black/5">
+            <div className="mb-6 px-4 md:px-6">
+              <p className="text-[12px] uppercase tracking-[0.24em] text-black/40">Latest Research</p>
+            </div>
+          </div>
+
           {/* Article Cards */}
           {loading && (
             <div className="lg:col-start-2 lg:col-span-3 animate-pulse bg-black/5 h-64 m-6" />
