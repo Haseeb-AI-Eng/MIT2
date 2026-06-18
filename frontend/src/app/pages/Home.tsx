@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Search } from 'lucide-react';
 import { NewsCard } from '../components/NewsCard';
 import { HeroVideo } from './HeroVideo';
 import {
@@ -48,16 +47,6 @@ function getRandomIndices(count: number, max: number) {
   return Array.from(indices);
 }
 
-function getProjectSearchText(project: any) {
-  const title = project?.title?.toString() || '';
-  const description = project?.description?.toString() || '';
-  const category = project?.tags?.[0] || project?.category || '';
-  const slug = project?.slug?.toString() || '';
-  const tags = Array.isArray(project?.tags) ? project.tags.join(' ') : '';
-
-  return [title, description, category, slug, tags].join(' ').toLowerCase();
-}
-
 function getGridSpanClasses(colSpan: number, isRowStart: boolean, role: CardRole, isFirstRow: boolean) {
   let classes = '';
   if (isRowStart) {
@@ -88,10 +77,6 @@ export const Home = React.memo(function Home() {
   const [publishedProjects, setPublishedProjects] = useState<any[]>([]);
   const [visibleProjects, setVisibleProjects] = useState<any[]>([]);
   const [hiddenProjects, setHiddenProjects] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState(false);
   const [projectViews, setProjectViews] = useState<Record<string, number>>(getLocalProjectViews);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -181,29 +166,7 @@ export const Home = React.memo(function Home() {
     };
   }, [hiddenProjects.length, visibleProjects.length]);
 
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setSearchError(false);
-      setSearchLoading(false);
-      return;
-    }
-
-    setSearchLoading(true);
-    const query = searchQuery.toLowerCase().trim();
-    const matchedProjects = publishedProjects.filter((project) => {
-      const searchableText = getProjectSearchText(project);
-      return searchableText.includes(query);
-    });
-
-    setSearchResults(matchedProjects);
-    setSearchError(false);
-    setSearchLoading(false);
-  }, [searchQuery, publishedProjects]);
-
-  const filteredProjects = useMemo(() => {
-    return searchQuery.trim() ? searchResults : visibleProjects;
-  }, [searchQuery, searchResults, visibleProjects]);
+  const filteredProjects = useMemo(() => visibleProjects, [visibleProjects]);
 
   const handleProjectClick = useCallback(
     (projectId: string | undefined) => {
@@ -326,40 +289,6 @@ export const Home = React.memo(function Home() {
               </nav>
             </div>
           </aside>
-
-          {/* Search Header: Sits next to sidebar in row 1 */}
-          <div className="col-span-2 lg:col-start-2 lg:col-span-3 min-w-0 pt-4 pb-2 -mt-[40px] relative z-40 bg-white border-b border-black/5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between mb-6 px-4 md:px-6">
-              <div className="min-w-0">
-                <p className="text-[12px] uppercase tracking-[0.24em] text-black/40">Latest Research</p>
-              </div>
-
-              <div className="w-full xl:w-[420px]">
-                <div className="relative h-10 rounded-none border border-black/10 bg-white px-3 shadow-none transition hover:border-black/20 focus-within:border-black/20">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black/30" />
-                  <input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Filter projects by title, category, or tags"
-                    aria-label="Filter projects by title, category, or tags"
-                    className="w-full h-full rounded-none border-none bg-transparent pl-10 pr-3 text-black text-[14px] placeholder:text-black/35 focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {searchQuery.trim() && searchError && (
-              <div className="mb-6 mx-4 md:mx-6 rounded-[28px] border border-black/10 bg-white p-4 shadow-sm shadow-black/5">
-                <div className="text-[14px] text-red-600">Unable to filter right now. Please try again.</div>
-              </div>
-            )}
-
-            {searchQuery.trim() && !searchError && !searchLoading && filteredProjects.length === 0 && (
-              <div className="mb-4 mx-4 md:mx-6 text-[14px] text-black/50">
-                No research projects match “{searchQuery}”.
-              </div>
-            )}
-          </div>
 
           {/* Article Cards */}
           {loading && (
