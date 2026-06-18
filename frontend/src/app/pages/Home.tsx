@@ -295,7 +295,7 @@ export const Home = React.memo(function Home() {
 
       {/* ── Unified Grid Area ──────── */}
       <section className="relative w-full overflow-visible z-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch auto-rows-auto grid-flow-dense w-full bg-white relative overflow-visible">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch auto-rows-auto grid-flow-dense w-full bg-white relative overflow-visible">
           
           {/* Sidebar: Occupies the first column, spans row 1 & 2 area for better alignment */}
           <aside className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:row-span-2 relative z-50 -mt-[140px] border-r border-black/10 self-stretch bg-white">
@@ -328,7 +328,7 @@ export const Home = React.memo(function Home() {
           </aside>
 
           {/* Search Header: Sits next to sidebar in row 1 */}
-          <div className="lg:col-start-2 lg:col-span-3 min-w-0 pt-4 pb-2 -mt-[40px] relative z-40 bg-white border-b border-black/5">
+          <div className="col-span-2 lg:col-start-2 lg:col-span-3 min-w-0 pt-4 pb-2 -mt-[40px] relative z-40 bg-white border-b border-black/5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between mb-6 px-4 md:px-6">
               <div className="min-w-0">
                 <p className="text-[12px] uppercase tracking-[0.24em] text-black/40">Latest Research</p>
