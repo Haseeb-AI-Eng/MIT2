@@ -56,7 +56,8 @@ export default function App() {
   const toggleNav = () => setIsNavOpen(true);
 
   return (
-    <>
+    // ✅ Added overflow-x-hidden wrapper to prevent horizontal bleed from negative margins
+    <div className="overflow-x-hidden w-full">
       <ScrollToTop />
       <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
       <Routes>
@@ -81,6 +82,6 @@ export default function App() {
           </ProtectedRoute>
         } />
       </Routes>
-    </>
+    </div>
   );
 }

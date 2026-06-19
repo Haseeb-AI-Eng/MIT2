@@ -234,7 +234,8 @@ export const Home = React.memo(function Home() {
   }, [filteredProjects]);
 
   return (
-    <div className="relative overflow-visible">
+    /* Fix 1: Add overflow-x-hidden to prevent horizontal overflow which often triggers double scrollbars */
+    <div className="relative overflow-x-hidden w-full">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section
         data-hero-section
@@ -257,8 +258,9 @@ export const Home = React.memo(function Home() {
       </section>
 
       {/* ── Unified Grid Area ──────── */}
-      <section className="relative w-full overflow-visible z-20">
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch auto-rows-auto grid-flow-dense w-full bg-white relative overflow-visible">
+      {/* Fix 2: Ensure the section doesn't have redundant overflow settings that conflict with its children */}
+      <section className="relative w-full z-20">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch auto-rows-auto grid-flow-dense w-full bg-white relative">
           
           {/* Sidebar: Occupies the first column, spans row 1 & 2 area for better alignment */}
           <aside className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:row-span-2 relative z-50 -mt-[140px] border-r border-black/10 self-stretch bg-white">
@@ -332,7 +334,8 @@ export const Home = React.memo(function Home() {
           })}
 
           {/* Support Section */}
-          <section className="lg:col-span-4 mb-10 rounded-none border border-white/10 bg-[#050505] px-6 py-10 text-white">
+          {/* Fix 3: Ensure this section takes full width (col-span-2 on mobile, col-span-4 on large) */}
+          <section className="col-span-2 lg:col-span-4 mb-10 rounded-none border border-white/10 bg-[#050505] px-6 py-10 text-white">
               <div className="max-w-4xl mx-auto text-center">
                 <h2 className="text-[32px] md:text-[48px] font-semibold">Support EI</h2>
                 <p className="mt-4 text-[15px] md:text-[16px] text-white/70 max-w-2xl mx-auto">
