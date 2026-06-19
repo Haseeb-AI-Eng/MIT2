@@ -191,7 +191,6 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
   }, [isMobile]);
 
   // Derived colors — all driven by isScrolled
-  const chevronColor = isScrolled ? 'text-black' : 'text-white';
   const outlineColor = isScrolled ? '#000000' : '#FFFFFF';
   const wordmarkColor = isScrolled ? 'text-black' : 'text-white';
 
@@ -207,18 +206,10 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
             isScrolled ? 'border-black/10 py-3' : 'border-transparent pt-6 md:pt-12 pb-2 md:pb-4'
           }`}
         >
-          {/* Logo: icon + chevron */}
+          {/* Logo: icon only */}
           <Link to="/" className="flex items-center shrink-0">
-            <div className="flex items-center gap-1 md:gap-2 transition-all duration-300 h-[80px]">
+            <div className="flex items-center transition-all duration-300 h-[80px]">
               <LogoIcon height={isMobile ? 56 : isScrolled ? 42 : 56} outlineColor={outlineColor} />
-              <span
-                className={`font-bold tracking-tight transition-all duration-300 whitespace-nowrap leading-none ${chevronColor} ${
-                  isScrolled ? 'text-[22px]' : 'text-[44px] md:text-[54px]'
-                }`}
-                style={{ fontFamily: "'Courier New', monospace" }}
-              >
-                &gt;
-              </span>
             </div>
           </Link>
 
