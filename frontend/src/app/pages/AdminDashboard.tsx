@@ -85,7 +85,7 @@ export function AdminDashboard() {
       });
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'https://backend-forever--syedtech26.replit.app'}/api/form-submissions?${params}`,
+        `${import.meta.env.VITE_API_URL || 'https://hello-world--k34449363.replit.app'}/api/form-submissions?${params}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -118,7 +118,7 @@ export function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'https://backend-forever--syedtech26.replit.app'}/api/form-submissions-stats`,
+        `${import.meta.env.VITE_API_URL || 'https://hello-world--k34449363.replit.app'}/api/form-submissions-stats`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -146,7 +146,7 @@ export function AdminDashboard() {
   const handleStatusChange = async (submissionId: string, newStatus: string) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'https://backend-forever--syedtech26.replit.app'}/api/form-submissions/${submissionId}`,
+        `${import.meta.env.VITE_API_URL || 'https://hello-world--k34449363.replit.app'}/api/form-submissions/${submissionId}`,
         {
           method: 'PUT',
           headers: {
@@ -193,7 +193,7 @@ export function AdminDashboard() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'https://backend-forever--syedtech26.replit.app'}/api/form-submissions/${submissionToDelete}`,
+        `${import.meta.env.VITE_API_URL || 'https://hello-world--k34449363.replit.app'}/api/form-submissions/${submissionToDelete}`,
         {
           method: 'DELETE',
           headers: {
