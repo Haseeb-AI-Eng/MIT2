@@ -3,7 +3,6 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
-import { X } from 'lucide-react';
 import { SideNav } from '../components/SideNav';
 
 interface Announcement {
@@ -15,10 +14,39 @@ interface Announcement {
   createdAt: string;
 }
 
+const STORAGE_KEY = 'alumni-community-updates';
+const AUTH_STORAGE_KEY = 'alumni-community-admin';
+const VALID_ADMIN_CREDENTIALS = [
+  { email: 'haseebmine24@gmail.com', password: 'ChangeMe123!' },
+  { email: 'admin@example.com', password: 'ChangeMe123!' },
+];
+
+function loadAnnouncements() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveAnnouncements(nextAnnouncements: Announcement[]) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextAnnouncements));
+}
+
 export function AlumniFriends() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showAdminPrompt, setShowAdminPrompt] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [authError, setAuthError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -28,25 +56,64 @@ export function AlumniFriends() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchAnnouncements();
+    const storedAnnouncements = loadAnnouncements();
+    setAnnouncements(storedAnnouncements);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const authRaw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+        if (authRaw) {
+          const parsed = JSON.parse(authRaw);
+          setIsAdmin(Boolean(parsed?.isAdmin));
+        }
+      } catch {
+        // ignore malformed auth data
+      }
+    }
+
+    setLoading(false);
   }, []);
 
-  const fetchAnnouncements = async () => {
-    try {
-      const response = await fetch('/api/announcements');
-      if (response.ok) {
-        const data = await response.json();
-        setAnnouncements(data.announcements || []);
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const normalizedEmail = adminEmail.trim().toLowerCase();
+    const isValidCredential = VALID_ADMIN_CREDENTIALS.some(
+      (credential) => credential.email === normalizedEmail && credential.password === adminPassword
+    );
+
+    if (isValidCredential) {
+      setIsAdmin(true);
+      setAuthError('');
+      setShowAdminPrompt(false);
+      setShowForm(true);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ isAdmin: true, email: normalizedEmail }));
       }
-    } catch (err) {
-      console.error('Error fetching announcements:', err);
-    } finally {
-      setLoading(false);
+      return;
+    }
+
+    setAuthError('Only the admin account can post community updates.');
+  };
+
+  const handleLogout = () => {
+    setIsAdmin(false);
+    setShowForm(false);
+    setShowAdminPrompt(false);
+    setAdminEmail('');
+    setAdminPassword('');
+    setAuthError('');
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      setAuthError('Please sign in as admin to post updates.');
+      return;
+    }
+
     if (!formData.title.trim() || !formData.content.trim() || !formData.authorName.trim() || !formData.authorEmail.trim()) {
       alert('Please fill in all fields.');
       return;
@@ -54,20 +121,22 @@ export function AlumniFriends() {
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      const newAnnouncement: Announcement = {
+        _id: `${Date.now()}`,
+        title: formData.title.trim(),
+        content: formData.content.trim(),
+        authorName: formData.authorName.trim(),
+        authorEmail: formData.authorEmail.trim(),
+        createdAt: new Date().toISOString(),
+      };
 
-      if (response.ok) {
-        alert('Announcement posted successfully!');
-        setFormData({ title: '', content: '', authorName: '', authorEmail: '' });
-        setShowForm(false);
-        fetchAnnouncements();
-      } else {
-        alert('Failed to post announcement.');
-      }
+      const nextAnnouncements = [newAnnouncement, ...announcements];
+      setAnnouncements(nextAnnouncements);
+      saveAnnouncements(nextAnnouncements);
+      setFormData({ title: '', content: '', authorName: '', authorEmail: '' });
+      setShowForm(false);
+      setAuthError('');
+      alert('Community update posted successfully.');
     } catch (err) {
       console.error('Error posting announcement:', err);
       alert('An error occurred.');
@@ -83,11 +152,21 @@ export function AlumniFriends() {
     });
   };
 
+  const handlePostClick = () => {
+    if (isAdmin) {
+      setShowForm((prev) => !prev);
+      setShowAdminPrompt(false);
+      return;
+    }
+
+    setShowAdminPrompt(true);
+    setShowForm(false);
+    setAuthError('');
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero section with graduation image */}
       <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[450px] md:min-h-0 flex items-center justify-center">
-        {/* Background Layer */}
         <div className="absolute inset-0">
           <img
             src="/pexels-pavel-danilyuk-7944238.jpg"
@@ -97,7 +176,6 @@ export function AlumniFriends() {
           <div className="absolute inset-0 bg-black/50" />
         </div>
 
-        {/* Content Layer */}
         <div className="relative mx-auto max-w-[1200px] px-6 py-16 md:py-0 text-center z-10">
           <p
             className="text-[10px] md:text-[12px] uppercase tracking-[0.25em] md:tracking-[0.35em] text-white/60 mb-4"
@@ -123,22 +201,75 @@ export function AlumniFriends() {
         <div className="flex w-full items-start gap-0">
           <SideNav />
           <div className="flex-1 min-w-0 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
-            <div className="mb-10 flex justify-between items-center">
+            <div className="mb-10 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
               <div>
                 <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Announcements</p>
                 <h2 className="text-[25px] md:text-[42px] font-semibold text-black" style={{ fontFamily: 'Georgia, serif' }}>
                   Community Updates
                 </h2>
               </div>
-              <Button
-                onClick={() => setShowForm(!showForm)}
-                className="bg-black text-white hover:bg-gray-800 w-42 md:w-auto"
-              >
-                {showForm ? 'Cancel' : '+ Post Announcement'}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handlePostClick}
+                  className="bg-black text-white hover:bg-gray-800 w-42 md:w-auto"
+                >
+                  {isAdmin && showForm ? 'Cancel' : '+ Post Announcement'}
+                </Button>
+                {isAdmin ? (
+                  <Button variant="outline" onClick={handleLogout} className="w-28 md:w-auto">
+                    Logout
+                  </Button>
+                ) : (
+                  <Button onClick={() => setShowAdminPrompt((prev) => !prev)} className="bg-black text-white hover:bg-gray-800 w-40 md:w-auto">
+                    {showAdminPrompt ? 'Hide Login' : 'Admin Login'}
+                  </Button>
+                )}
+              </div>
             </div>
 
-            {showForm && (
+            {showAdminPrompt && !isAdmin && (
+              <Card className="p-6 mb-8 border border-black/10">
+                <p className="text-sm text-black/70 mb-4">
+                  Community updates are posted from this browser only. Sign in with the admin account to unlock posting.
+                </p>
+                <form onSubmit={handleLogin} className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label htmlFor="adminEmail" className="block text-sm font-medium mb-2">
+                      Admin Email
+                    </label>
+                    <Input
+                      id="adminEmail"
+                      type="email"
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                      placeholder="haseebmine24@gmail.com"
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="adminPassword" className="block text-sm font-medium mb-2">
+                      Admin Password
+                    </label>
+                    <Input
+                      id="adminPassword"
+                      type="password"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      placeholder="Enter password"
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex items-center gap-3">
+                    <Button type="submit" className="bg-black text-white hover:bg-gray-800">
+                      Sign in as admin
+                    </Button>
+                    {authError && <p className="text-sm text-red-600">{authError}</p>}
+                  </div>
+                </form>
+              </Card>
+            )}
+
+            {showForm && isAdmin && (
               <Card className="p-8 mb-10">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>

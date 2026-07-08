@@ -4,26 +4,6 @@ import { motion } from 'motion/react';
 import { fetchArticleBySlug, fetchRelatedArticles } from '../api';
 import { researchProjects } from '../data/researchProjects';
 
-const generateArticleBody = (article: { title: string; category: string; description: string; date?: string }) => {
-  const label = article.category?.toLowerCase() || '';
-  const articleType = label.includes('event') ? 'event narrative' : label.includes('news') ? 'news story' : 'research feature';
-
-  return [
-    `The piece is presented as a ${articleType} built around the visual and conceptual thread that appears in the hero image above.`,
-    `At the outset, the article frames its core question clearly: what does this work mean for the people who will use it, study it, or be influenced by it?`,
-    `This entry dives deep into ${article.description?.toLowerCase().slice(0, 120) || 'the research topic'}. It describes the team's process and the decisions that mattered most.`,
-    `The narrative emphasizes how the project connects technical design with practical application in real-world systems.`,
-    `Because the MIT Media Lab values interdisciplinary collaboration, the article highlights the roles of designers, engineers, scientists, and community partners.`,
-    `The story is not just about a single breakthrough. It unpacks the supporting systems and research questions that still remain open.`,
-    `As the reader moves through the page, the article consistently returns to the central idea of how this work can change the way we think about technology and the future.`,
-    `Later sections describe specific outcomes and possible next steps, including how the project could expand to new settings.`,
-    `The article is careful to surface both promise and challenge, noting where current work is strong and where it requires more testing.`,
-    `The piece includes reflections on how this research connects to broader Media Lab themes: creativity, equity, sustainability, and the ethics of emerging technology.`,
-    `In its concluding paragraphs, the article looks ahead to what the team plans to explore next.`,
-    `By the end of the detail page, readers should have a strong sense of what makes this project distinctive and why it matters.`,
-  ];
-};
-
 export function ArticleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -68,15 +48,20 @@ export function ArticleDetail() {
 
   const detailContent = useMemo(() => {
     if (!article) return [];
-    let body: string[] = [];
-    // Handle both array and string content (old DB entries may have string)
+
     if (Array.isArray(article.content)) {
-      body = article.content.filter((p: string) => p && p.length > 10);
-    } else if (typeof article.content === 'string' && article.content.length > 10) {
-      body = [article.content];
+      return article.content.filter((paragraph: string) => typeof paragraph === 'string' && paragraph.trim().length > 0);
     }
-    const filler = generateArticleBody(article);
-    return [...body, ...filler];
+
+    if (typeof article.content === 'string' && article.content.trim().length > 0) {
+      return [article.content.trim()];
+    }
+
+    if (typeof article.description === 'string' && article.description.trim().length > 0) {
+      return [article.description.trim()];
+    }
+
+    return [];
   }, [article]);
 
   if (loading) {

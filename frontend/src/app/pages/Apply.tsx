@@ -151,7 +151,7 @@ export function Apply() {
     return (
       <div>
         {renderHero()}
-        <div className="lg:ml-80 px-4 md:px-8 py-12 flex items-center justify-center min-h-[60vh]">
+        <div className="px-4 md:px-8 py-12 flex items-center justify-center min-h-[60vh]">
           <div className="max-w-md w-full text-center">
             <div className="flex justify-center mb-4">
               <CheckCircle className="w-16 h-16 text-gray-800" />
@@ -169,7 +169,7 @@ export function Apply() {
   return (
     <div>
       {renderHero()}
-      <div className="lg:ml-80 px-4 md:px-8 py-12">
+      <div className="px-4 md:px-8 py-12">
         <div className="max-w-2xl mx-auto">
           <div className="mb-12 text-center">
             <h2 className="text-2xl md:text-3xl font-semibold text-black mb-4">Application Form</h2>
