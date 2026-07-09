@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { fetchProjectByIdOrSlug } from '../api';
 
@@ -53,26 +53,42 @@ function generateDetailedExplanation(project: any) {
 export function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [project, setProject] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+
+  // If we navigated here from a card click, Home.tsx hands us the project
+  // object directly via router state so we can render instantly (no fetch
+  // wait). We still re-fetch in the background to keep data fresh, but the
+  // user never sees a loading screen in that case.
+  const preloadedProject = (location.state as any)?.project ?? null;
+
+  const [project, setProject] = useState<any | null>(preloadedProject);
+  const [loading, setLoading] = useState(!preloadedProject);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
+
+    // Only show the blocking loading state if we have nothing to render yet.
+    if (!preloadedProject) {
+      setLoading(true);
+    }
+
     fetchProjectByIdOrSlug(id)
       .then((data) => {
         if (!data) {
-          setNotFound(true);
+          if (!preloadedProject) setNotFound(true);
         } else {
           setProject(data);
         }
       })
-      .catch(() => setNotFound(true))
+      .catch(() => {
+        if (!preloadedProject) setNotFound(true);
+      })
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  if (loading) {
+  if (loading && !project) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-black/50 text-[16px]">Loading project...</div>
@@ -111,19 +127,27 @@ export function ProjectDetail() {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ── Hero banner ── */}
+      {/* ── Hero banner ──
+          Fixed, breakpoint-based heights instead of `28vw` — vw-based heights
+          shrink unpredictably on narrow mobile viewports (and iOS Safari
+          resizes vh/vw as the address bar shows/hides), which is what was
+          letting the image spill outside the section and sit under the
+          global header. overflow-hidden guarantees the image can never
+          bleed past the section bounds. */}
       <section
         data-hero-section
-        className="relative bg-black text-white flex items-center justify-center text-center"
-        style={{ minHeight: '260px', maxHeight: '360px', height: '28vw' }}
+        className="relative bg-black text-white flex items-center justify-center text-center overflow-hidden min-h-[380px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px]"
       >
         <div className="absolute inset-0">
           <img
             src={project.coverImage || project.cover_image || '/image.gif'}
             alt=""
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover scale-105 blur-[2px]"
           />
-          <div className="absolute inset-0 bg-black/60" />
+          {/* Gradient scrim, darkest through the middle where the title sits.
+              This guarantees the title is legible even when the cover image
+              itself contains baked-in text/UI (e.g. app screenshots). */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/70" />
         </div>
 
         <div className="absolute top-4 right-5 z-10">
@@ -136,7 +160,7 @@ export function ProjectDetail() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 text-[28px] md:text-[44px] font-bold leading-snug px-6 max-w-4xl"
+          className="relative z-10 text-[22px] sm:text-[28px] md:text-[44px] font-bold leading-snug px-6 max-w-4xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
         >
           {project.title}
         </motion.h1>
@@ -146,9 +170,6 @@ export function ProjectDetail() {
       <div className="flex min-h-[calc(100vh-280px)]">
 
         {/* ── LEFT SIDEBAR ── */}
-        {/* relative z-10 keeps this above the hero's absolutely positioned image/overlay.
-            -mt-8 pulls the card up into the bottom of the hero photo (adjust to taste).
-            bg-white + the upward shadow make it read as a floating card rather than a clipped edge. */}
         <aside
           className="hidden md:flex flex-col flex-shrink-0 border-r border-black/10 relative z-10 -mt-24 bg-white shadow-[0_-16px_24px_-12px_rgba(0,0,0,0.18)]"
           style={{ width: '320px', minWidth: '280px', padding: '1.5rem 1.5rem 2rem' }}
@@ -271,10 +292,10 @@ export function ProjectDetail() {
           </button>
 
           <div className="mb-10">
-            <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-5">
+            <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-5 text-justify">
               {project.subtitle || project.shortDescription || project.title}
             </p>
-            <p className="text-[15px] md:text-[16px] text-black/80 leading-relaxed">
+            <p className="text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
               {project.description}
             </p>
           </div>
@@ -286,7 +307,7 @@ export function ProjectDetail() {
             </video>
           </div>
 
-          <div className="space-y-6 text-[15px] md:text-[16px] text-black/80 leading-relaxed mb-10">
+          <div className="space-y-6 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify mb-10">
             {detailedExplanation.map((p, idx) => (
               <p key={idx}>{p}</p>
             ))}

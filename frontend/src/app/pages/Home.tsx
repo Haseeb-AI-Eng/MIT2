@@ -168,8 +168,12 @@ export const Home = React.memo(function Home() {
 
   const filteredProjects = useMemo(() => visibleProjects, [visibleProjects]);
 
+  // Now takes the full project object too, so we can hand it to ProjectDetail
+  // via router state. That lets ProjectDetail render immediately instead of
+  // waiting on a fresh network fetch — the fetch still happens in the
+  // background to keep the data fresh, but the user sees content instantly.
   const handleProjectClick = useCallback(
-    (projectId: string | undefined) => {
+    (projectId: string | undefined, project: any) => {
       if (!projectId || typeof window === 'undefined') {
         return;
       }
@@ -179,7 +183,7 @@ export const Home = React.memo(function Home() {
         ...prevViews,
         [projectId]: nextCount,
       }));
-      navigate(`/projects/${projectId}`);
+      navigate(`/projects/${projectId}`, { state: { project } });
     },
     [navigate]
   );
@@ -244,7 +248,7 @@ export const Home = React.memo(function Home() {
         <div className="absolute inset-0">
           <HeroVideo />
         </div>
-        <div className="relative z-10 w-full max-w-[90vw] px-4 sm:px-6">
+        <div className="relative z-10 w-full max-w-[90vw] px-4 sm:px-6 pt-20 md:pt-24">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -324,7 +328,7 @@ export const Home = React.memo(function Home() {
                   title={project.title}
                   description={project.description}
                   category={project.tags?.[0] || 'Research'}
-                  onClick={() => handleProjectClick(projectId)}
+                  onClick={() => handleProjectClick(projectId, project)}
                   viewCount={projectId ? projectViews[projectId] ?? 0 : 0}
                   size={role === 'huge' || role === 'wide' ? 'large' : 'medium'}
                   aspect={role === 'huge' || role === 'wide' ? 'wide' : 'normal'}
