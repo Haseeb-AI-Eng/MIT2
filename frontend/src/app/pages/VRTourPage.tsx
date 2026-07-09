@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import * as THREE from 'three';
+import { SideNav } from '../components/SideNav';
 
 const videoUrl = '/YTDown.com_YouTube_Telenor-360-DVC_Media_fZMWZNUZDzE_001_1080s.mp4';
 
@@ -122,7 +123,7 @@ export function VRTourPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f7f7f2] text-black">
+    <div className="min-h-screen bg-white text-black">
       <section className="relative overflow-hidden bg-black text-white">
         <div className="absolute inset-0">
           <img
@@ -154,31 +155,36 @@ export function VRTourPage() {
         </div>
       </section>
 
-      <section className="px-4 py-8 sm:px-6 md:px-10 md:py-10 lg:px-12 lg:py-16">
-        <div className="mx-auto max-w-7xl rounded-[2rem] border border-black/10 bg-white p-4 shadow-sm sm:p-6 md:p-10">
-            <div className="relative overflow-hidden rounded-[1.5rem] border border-black/10 bg-black">
-              <div ref={containerRef} className="aspect-[16/10] min-h-[420px] w-full md:min-h-[560px]" />
-            </div>
-
-            <div className="mt-8 grid gap-6 lg:grid-cols-2">
-              <div className="rounded-[1.25rem] border border-black/10 bg-[#fafafa] p-6">
-                <h2 className="text-lg font-semibold text-black">How to enjoy it</h2>
-                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-black/70">
-                  <li>• Click “Start 360 tour” to begin playback.</li>
-                  <li>• Drag inside the scene to change your viewing direction.</li>
-                  <li>• This is now rendered as a real 360 environment rather than a flat video frame.</li>
-                </ul>
+      <section className="relative w-full overflow-visible">
+        <div className="flex w-full items-start gap-0">
+          <SideNav />
+          <div className="flex-1 min-w-0 px-4 py-8 sm:px-6 md:px-8 lg:px-12 lg:py-12">
+            <div className="mx-auto max-w-[1400px] rounded-[2rem] border border-black/10 bg-white p-4 shadow-sm sm:p-6 md:p-10">
+              <div className="relative overflow-hidden rounded-[1.5rem] border border-black/10 bg-black">
+                <div ref={containerRef} className="aspect-[16/10] min-h-[420px] w-full md:min-h-[560px]" />
               </div>
 
-              <div className="rounded-[1.25rem] border border-black/10 bg-[#fafafa] p-6">
-                <h2 className="text-lg font-semibold text-black">Playback</h2>
-                <p className="mt-3 text-sm leading-relaxed text-black/70">
-                  The video is playing from your local project file, so it can be viewed directly on the site without relying on a blocked YouTube embed.
-                </p>
+              <div className="mt-8 grid gap-6 lg:grid-cols-2">
+                <div className="rounded-[1.25rem] border border-black/10 bg-[#fafafa] p-6">
+                  <h2 className="text-lg font-semibold text-black">How to enjoy it</h2>
+                  <ul className="mt-3 space-y-2 text-sm leading-relaxed text-black/70">
+                    <li>• Drag inside the scene to change your viewing direction.</li>
+                    <li>• The 360 tour begins automatically as soon as the scene is ready.</li>
+                    <li>• This is rendered as a real 360 environment rather than a flat video frame.</li>
+                  </ul>
+                </div>
+
+                <div className="rounded-[1.25rem] border border-black/10 bg-[#fafafa] p-6">
+                  <h2 className="text-lg font-semibold text-black">Playback</h2>
+                  <p className="mt-3 text-sm leading-relaxed text-black/70">
+                    The video is playing from your local project file, so it can be viewed directly on the site without relying on a blocked YouTube embed.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
+    </div>
     );
   }

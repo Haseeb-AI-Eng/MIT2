@@ -271,7 +271,7 @@ export const Home = React.memo(function Home() {
             <div className="sticky top-[140px] z-20 bg-white">
               <nav className="py-4">
                 <div className="space-y-0">
-                  {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'EL Graduate Program', 'People', 'Alumni + Friends', 'Events', 'Add Research Project'].map((section) => (
+                  {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'EL Graduate Program', 'People', 'Alumni + Friends', 'Events', '360 VR Tour', 'Add Research Project'].map((section) => (
                     <button
                       key={section}
                       onClick={() => {

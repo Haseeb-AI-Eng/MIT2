@@ -16,6 +16,7 @@ const navLinks = [
   { label: 'People', path: '/people' },
   { label: 'Alumni + Friends', path: '/alumni-friends' },
   { label: 'Events', path: '/' },
+  { label: '360 VR Tour', path: '/360-vr-tour' },
   { label: 'Add Research Project', path: '/add-research-project' },
 ];
 

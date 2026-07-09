@@ -10,6 +10,7 @@ const navItems = [
   'People',
   'Alumni + Friends',
   'Events',
+  '360 VR Tour',
   'Add Research Project',
 ] as const;
 
@@ -22,6 +23,7 @@ const routeMap: Record<string, string> = {
   People: '/people',
   'Alumni + Friends': '/alumni-friends',
   Events: '/',
+  '360 VR Tour': '/360-vr-tour',
   'Add Research Project': '/add-research-project',
 };
 
