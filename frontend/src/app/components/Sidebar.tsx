@@ -45,6 +45,7 @@ export const Sidebar = React.memo(function Sidebar() {
     'People',
     'Alumni + Friends',
     'Events',
+    '360 VR Tour',
     'Add Research Project',
   ];
 
@@ -58,6 +59,7 @@ export const Sidebar = React.memo(function Sidebar() {
     People: '/people',
     'Alumni + Friends': '/alumni-friends',
     Events: '/',
+    '360 VR Tour': '/360-vr-tour',
     'Add Research Project': '/add-research-project',
   };
 
@@ -77,6 +79,8 @@ export const Sidebar = React.memo(function Sidebar() {
       setActiveSection('People');
     } else if (currentPath === '/alumni-friends') {
       setActiveSection('Alumni + Friends');
+    } else if (currentPath === '/360-vr-tour') {
+      setActiveSection('360 VR Tour');
     } else if (currentPath === '/add-research-project') {
       setActiveSection('Add Research Project');
     }

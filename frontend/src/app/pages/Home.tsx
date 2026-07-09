@@ -198,6 +198,7 @@ export const Home = React.memo(function Home() {
     People: '/people',
     'Alumni + Friends': '/alumni-friends',
     Events: '/',
+    '360 VR Tour': '/360-vr-tour',
     'Add Research Project': '/add-research-project',
   };
 

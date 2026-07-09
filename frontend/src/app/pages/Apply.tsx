@@ -12,7 +12,7 @@ import { getApiUrl, clientCacheInvalidate } from '../api';
 // (or better: pull this into a shared component — see note at bottom of file).
 const NAV_SECTIONS = [
   'News + Updates', 'Research', 'About', 'Support the Media Lab',
-  'EL Graduate Program', 'People', 'Alumni + Friends', 'Events', 'Add Research Project'
+  'EL Graduate Program', 'People', 'Alumni + Friends', 'Events', '360 VR Tour', 'Add Research Project'
 ];
 
 const ROUTE_MAP: Record<string, string> = {
@@ -25,6 +25,7 @@ const ROUTE_MAP: Record<string, string> = {
   People: '/people',
   'Alumni + Friends': '/alumni-friends',
   Events: '/',
+  '360 VR Tour': '/360-vr-tour',
   'Add Research Project': '/add-research-project',
 };
 
