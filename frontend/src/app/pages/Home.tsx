@@ -244,7 +244,7 @@ export const Home = React.memo(function Home() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section
         data-hero-section
-        className="relative w-full bg-black text-white min-h-[70vh] md:min-h-[80vh] flex items-center justify-center overflow-hidden z-0"
+        className="relative w-full bg-black text-white min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center justify-center overflow-hidden z-0"
       >
         <div className="absolute inset-0">
           <HeroVideo />
@@ -254,7 +254,7 @@ export const Home = React.memo(function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative w-full text-[36px] sm:text-[40px] md:text-[40px] md:ml-36 leading-[1.05] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none font-sans font-semibold"
+            className="relative w-full text-[40px] sm:text-[44px] md:text-[48px] md:ml-36 leading-[1.0] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none font-sans font-semibold"
             style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             Imagine what we can become.
