@@ -16,7 +16,8 @@ export function Footer() {
     'Publications': '/',
     'Contact': '/',
     'Accessibility': '/',
-    'Donate to the Lab': '/support-media-lab'
+    'Donate to the Lab': '/support-media-lab',
+    '360 VR Tour': '/360-vr-tour'
   };
 
   const handleNavigate = (linkName: string) => {
@@ -70,7 +71,7 @@ export function Footer() {
           </nav>
           <div className="flex flex-col gap-3">
             <span className="text-[14px] font-semibold text-black/50 mb-1">More ways to explore</span>
-            {['Publications', 'Contact'].map((link) => (
+            {['Publications', 'Contact', '360 VR Tour'].map((link) => (
               <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
             ))}
             <Link to="/add-research-project" className="text-[14px] text-black/80 hover:text-black transition-colors font-semibold">+ Add Research Project</Link>
