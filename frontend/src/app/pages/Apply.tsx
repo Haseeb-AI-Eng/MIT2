@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -6,7 +7,29 @@ import { Label } from '../components/ui/label';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { getApiUrl, clientCacheInvalidate } from '../api';
 
+// Same nav items + route map as Home.tsx, so the sidebar behaves identically
+// across pages. If you add/rename a section in Home.tsx, mirror it here too
+// (or better: pull this into a shared component — see note at bottom of file).
+const NAV_SECTIONS = [
+  'News + Updates', 'Research', 'About', 'Support the Media Lab',
+  'EL Graduate Program', 'People', 'Alumni + Friends', 'Events', 'Add Research Project'
+];
+
+const ROUTE_MAP: Record<string, string> = {
+  'News + Updates': '/',
+  Research: '/research',
+  Projects: '/projects',
+  About: '/about',
+  'Support the Media Lab': '/support-media-lab',
+  'EL Graduate Program': '/mas-graduate-program',
+  People: '/people',
+  'Alumni + Friends': '/alumni-friends',
+  Events: '/',
+  'Add Research Project': '/add-research-project',
+};
+
 export function Apply() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -83,7 +106,7 @@ export function Apply() {
   }, []);
 
   const renderHero = () => (
-    <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-[16/5] flex items-center justify-center">
+    <section data-hero-section className="relative overflow-hidden bg-black text-white min-h-[380px] sm:min-h-0 sm:aspect-[16/5] flex items-center justify-center">
       <img
         src="/image.gif"
         alt="Apply hero"
@@ -147,28 +170,55 @@ export function Apply() {
     projectId: ''
   });
 
-  if (submitted) {
-    return (
-      <div>
-        {renderHero()}
-        <div className="px-4 md:px-8 py-12 flex items-center justify-center min-h-[60vh]">
-          <div className="max-w-md w-full text-center">
-            <div className="flex justify-center mb-4">
-              <CheckCircle className="w-16 h-16 text-gray-800" />
-            </div>
-            <h1 className="text-3xl font-semibold text-black mb-4">Application Submitted!</h1>
-            <p className="text-black/70 mb-6">
-              Thank you for your application. We have received your information and will review it shortly. You will be contacted via email if selected.
-            </p>
+  // ── Shared sidebar, matching Home.tsx exactly ──────────────────────────
+  // Key details copied from Home.tsx's <aside>: it lives in the grid row
+  // that starts BELOW the hero (the hero is its own full-width section, not
+  // part of this grid), then -mt-[140px] + sticky top-[140px] pulls it up
+  // to tuck under the hero visually without covering the fixed site header.
+  const sidebar = (
+    <aside className="hidden lg:block lg:col-start-1 lg:row-start-1 relative z-50 -mt-[125px] border-r border-black/10 self-stretch bg-white">
+      <div className="sticky top-[125px] z-20 bg-white">
+        <nav className="py-4">
+          <div className="space-y-0">
+            {NAV_SECTIONS.map((section) => (
+              <button
+                key={section}
+                onClick={() => navigate(ROUTE_MAP[section] || '/')}
+                className={`w-full text-left px-6 pl-8 py-2 text-[13px] leading-5 transition-colors font-bold ${
+                  section === 'EL Graduate Program'
+                    ? 'text-[#E91E63]'
+                    : 'text-black hover:text-black'
+                }`}
+                style={{
+                  fontFamily: "'Georgia', 'Garamond', serif",
+                  fontWeight: 700,
+                }}
+              >
+                {section}
+              </button>
+            ))}
           </div>
+        </nav>
+      </div>
+    </aside>
+  );
+
+  const pageBody = submitted ? (
+    <div>
+      <div className="px-4 md:px-8 py-12 flex items-center justify-center min-h-[60vh]">
+        <div className="max-w-md w-full text-center">
+          <div className="flex justify-center mb-4">
+            <CheckCircle className="w-16 h-16 text-gray-800" />
+          </div>
+          <h1 className="text-3xl font-semibold text-black mb-4">Application Submitted!</h1>
+          <p className="text-black/70 mb-6">
+            Thank you for your application. We have received your information and will review it shortly. You will be contacted via email if selected.
+          </p>
         </div>
       </div>
-    );
-  }
-
-  return (
+    </div>
+  ) : (
     <div>
-      {renderHero()}
       <div className="px-4 md:px-8 py-12">
         <div className="max-w-2xl mx-auto">
           <div className="mb-12 text-center">
@@ -370,4 +420,25 @@ export function Apply() {
       </div>
     </div>
   );
+
+  return (
+    <div className="relative overflow-x-hidden w-full">
+      {renderHero()}
+      <section className="relative w-full z-20">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-0 w-full bg-white relative">
+          {sidebar}
+          <div className="lg:col-start-2 lg:col-span-3 min-w-0">
+            {pageBody}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
+
+// NOTE: This sidebar block is now duplicated in both Home.tsx and Apply.tsx.
+// If your other pages (Research, About, People, etc.) also need the same
+// nav, it's worth pulling NAV_SECTIONS/ROUTE_MAP/sidebar JSX into a shared
+// `SiteSidebar.tsx` component and wrapping routes with it in your router,
+// instead of copy-pasting into every page file. Happy to do that refactor
+// if you want — just share your router/App.tsx file.

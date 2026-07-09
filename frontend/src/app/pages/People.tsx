@@ -118,7 +118,9 @@ export function People() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section className="relative overflow-hidden bg-slate-950 text-white aspect-auto md:aspect-[16/5] min-h-[500px] md:min-h-0 flex items-center">
+      {/* Mobile hero height now matches Home.tsx's mobile hero (min-h-[70vh]).
+          Desktop (md:) is untouched — still aspect-ratio driven, same as before. */}
+      <section className="relative overflow-hidden bg-slate-950 text-white aspect-auto md:aspect-[16/5] min-h-[70vh] md:min-h-0 flex items-center">
         {/* Background Layer */}
         <div className="absolute inset-0">
           <img
