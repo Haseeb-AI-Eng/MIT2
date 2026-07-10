@@ -2038,9 +2038,23 @@ app.put(
         console.log(
           `📧 Processing acceptance emails for student: ${submission.email}`,
         );
+        let studentProjectSlug = submission.projectSlug || "";
+        let studentProjectPageLink = `${FRONTEND_URL}/projects`;
+        if (!studentProjectSlug && submission.projectId) {
+          const project = await projectsCollection.findOne(
+            { _id: new ObjectId(submission.projectId) },
+            { projection: { slug: 1 } },
+          );
+          studentProjectSlug = project?.slug || "";
+        }
+        if (studentProjectSlug) {
+          studentProjectPageLink = `${FRONTEND_URL}/projects/${studentProjectSlug}`;
+        } else if (submission.projectId) {
+          studentProjectPageLink = `${FRONTEND_URL}/projects/${submission.projectId}`;
+        }
         const studentSubject = "Your EIAS program request has been accepted";
-        const studentText = `Hello ${submission.name},\n\nYour application to join the EIAS program ${submission.projectTitle ? `for the research project "${submission.projectTitle}" ` : ""}has been accepted by the admin team. The project lead has been notified to confirm your final assignment.\n\nThank you for applying.`;
-        const studentHtml = `<p>Hello ${submission.name},</p><p>Your application to join the EIAS program ${submission.projectTitle ? `for the research project <strong>${submission.projectTitle}</strong> ` : ""}has been accepted by the admin team.</p><p>The project lead has been notified to confirm your final assignment.</p><p>Thank you for applying.</p>`;
+        const studentText = `Hello ${submission.name},\n\nYour application to join the EIAS program ${submission.projectTitle ? `for the research project "${submission.projectTitle}" ` : ""}has been accepted by the admin team.\n\nYou can view the project here: ${studentProjectPageLink}\n\nThe project lead has been notified to confirm your final assignment.\n\nThank you for applying.`;
+        const studentHtml = `<p>Hello ${submission.name},</p><p>Your application to join the EIAS program ${submission.projectTitle ? `for the research project <strong>${submission.projectTitle}</strong> ` : ""}has been accepted by the admin team.</p><p>You can view the project here: <a href="${studentProjectPageLink}">${studentProjectPageLink}</a></p><p>The project lead has been notified to confirm your final assignment.</p><p>Thank you for applying.</p>`;
         await sendMail({
           to: submission.email,
           subject: studentSubject,
@@ -2064,6 +2078,7 @@ app.put(
         if (submission.projectLeadEmail) {
           const confirmLink = `${FRONTEND_URL}/lead-confirm?token=${encodeURIComponent(leadConfirmationToken)}`;
           let projectSlug = submission.projectSlug || "";
+          let projectPageLink = `${FRONTEND_URL}/projects`;
           if (!projectSlug && submission.projectId) {
             const project = await projectsCollection.findOne(
               { _id: new ObjectId(submission.projectId) },
@@ -2071,9 +2086,11 @@ app.put(
             );
             projectSlug = project?.slug || "";
           }
-          const projectPageLink = projectSlug
-            ? `${FRONTEND_URL}/projects/${projectSlug}`
-            : `${FRONTEND_URL}/projects`;
+          if (projectSlug) {
+            projectPageLink = `${FRONTEND_URL}/projects/${projectSlug}`;
+          } else if (submission.projectId) {
+            projectPageLink = `${FRONTEND_URL}/projects/${submission.projectId}`;
+          }
 
           let existingMembersText = "None yet";
           let existingMembersHtml = "<em>None yet</em>";
@@ -2193,9 +2210,23 @@ app.post("/api/form-submissions/lead-confirm", async (req, res) => {
       }
     }
 
+    let confirmedProjectSlug = updated.value.projectSlug || "";
+    let confirmedProjectPageLink = `${FRONTEND_URL}/projects`;
+    if (!confirmedProjectSlug && updated.value.projectId) {
+      const project = await projectsCollection.findOne(
+        { _id: new ObjectId(updated.value.projectId) },
+        { projection: { slug: 1 } },
+      );
+      confirmedProjectSlug = project?.slug || "";
+    }
+    if (confirmedProjectSlug) {
+      confirmedProjectPageLink = `${FRONTEND_URL}/projects/${confirmedProjectSlug}`;
+    } else if (updated.value.projectId) {
+      confirmedProjectPageLink = `${FRONTEND_URL}/projects/${updated.value.projectId}`;
+    }
     const studentSubject = "Your research project assignment is confirmed";
-    const studentText = `Hello ${updated.value.name},\n\nGood news: the project lead has confirmed your assignment to ${updated.value.projectTitle || "the requested research project"}. You are now part of that research effort.\n\nBest of luck.`;
-    const studentHtml = `<p>Hello ${updated.value.name},</p><p>Good news: the project lead has confirmed your assignment to ${updated.value.projectTitle ? `<strong>${updated.value.projectTitle}</strong>` : "the requested research project"}.</p><p>You are now part of that research effort.</p><p>Best of luck.</p>`;
+    const studentText = `Hello ${updated.value.name},\n\nGood news: the project lead has confirmed your assignment to ${updated.value.projectTitle || "the requested research project"}. You are now part of that research effort.\n\nYou can view the project here: ${confirmedProjectPageLink}\n\nBest of luck.`;
+    const studentHtml = `<p>Hello ${updated.value.name},</p><p>Good news: the project lead has confirmed your assignment to ${updated.value.projectTitle ? `<strong>${updated.value.projectTitle}</strong>` : "the requested research project"}.</p><p>You can view the project here: <a href="${confirmedProjectPageLink}">${confirmedProjectPageLink}</a></p><p>You are now part of that research effort.</p><p>Best of luck.</p>`;
     await sendMail({
       to: updated.value.email,
       subject: studentSubject,
