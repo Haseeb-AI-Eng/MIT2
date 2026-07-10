@@ -116,8 +116,10 @@ const PROJECT_STATUSES = ["draft", "review", "published"];
 // password + role if it does. No separate find-then-insert/update round trip,
 // so this can't race or silently no-op against an empty collection.
 async function seedDefaultAdmin() {
-  const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL || "admin@example.com";
-  const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD || "ChangeMe123!";
+  const defaultAdminEmail =
+    process.env.DEFAULT_ADMIN_EMAIL || "admin@example.com";
+  const defaultAdminPassword =
+    process.env.DEFAULT_ADMIN_PASSWORD || "ChangeMe123!";
 
   if (!defaultAdminEmail || !defaultAdminPassword) {
     console.log(
@@ -256,7 +258,8 @@ const EMAIL_FROM =
     ? `"MIT Research Lab" <${EMAIL_USER}>`
     : '"MIT Research Lab" <noreply@research.lab>');
 const APP_URL = process.env.APP_URL || "http://localhost:5173";
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://mit-2-frontend.vercel.app";
+const FRONTEND_URL =
+  process.env.FRONTEND_URL || "https://mit-2-frontend.vercel.app";
 
 console.log("\n📧 Email Configuration:");
 console.log(`   APP_URL: ${APP_URL}`);
@@ -432,7 +435,9 @@ async function requireProjectMember(req, res, next) {
   });
 
   if (!membership && user.role !== "admin") {
-    return res.status(403).json({ error: "Only project team members can modify this project" });
+    return res
+      .status(403)
+      .json({ error: "Only project team members can modify this project" });
   }
   next();
 }
@@ -479,10 +484,12 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(400).json({ error: "Email and password are required" });
 
     const normalizedEmail = email.toLowerCase().trim();
-    const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL?.toLowerCase().trim();
+    const defaultAdminEmail =
+      process.env.DEFAULT_ADMIN_EMAIL?.toLowerCase().trim();
     const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD;
     const isDefaultAdminLogin =
-      normalizedEmail === defaultAdminEmail && password === defaultAdminPassword;
+      normalizedEmail === defaultAdminEmail &&
+      password === defaultAdminPassword;
 
     let user = await usersCollection.findOne({ email: normalizedEmail });
 
@@ -677,11 +684,9 @@ app.get("/api/projects", async (req, res) => {
 
     if (status && validateProjectStatus(status)) {
       if (status !== "published" && !isAdmin) {
-        return res
-          .status(403)
-          .json({
-            error: "Admin access is required to query non-published projects",
-          });
+        return res.status(403).json({
+          error: "Admin access is required to query non-published projects",
+        });
       }
       filter.status = status;
     } else if (!isAdmin) {
@@ -1154,113 +1159,118 @@ app.patch(
   },
 );
 
-app.put("/api/projects/:id", authenticate, requireProjectMember, async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!ObjectId.isValid(id))
-      return res.status(400).json({ error: "Invalid project id" });
+app.put(
+  "/api/projects/:id",
+  authenticate,
+  requireProjectMember,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!ObjectId.isValid(id))
+        return res.status(400).json({ error: "Invalid project id" });
 
-    const updates = { updatedAt: new Date() };
-    if (req.body.title) updates.title = req.body.title.trim();
-    if (req.body.description) updates.description = req.body.description;
-    if (req.body.coverImage || req.body.cover_image)
-      updates.coverImage = req.body.coverImage || req.body.cover_image;
-    if (req.body.videoUrl || req.body.video_url)
-      updates.videoUrl = req.body.videoUrl || req.body.video_url;
-    if (req.body.tags)
-      updates.tags = Array.isArray(req.body.tags) ? req.body.tags : [];
-    if (req.body.featured !== undefined)
-      updates.featured = req.body.featured === true;
-    if (req.body.status && validateProjectStatus(req.body.status))
-      updates.status = req.body.status;
-    if (req.body.labId && ObjectId.isValid(req.body.labId))
-      updates.labId = new ObjectId(req.body.labId);
-    if (req.body.leadEmail)
-      updates.leadEmail = req.body.leadEmail.toLowerCase().trim();
+      const updates = { updatedAt: new Date() };
+      if (req.body.title) updates.title = req.body.title.trim();
+      if (req.body.description) updates.description = req.body.description;
+      if (req.body.coverImage || req.body.cover_image)
+        updates.coverImage = req.body.coverImage || req.body.cover_image;
+      if (req.body.videoUrl || req.body.video_url)
+        updates.videoUrl = req.body.videoUrl || req.body.video_url;
+      if (req.body.tags)
+        updates.tags = Array.isArray(req.body.tags) ? req.body.tags : [];
+      if (req.body.featured !== undefined)
+        updates.featured = req.body.featured === true;
+      if (req.body.status && validateProjectStatus(req.body.status))
+        updates.status = req.body.status;
+      if (req.body.labId && ObjectId.isValid(req.body.labId))
+        updates.labId = new ObjectId(req.body.labId);
+      if (req.body.leadEmail)
+        updates.leadEmail = req.body.leadEmail.toLowerCase().trim();
 
-    const result = await projectsCollection.findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { $set: updates },
-      { returnDocument: "after" },
-    );
-    if (!result.value)
-      return res.status(404).json({ error: "Project not found" });
+      const result = await projectsCollection.findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: updates },
+        { returnDocument: "after" },
+      );
+      if (!result.value)
+        return res.status(404).json({ error: "Project not found" });
 
-    if (Array.isArray(req.body.teamMembers)) {
-      await projectMembersCollection.deleteMany({
-        projectId: new ObjectId(id),
-      });
-      const newMemberDocs = [];
-      for (const member of req.body.teamMembers) {
-        let memberId;
-        if (typeof member === "string" && ObjectId.isValid(member)) {
-          memberId = new ObjectId(member);
-        } else if (member.userId && ObjectId.isValid(member.userId)) {
-          memberId = new ObjectId(member.userId);
-        } else if (member.name) {
-          const trimmedName = member.name.trim();
-          let user = await usersCollection.findOne({ name: trimmedName });
-          if (!user) {
-            const r = await usersCollection.insertOne({
-              name: trimmedName,
-              email: `${trimmedName.toLowerCase().replace(/\s+/g, ".")}@mit.edu`,
-              role: "researcher",
+      if (Array.isArray(req.body.teamMembers)) {
+        await projectMembersCollection.deleteMany({
+          projectId: new ObjectId(id),
+        });
+        const newMemberDocs = [];
+        for (const member of req.body.teamMembers) {
+          let memberId;
+          if (typeof member === "string" && ObjectId.isValid(member)) {
+            memberId = new ObjectId(member);
+          } else if (member.userId && ObjectId.isValid(member.userId)) {
+            memberId = new ObjectId(member.userId);
+          } else if (member.name) {
+            const trimmedName = member.name.trim();
+            let user = await usersCollection.findOne({ name: trimmedName });
+            if (!user) {
+              const r = await usersCollection.insertOne({
+                name: trimmedName,
+                email: `${trimmedName.toLowerCase().replace(/\s+/g, ".")}@mit.edu`,
+                role: "researcher",
+                createdAt: new Date(),
+              });
+              memberId = r.insertedId;
+            } else {
+              memberId = user._id;
+            }
+          }
+          if (memberId) {
+            newMemberDocs.push({
+              projectId: new ObjectId(id),
+              userId: memberId,
+              role: member.role || "Researcher",
               createdAt: new Date(),
             });
-            memberId = r.insertedId;
-          } else {
-            memberId = user._id;
           }
         }
-        if (memberId) {
-          newMemberDocs.push({
-            projectId: new ObjectId(id),
-            userId: memberId,
-            role: member.role || "Researcher",
-            createdAt: new Date(),
-          });
+        if (newMemberDocs.length > 0) {
+          await projectMembersCollection.insertMany(newMemberDocs);
+          console.log(
+            `✅ Updated ${newMemberDocs.length} team members for project`,
+          );
         }
       }
-      if (newMemberDocs.length > 0) {
-        await projectMembersCollection.insertMany(newMemberDocs);
-        console.log(
-          `✅ Updated ${newMemberDocs.length} team members for project`,
-        );
-      }
-    }
 
-    const updatedProject = result.value;
-    if (updatedProject.leadEmail) {
-      const leadUser = await usersCollection.findOne({
-        email: updatedProject.leadEmail.toLowerCase(),
-      });
-      if (leadUser) {
-        const leadExists = await projectMembersCollection.findOne({
-          projectId: new ObjectId(id),
-          userId: leadUser._id,
+      const updatedProject = result.value;
+      if (updatedProject.leadEmail) {
+        const leadUser = await usersCollection.findOne({
+          email: updatedProject.leadEmail.toLowerCase(),
         });
-        if (!leadExists) {
-          await projectMembersCollection.insertOne({
+        if (leadUser) {
+          const leadExists = await projectMembersCollection.findOne({
             projectId: new ObjectId(id),
             userId: leadUser._id,
-            role: "Lead Researcher",
-            createdAt: new Date(),
           });
+          if (!leadExists) {
+            await projectMembersCollection.insertOne({
+              projectId: new ObjectId(id),
+              userId: leadUser._id,
+              role: "Lead Researcher",
+              createdAt: new Date(),
+            });
+          }
         }
       }
+
+      // Invalidate fast cache on update
+      cacheInvalidate("projects:fast:");
+      cacheInvalidate("projects:list:");
+
+      const project = await fetchProjectWithTeam(id);
+      res.json({ project });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
     }
-
-    // Invalidate fast cache on update
-    cacheInvalidate("projects:fast:");
-    cacheInvalidate("projects:list:");
-
-    const project = await fetchProjectWithTeam(id);
-    res.json({ project });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
+  },
+);
 
 app.delete(
   "/api/projects/:id",
@@ -1602,11 +1612,9 @@ app.post("/api/articles", authenticate, requireAdmin, async (req, res) => {
       updatedAt: new Date(),
     };
     const result = await articlesCollection.insertOne(article);
-    res
-      .status(201)
-      .json({
-        article: await articlesCollection.findOne({ _id: result.insertedId }),
-      });
+    res.status(201).json({
+      article: await articlesCollection.findOne({ _id: result.insertedId }),
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -1831,12 +1839,9 @@ app.post("/api/form-submissions", async (req, res) => {
       $or: [{ email: email.toLowerCase().trim() }, { id: id.trim() }],
     });
     if (existingSubmission)
-      return res
-        .status(400)
-        .json({
-          error:
-            "An application with this email or ID/Passport already exists.",
-        });
+      return res.status(400).json({
+        error: "An application with this email or ID/Passport already exists.",
+      });
 
     let projectTitle = "";
     let projectLeadEmail = "";
@@ -1886,13 +1891,11 @@ app.post("/api/form-submissions", async (req, res) => {
       sendSMS(ADMIN_PHONE_NUMBER, smsBody).catch(() => {});
     }
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Form submitted successfully",
-        id: result.insertedId,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Form submitted successfully",
+      id: result.insertedId,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -2107,7 +2110,9 @@ app.put(
                     as: "user",
                   },
                 },
-                { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+                {
+                  $unwind: { path: "$user", preserveNullAndEmptyArrays: true },
+                },
                 {
                   $project: {
                     _id: 0,
@@ -2118,9 +2123,7 @@ app.put(
               ])
               .toArray();
 
-            const names = members
-              .map((member) => member.name)
-              .filter(Boolean);
+            const names = members.map((member) => member.name).filter(Boolean);
             if (names.length > 0) {
               existingMembersText = names.join(", ");
               existingMembersHtml = names
@@ -2132,7 +2135,10 @@ app.put(
           const leadSubject = `Action Required: Confirm ${submission.name} for EIAS ${submission.projectTitle || "Research Project"}`;
           const leadText = `Hello,\n\nStudent ${submission.name} (${submission.email}) has been accepted by the Admin for the EIAS program and has requested to join your project: ${submission.projectTitle || "N/A"}.\n\nProject page: ${projectPageLink}\n\nCurrent team members: ${existingMembersText}.\n\nPlease click the link below to confirm their assignment:\n${confirmLink}\n\nThank you.`;
           const leadHtml = `<p>Hello,</p><p>Student <strong>${submission.name}</strong> (<a href="mailto:${submission.email}">${submission.email}</a>) has been accepted by the Admin for the EIAS program and has requested to join your project: ${submission.projectTitle ? `<strong>${submission.projectTitle}</strong>` : "N/A"}.</p><p>Project page: <a href="${projectPageLink}">${projectPageLink}</a></p><p>Current team members: ${existingMembersHtml}.</p><p><span style="display:inline-flex;align-items:center;gap:0.25rem;padding:4px 8px;background:#f8ebdf;color:#92400e;border-radius:999px;font-size:0.9rem;font-weight:600;">NEW</span> <strong>${submission.name}</strong> is requesting to join.</p><p><a href="${confirmLink}" style="background-color:#2563eb;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Confirm Assignment</a></p><p>If the button doesn't work, copy this link: ${confirmLink}</p><p>Thank you.</p>`;
-          console.log('📧 Lead assignment email links:', { projectPageLink, confirmLink });
+          console.log("📧 Lead assignment email links:", {
+            projectPageLink,
+            confirmLink,
+          });
           await sendMail({
             to: submission.projectLeadEmail,
             subject: leadSubject,
@@ -2183,12 +2189,17 @@ app.post("/api/form-submissions/lead-confirm", async (req, res) => {
       return res.status(500).json({ error: "Unable to confirm assignment" });
 
     const studentUserEmail = updated.value.email.toLowerCase().trim();
-    let studentUser = await usersCollection.findOne({ email: studentUserEmail });
+    let studentUser = await usersCollection.findOne({
+      email: studentUserEmail,
+    });
     if (!studentUser) {
       const result = await usersCollection.insertOne({
         name: updated.value.name || "Research Student",
         email: studentUserEmail,
-        passwordHash: await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10),
+        passwordHash: await bcrypt.hash(
+          crypto.randomBytes(16).toString("hex"),
+          10,
+        ),
         role: "student",
         createdAt: new Date(),
       });
