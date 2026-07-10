@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '../components/ui/button';
+import { getApiUrl } from '../api';
 
 export function LeadConfirm() {
   const [searchParams] = useSearchParams();
@@ -17,11 +18,16 @@ export function LeadConfirm() {
 
     async function confirmLead() {
       try {
-        const res = await fetch(`/api/form-submissions/lead-confirm?token=${encodeURIComponent(token)}`, {
+        const apiUrl = getApiUrl();
+        const res = await fetch(`${apiUrl}/form-submissions/lead-confirm?token=${encodeURIComponent(token)}`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
         const data = await res.json();
         if (!res.ok) {
+          console.error('Lead confirm failed:', data);
           setStatus('error');
           setMessage(data.error || 'Could not confirm the assignment.');
           return;
@@ -30,6 +36,7 @@ export function LeadConfirm() {
         setStatus('success');
         setMessage(data.message || 'Assignment confirmed successfully.');
       } catch (err) {
+        console.error('Lead confirm error:', err);
         setStatus('error');
         setMessage(err instanceof Error ? err.message : 'Unexpected error.');
       }

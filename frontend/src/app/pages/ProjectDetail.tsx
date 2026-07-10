@@ -105,16 +105,33 @@ export function ProjectDetail() {
     );
   }
 
-  const teamMembers: Array<{ name: string; role: string; email?: string }> = (project.team || [])
+  const teamMembers: Array<{ name: string; role: string; email?: string; joinedAt?: string; isNew?: boolean }> = (project.team || [])
     .map((member: any) => {
+      const joinedAt = member?.joinedAt ? new Date(member.joinedAt).toISOString() : undefined;
+      const isNew = joinedAt
+        ? Date.now() - new Date(joinedAt).getTime() < 1000 * 60 * 60 * 24 * 14
+        : false;
+
       if (member?.user?.name) {
-        return { name: member.user.name, role: member.role || 'Researcher', email: member.user.email };
+        return {
+          name: member.user.name,
+          role: member.role || 'Researcher',
+          email: member.user.email,
+          joinedAt,
+          isNew,
+        };
       }
       if (member?.name) {
-        return { name: member.name, role: member.role || 'Researcher', email: member.email };
+        return {
+          name: member.name,
+          role: member.role || 'Researcher',
+          email: member.email,
+          joinedAt,
+          isNew,
+        };
       }
       if (typeof member === 'string') {
-        return { name: member, role: 'Researcher' };
+        return { name: member, role: 'Researcher', joinedAt, isNew };
       }
       return null;
     })
@@ -252,11 +269,18 @@ export function ProjectDetail() {
               </p>
               <div className="space-y-4">
                 {teamMembers.map((member, i) => (
-                  <div key={i}>
-                    <p className="text-[14px] font-bold text-black leading-tight">
-                      {member.name}
-                    </p>
-                    <p className="text-[12px] text-black/50 mt-0.5">
+                  <div key={i} className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[14px] font-bold text-black leading-tight">
+                        {member.name}
+                      </p>
+                      {member.isNew && (
+                        <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-800 text-[10px] uppercase tracking-[0.16em] px-2 py-1">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[12px] text-black/50">
                       {member.role}
                     </p>
                   </div>

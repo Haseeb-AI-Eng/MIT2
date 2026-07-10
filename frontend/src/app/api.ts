@@ -1,12 +1,19 @@
-// Ensure the base URL points to production by default if the environment variable is missing
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://hello-world--k34449363.replit.app').replace(/\/$/, '') + (import.meta.env.VITE_API_URL?.endsWith('/api') ? '' : '/api');
+// Ensure the base URL points to the current origin when no environment API URL is configured.
+const defaultApiUrl =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4173');
+const apiOrigin = defaultApiUrl.replace(/\/$/, '');
+const API_BASE = apiOrigin + (apiOrigin.endsWith('/api') ? '' : '/api');
 
 export const getApiUrl = () => API_BASE;
 
 // ---- Client-side in-memory cache ----
 interface CacheEntry { data: unknown; ts: number }
 const _clientCache = new Map<string, CacheEntry>();
-const CLIENT_CACHE_TTL = 5 * 60_000; // 5 minutes (was 30s — projects don't change that often)
+const CLIENT_CACHE_TTL = 30 * 60_000; // 30 minutes (increased from 5 to handle Replit rate limiting)
+
+// ---- Request deduplication (prevent duplicate in-flight requests) ----
+const _inFlightRequests = new Map<string, Promise<any>>();
 
 function clientCacheGet<T>(key: string): T | null {
   const entry = _clientCache.get(key);
@@ -16,6 +23,13 @@ function clientCacheGet<T>(key: string): T | null {
 }
 function clientCacheSet(key: string, data: unknown) {
   _clientCache.set(key, { data, ts: Date.now() });
+}
+function getInFlightRequest<T>(key: string): Promise<T> | undefined {
+  return _inFlightRequests.get(key);
+}
+function setInFlightRequest<T>(key: string, promise: Promise<T>) {
+  _inFlightRequests.set(key, promise);
+  return promise.finally(() => _inFlightRequests.delete(key));
 }
 export function clientCacheInvalidate(prefix: string) {
   for (const k of _clientCache.keys()) { if (k.startsWith(prefix)) _clientCache.delete(k); }
@@ -111,26 +125,39 @@ export async function fetchPublishedProjects(
     return cached;
   }
 
+  // Check if this request is already in-flight
+  const inFlight = getInFlightRequest<ProjectListResult>(cacheKey);
+  if (inFlight) {
+    console.log(`[API] fetchPublishedProjects: Request already in-flight for ${cacheKey}, returning that promise`);
+    return inFlight;
+  }
+
   // Use the new /fast endpoint — no $lookup joins, returns instantly
   console.log(`[API] fetchPublishedProjects: Fetching from ${API_BASE}/projects/fast?status=published&limit=${limit}&page=${page}`);
-  const res = await fetchWithTimeout(
+  const fetchPromise = fetchWithTimeout(
     `${API_BASE}/projects/fast?status=published&limit=${limit}&page=${page}`,
     { signal }
-  );
-  if (!res.ok) {
-    console.error(`[API] fetchPublishedProjects: Failed to fetch projects. Status: ${res.status}`);
-    return { projects: [], total: 0, page: 1, totalPages: 1 };
-  }
-  const data = await res.json();
-  const result: ProjectListResult = {
-    projects: data.projects || [],
-    total: data.total || 0,
-    page: data.page || page,
-    totalPages: data.totalPages || 1,
-  };
-  clientCacheSet(cacheKey, result);
-  console.log(`[API] fetchPublishedProjects: Fetched ${result.projects.length} projects. Total: ${result.total}`);
-  return result;
+  )
+  .then(res => {
+    if (!res.ok) {
+      console.error(`[API] fetchPublishedProjects: Failed to fetch projects. Status: ${res.status}`);
+      return { projects: [], total: 0, page: 1, totalPages: 1 };
+    }
+    return res.json();
+  })
+  .then(data => {
+    const result: ProjectListResult = {
+      projects: data.projects || [],
+      total: data.total || 0,
+      page: data.page || page,
+      totalPages: data.totalPages || 1,
+    };
+    clientCacheSet(cacheKey, result);
+    console.log(`[API] fetchPublishedProjects: Fetched ${result.projects.length} projects. Total: ${result.total}`);
+    return result;
+  });
+
+  return setInFlightRequest(cacheKey, fetchPromise);
 }
 
 export async function fetchAllPublishedProjects(signal?: AbortSignal): Promise<ProjectListResult> {

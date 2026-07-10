@@ -20,6 +20,7 @@ import { VRTourPage } from './pages/VRTourPage';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminSignup } from './pages/AdminSignup';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { LeadConfirm } from './pages/LeadConfirm';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useKeepAlive } from '../hooks/useKeepAlive';
 import ScrollToTop from '../app/ScrollToTop';
@@ -76,6 +77,7 @@ export default function App() {
         <Route path="/360-vr-tour" element={<Layout onMenuClick={toggleNav}><VRTourPage /></Layout>} />
         <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ArticleDetail /></LayoutNoSidebar>} />
         <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ProjectDetail /></LayoutNoSidebar>} />
+        <Route path="/lead-confirm" element={<LayoutNoSidebar onMenuClick={toggleNav}><LeadConfirm /></LayoutNoSidebar>} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/signup" element={<AdminSignup />} />
         <Route path="/admin/dashboard" element={
