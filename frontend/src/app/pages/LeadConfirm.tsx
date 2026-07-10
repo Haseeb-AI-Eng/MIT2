@@ -7,6 +7,7 @@ export function LeadConfirm() {
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Confirming assignment...');
+  const [details, setDetails] = useState<string | null>(null);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -38,7 +39,9 @@ export function LeadConfirm() {
       } catch (err) {
         console.error('Lead confirm error:', err);
         setStatus('error');
-        setMessage(err instanceof Error ? err.message : 'Unexpected error.');
+        const errorMessage = err instanceof Error ? err.message : 'Unexpected error.';
+        setMessage(errorMessage);
+        setDetails(JSON.stringify(err, null, 2));
       }
     }
 
@@ -59,6 +62,12 @@ export function LeadConfirm() {
               Return to Home
             </Button>
           </div>
+          {details && (
+            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-left text-sm text-red-800 whitespace-pre-wrap">
+              <p className="font-semibold">Debug details:</p>
+              <pre className="mt-2 overflow-x-auto">{details}</pre>
+            </div>
+          )}
         </div>
       </div>
     </div>
