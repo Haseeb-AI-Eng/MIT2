@@ -256,9 +256,10 @@ const EMAIL_FROM =
     ? `"MIT Research Lab" <${EMAIL_USER}>`
     : '"MIT Research Lab" <noreply@research.lab>');
 const APP_URL = process.env.APP_URL || "http://localhost:5173";
-const FRONTEND_URL = process.env.FRONTEND_URL || APP_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://mit-2-frontend.vercel.app";
 
 console.log("\n📧 Email Configuration:");
+console.log(`   APP_URL: ${APP_URL}`);
 console.log(`   FRONTEND_URL: ${FRONTEND_URL}`);
 console.log(`   EMAIL_USER: ${EMAIL_USER ? "✅ " + EMAIL_USER : "❌ NOT SET"}`);
 console.log(
@@ -2062,8 +2063,16 @@ app.put(
 
         if (submission.projectLeadEmail) {
           const confirmLink = `${FRONTEND_URL}/lead-confirm?token=${encodeURIComponent(leadConfirmationToken)}`;
-          const projectPageLink = submission.projectSlug
-            ? `${FRONTEND_URL}/projects/${submission.projectSlug}`
+          let projectSlug = submission.projectSlug || "";
+          if (!projectSlug && submission.projectId) {
+            const project = await projectsCollection.findOne(
+              { _id: new ObjectId(submission.projectId) },
+              { projection: { slug: 1 } },
+            );
+            projectSlug = project?.slug || "";
+          }
+          const projectPageLink = projectSlug
+            ? `${FRONTEND_URL}/projects/${projectSlug}`
             : `${FRONTEND_URL}/projects`;
 
           let existingMembersText = "None yet";
@@ -2106,6 +2115,7 @@ app.put(
           const leadSubject = `Action Required: Confirm ${submission.name} for EIAS ${submission.projectTitle || "Research Project"}`;
           const leadText = `Hello,\n\nStudent ${submission.name} (${submission.email}) has been accepted by the Admin for the EIAS program and has requested to join your project: ${submission.projectTitle || "N/A"}.\n\nProject page: ${projectPageLink}\n\nCurrent team members: ${existingMembersText}.\n\nPlease click the link below to confirm their assignment:\n${confirmLink}\n\nThank you.`;
           const leadHtml = `<p>Hello,</p><p>Student <strong>${submission.name}</strong> (<a href="mailto:${submission.email}">${submission.email}</a>) has been accepted by the Admin for the EIAS program and has requested to join your project: ${submission.projectTitle ? `<strong>${submission.projectTitle}</strong>` : "N/A"}.</p><p>Project page: <a href="${projectPageLink}">${projectPageLink}</a></p><p>Current team members: ${existingMembersHtml}.</p><p><span style="display:inline-flex;align-items:center;gap:0.25rem;padding:4px 8px;background:#f8ebdf;color:#92400e;border-radius:999px;font-size:0.9rem;font-weight:600;">NEW</span> <strong>${submission.name}</strong> is requesting to join.</p><p><a href="${confirmLink}" style="background-color:#2563eb;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Confirm Assignment</a></p><p>If the button doesn't work, copy this link: ${confirmLink}</p><p>Thank you.</p>`;
+          console.log('📧 Lead assignment email links:', { projectPageLink, confirmLink });
           await sendMail({
             to: submission.projectLeadEmail,
             subject: leadSubject,
