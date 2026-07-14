@@ -3,7 +3,7 @@
   <rect x="0" y="0" width="14" height="14" fill="#910B08" />
   <rect x="16" y="0" width="14" height="14" fill="#910B08" />
   <rect x="32" y="0" width="14" height="14" fill="#910B08" />
-  <rect x="48" y="0" width="14" height="14" fill="none" stroke="#000000" stroke-width="1.5" />
+  <rect x="48" y="0" width="14" height="14" fill="#000000" />
 
   <rect x="0" y="16" width="14" height="14" fill="#910B08" />
   <rect x="16" y="16" width="14" height="14" fill="#FFFFFF" />
@@ -15,7 +15,7 @@
   <rect x="32" y="32" width="14" height="14" fill="#910B08" />
   <rect x="48" y="32" width="14" height="14" fill="#FFFFFF" />
 
-  <rect x="0" y="48" width="14" height="14" fill="none" stroke="#000000" stroke-width="1.5" />
+  <rect x="0" y="48" width="14" height="14" fill="#910B08" />
   <rect x="16" y="48" width="14" height="14" fill="#FFFFFF" />
   <rect x="32" y="48" width="14" height="14" fill="#FFFFFF" />
   <rect x="48" y="48" width="14" height="14" fill="#FFFFFF" />
@@ -25,7 +25,7 @@
   <rect x="32" y="64" width="14" height="14" fill="#910B08" />
   <rect x="48" y="64" width="14" height="14" fill="#FFFFFF" />
 
-  <rect x="0" y="80" width="14" height="14" fill="none" stroke="#000000" stroke-width="1.5" />
+  <rect x="0" y="80" width="14" height="14" fill="#000000" />
   <rect x="16" y="80" width="14" height="14" fill="#FFFFFF" />
   <rect x="32" y="80" width="14" height="14" fill="#FFFFFF" />
   <rect x="48" y="80" width="14" height="14" fill="#FFFFFF" />
