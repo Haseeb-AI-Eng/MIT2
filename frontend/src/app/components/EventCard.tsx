@@ -31,10 +31,10 @@ export function EventCard({ image, title, date, tag, onClick }: EventCardProps) 
           </div>
         )}
       </div>
-      <h4 className="text-[16px] font-[500] mb-2 font-serif transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">
+      <h4 className="text-[16px] font-[500] mb-2 transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">
         {title}
       </h4>
-      <p className="text-[13px] text-black/40 font-serif transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">{date}</p>
+      <p className="text-[13px] text-black/40 transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">{date}</p>
     </motion.div>
   );
 }

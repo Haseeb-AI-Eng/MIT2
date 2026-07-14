@@ -35,7 +35,7 @@ function GeometricLogo({ text }: { text: string }) {
         textAnchor="middle"
         fontSize="16"
         fontWeight="700"
-        fontFamily="Georgia, serif"
+        fontFamily="Poppins, sans-serif"
         fill="white"
         style={{ userSelect: 'none' }}
       >
@@ -85,7 +85,7 @@ export function ResearchCard({
           <GeometricLogo text={logoText} />
           <span
             className="text-[15px] font-bold text-black leading-tight"
-            style={{ fontFamily: 'Georgia, serif', maxWidth: 140 }}
+            style={{ fontFamily: 'Poppins, sans-serif', maxWidth: 140 }}
           >
             {title.toLowerCase().replace(/\b\w/g, c => c)}
           </span>
@@ -94,20 +94,20 @@ export function ResearchCard({
         {/* Subtitle */}
         <p
           className="text-[15px] font-normal text-black/60 leading-relaxed"
-          style={{ fontFamily: 'Georgia, serif' }}
+          style={{ fontFamily: 'Poppins, sans-serif' }}
         >
           {subtitle}
         </p>
 
         {/* Author */}
         {authorName && (
-          <p className="text-[13px] text-black/50" style={{ fontFamily: 'Georgia, serif' }}>
+          <p className="text-[13px] text-black/50" style={{ fontFamily: 'Poppins, sans-serif' }}>
             {authorName}
           </p>
         )}
 
         {/* Tags */}
-        <p className="text-[13px] text-black/45" style={{ fontFamily: 'Georgia, serif' }}>
+        <p className="text-[13px] text-black/45" style={{ fontFamily: 'Poppins, sans-serif' }}>
           {visibleTags.map(t => `#${t.replace(/^#/, '')}`).join(' ')}
           {extraCount > 0 && (
             <span className="ml-1">+{extraCount} more</span>

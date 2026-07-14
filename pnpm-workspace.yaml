@@ -2,5 +2,5 @@ packages:
   - 'frontend'
   - 'backend'
 allowBuilds:
-  '@tailwindcss/oxide': set this to true or false
-  esbuild: set this to true or false
+  '@tailwindcss/oxide': true
+  esbuild: true

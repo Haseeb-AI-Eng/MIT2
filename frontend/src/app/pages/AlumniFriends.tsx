@@ -179,14 +179,14 @@ export function AlumniFriends() {
         <div className="relative mx-auto max-w-[1200px] px-6 py-16 md:py-0 text-center z-10">
           <p
             className="text-[10px] md:text-[12px] uppercase tracking-[0.25em] md:tracking-[0.35em] text-white/60 mb-4"
-            style={{ fontFamily: 'Georgia, serif' }}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             Community
           </p>
 
           <h1
             className="text-[32px] sm:text-[40px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto"
-            style={{ fontFamily: 'Georgia, serif' }}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
           >
             Alumni + Friends
           </h1>
@@ -204,7 +204,7 @@ export function AlumniFriends() {
             <div className="mb-10 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
               <div>
                 <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Announcements</p>
-                <h2 className="text-[25px] md:text-[42px] font-semibold text-black" style={{ fontFamily: 'Georgia, serif' }}>
+                <h2 className="text-[25px] md:text-[42px] font-semibold text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>
                   Community Updates
                 </h2>
               </div>
@@ -356,7 +356,7 @@ export function AlumniFriends() {
               <div className="space-y-6">
                 {announcements.map((announcement) => (
                   <Card key={announcement._id} className="p-6 border border-black/10">
-                    <h3 className="text-[20px] font-semibold text-black mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+                    <h3 className="text-[20px] font-semibold text-black mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
                       {announcement.title}
                     </h3>
                     <p className="text-[14px] text-black/50 mb-4">

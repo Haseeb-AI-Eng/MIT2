@@ -118,7 +118,7 @@ export const Sidebar = React.memo(function Sidebar() {
                     : 'text-black hover:text-black'
                 }`}
                 style={{
-                  fontFamily: "'Georgia', 'Garamond', serif",
+                  fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 700,
                 }}
               >

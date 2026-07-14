@@ -52,7 +52,7 @@ export function SideNav() {
                     : 'text-black hover:text-black'
                 }`}
                 style={{
-                  fontFamily: "'Georgia', 'Garamond', serif",
+                  fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 700,
                 }}
               >

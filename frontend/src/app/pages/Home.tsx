@@ -255,7 +255,7 @@ export const Home = React.memo(function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
             className="relative w-full text-[40px] sm:text-[44px] md:text-[48px] md:ml-36 leading-[1.0] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none font-sans font-semibold"
-            style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
+            style={{ fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             Imagine what we can become.
           </motion.h1>
@@ -285,7 +285,7 @@ export const Home = React.memo(function Home() {
                           : 'text-black hover:text-black'
                       }`}
                       style={{
-                        fontFamily: "'Georgia', 'Garamond', serif",
+                        fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif",
                         fontWeight: 700,
                       }}
                     >

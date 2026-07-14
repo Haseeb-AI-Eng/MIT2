@@ -111,7 +111,7 @@ function NewsCardComponent({
               ? 'text-[20px] leading-[1.25] font-semibold mb-2'
               : 'text-[17px] leading-[1.3] font-semibold mb-2'
           }`}
-          style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}
+          style={{ fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif" }}
         >
           {title}
         </h3>
@@ -120,7 +120,7 @@ function NewsCardComponent({
             className={`font-sans text-black/75 group-hover:text-[#199BD8] transition-colors duration-200 line-clamp-3 ${
               size === 'large' ? 'text-[15px] leading-[1.5]' : 'text-[13px] leading-[1.5]'
             }`}
-            style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}
+            style={{ fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif" }}
           >
             {trimmedDescription}
           </p>

@@ -58,13 +58,13 @@ export function ProjectCard({ image, title, category, teamLabel, viewCount = 0, 
             </button>
           )}
         </div>
-        <h3 className="text-[18px] font-[500] mb-2 font-serif transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">
+        <h3 className="text-[18px] font-[500] mb-2 transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">
           {title}
         </h3>
-        <p className="text-[14px] text-black/60 mb-1 font-serif transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">{category}</p>
-        <p className="text-[13px] text-black/40 font-serif transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">{teamLabel}</p>
+        <p className="text-[14px] text-black/60 mb-1 transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">{category}</p>
+        <p className="text-[13px] text-black/40 transition-colors duration-200 hover:text-blue-600 group-hover:text-blue-600">{teamLabel}</p>
         {viewCount > 0 && (
-          <div className="flex items-center gap-1.5 text-[13px] text-black/40 font-serif mt-2">
+          <div className="flex items-center gap-1.5 text-[13px] text-black/40 mt-2">
             <Eye size={13} />
             <span>{viewCount} {viewCount === 1 ? 'view' : 'views'}</span>
           </div>
