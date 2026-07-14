@@ -35,16 +35,18 @@ export function Footer() {
               </div>
             </Link>
           </div>
-          <nav className="flex flex-col gap-3">
-            {['Highlights', 'Research', 'About', 'Projects', 'Solutions', 'Products', 'Academia Outreach', 'For Press + Media'].map((link) => (
-              <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
-            ))}
-          </nav>
-          <div className="flex flex-col gap-3">
-            <span className="text-[14px] font-semibold text-black/50 mb-1">More ways to explore</span>
-            {['Publications', 'Contact'].map((link) => (
-              <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
-            ))}
+          <div className="grid grid-cols-2 md:flex md:flex-col gap-3 md:gap-0 md:flex-row md:gap-8">
+            <nav className="flex flex-col gap-3">
+              {['Highlights', 'Research', 'About', 'Projects', 'Solutions', 'Products', 'Academia Outreach', 'For Press + Media'].map((link) => (
+                <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
+              ))}
+            </nav>
+            <div className="flex flex-col gap-3">
+              <span className="text-[14px] font-semibold text-black/50 mb-1">More ways to explore</span>
+              {['Publications', 'Contact'].map((link) => (
+                <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
+              ))}
+            </div>
           </div>
         </div>
         <div className="flex flex-col items-start lg:items-end gap-4">

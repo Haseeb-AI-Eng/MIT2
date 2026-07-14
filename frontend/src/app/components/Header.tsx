@@ -159,7 +159,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
           {/* Logo: icon only */}
           <Link to="/" className="flex items-center shrink-0">
             <div className={`flex items-center transition-all duration-300 ${isScrolled ? 'h-[40px]' : 'h-[80px]'}`}>
-              <LogoIcon height={isMobile ? 56 : isScrolled ? 32 : 56} outlineColor={outlineColor} />
+              <LogoIcon height={isMobile ? (isScrolled ? 24 : 40) : isScrolled ? 32 : 56} outlineColor={outlineColor} />
             </div>
           </Link>
 
