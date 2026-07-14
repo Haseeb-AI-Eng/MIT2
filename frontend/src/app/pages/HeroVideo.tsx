@@ -17,7 +17,7 @@ export const HeroVideo = React.memo(() => {
         className="w-full h-full object-cover opacity-60 pointer-events-none"
         style={{ filter: 'grayscale(100%)' }}
       >
-        <source src="/robotic.mp4" type="video/mp4" />
+        <source src="/hero-animation.mp4" type="video/mp4" />
         {/* Fallback image if video fails to load */}
         <img src="/image.gif" alt="Background" className="w-full h-full object-cover" />
       </video>
