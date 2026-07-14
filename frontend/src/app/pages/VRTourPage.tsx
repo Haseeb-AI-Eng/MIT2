@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import * as THREE from 'three';
 import { SideNav } from '../components/SideNav';
+import { HeroVideo } from './HeroVideo';
 
 const videoUrl = '/YTDown.com_YouTube_Telenor-360-DVC_Media_fZMWZNUZDzE_001_1080s.mp4';
 
@@ -126,12 +127,7 @@ export function VRTourPage() {
     <div className="min-h-screen bg-white text-black">
       <section className="relative overflow-hidden bg-black text-white">
         <div className="absolute inset-0">
-          <img
-            src="/image.gif"
-            alt="360 VR tour hero"
-            className="h-full w-full object-cover opacity-70"
-          />
-          <div className="absolute inset-0 bg-black/50" />
+          <HeroVideo src="/hero-products.mp4" />
         </div>
 
         <div className="relative mx-auto flex min-h-[360px] max-w-7xl flex-col justify-center px-6 py-16 text-center sm:min-h-[420px] md:px-10 md:py-20 lg:px-12 lg:py-24">

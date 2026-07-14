@@ -1,4 +1,5 @@
 import { SideNav } from '../components/SideNav';
+import { HeroVideo } from './HeroVideo';
 
 const peopleTeam = [
   {
@@ -44,12 +45,7 @@ export function About() {
       <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[400px] md:min-h-0 flex items-center">
         {/* Background Layer */}
         <div className="absolute inset-0">
-          <img
-            src="/image.gif"
-            alt="About background"
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-black/50" />
+          <HeroVideo src="/hero-about.mp4" />
         </div>
 
         {/* Content Layer */}

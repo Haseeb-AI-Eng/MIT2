@@ -1,4 +1,5 @@
 import { SideNav } from '../components/SideNav';
+import { HeroVideo } from './HeroVideo';
 
 export function MASGraduateProgram() {
   return (
@@ -9,12 +10,7 @@ export function MASGraduateProgram() {
       >
         {/* Background Layer */}
         <div className="absolute inset-0">
-          <img
-            src="/image.gif"
-            alt="MAS background"
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-black/50" />
+          <HeroVideo src="/hero-academia.mp4" />
         </div>
 
         {/* Content Layer */}
