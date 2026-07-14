@@ -6,28 +6,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { getApiUrl, clientCacheInvalidate } from '../api';
-
-// Same nav items + route map as Home.tsx, so the sidebar behaves identically
-// across pages. If you add/rename a section in Home.tsx, mirror it here too
-// (or better: pull this into a shared component — see note at bottom of file).
-const NAV_SECTIONS = [
-  'News + Updates', 'Research', 'About', 'Support the Media Lab',
-  'EL Graduate Program', 'People', 'Alumni + Friends', 'Events', '360 VR Tour', 'Add Research Project'
-];
-
-const ROUTE_MAP: Record<string, string> = {
-  'News + Updates': '/',
-  Research: '/research',
-  Projects: '/projects',
-  About: '/about',
-  'Support the Media Lab': '/support-media-lab',
-  'EL Graduate Program': '/mas-graduate-program',
-  People: '/people',
-  'Alumni + Friends': '/alumni-friends',
-  Events: '/',
-  '360 VR Tour': '/360-vr-tour',
-  'Add Research Project': '/add-research-project',
-};
+import { TopPageNav } from '../components/TopPageNav';
 
 export function Apply() {
   const navigate = useNavigate();
@@ -172,37 +151,7 @@ export function Apply() {
   });
 
   // ── Shared sidebar, matching Home.tsx exactly ──────────────────────────
-  // Key details copied from Home.tsx's <aside>: it lives in the grid row
-  // that starts BELOW the hero (the hero is its own full-width section, not
-  // part of this grid), then -mt-[140px] + sticky top-[140px] pulls it up
-  // to tuck under the hero visually without covering the fixed site header.
-  const sidebar = (
-    <aside className="hidden lg:block lg:col-start-1 lg:row-start-1 relative z-50 -mt-[125px] border-r border-black/10 self-stretch bg-white">
-      <div className="sticky top-[125px] z-20 bg-white">
-        <nav className="py-4">
-          <div className="space-y-0">
-            {NAV_SECTIONS.map((section) => (
-              <button
-                key={section}
-                onClick={() => navigate(ROUTE_MAP[section] || '/')}
-                className={`w-full text-left px-6 pl-8 py-2 text-[13px] leading-5 transition-colors font-bold ${
-                  section === 'EL Graduate Program'
-                    ? 'text-[#E91E63]'
-                    : 'text-black hover:text-black'
-                }`}
-                style={{
-                  fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif",
-                  fontWeight: 700,
-                }}
-              >
-                {section}
-              </button>
-            ))}
-          </div>
-        </nav>
-      </div>
-    </aside>
-  );
+  // REMOVED: Sidebar no longer displayed on Apply page
 
   const pageBody = submitted ? (
     <div>
@@ -426,9 +375,9 @@ export function Apply() {
     <div className="relative overflow-x-hidden w-full">
       {renderHero()}
       <section className="relative w-full z-20">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-0 w-full bg-white relative">
-          {sidebar}
-          <div className="lg:col-start-2 lg:col-span-3 min-w-0">
+        <TopPageNav />
+        <div className="w-full bg-white relative">
+          <div className="min-w-0">
             {pageBody}
           </div>
         </div>
@@ -436,10 +385,3 @@ export function Apply() {
     </div>
   );
 }
-
-// NOTE: This sidebar block is now duplicated in both Home.tsx and Apply.tsx.
-// If your other pages (Research, About, People, etc.) also need the same
-// nav, it's worth pulling NAV_SECTIONS/ROUTE_MAP/sidebar JSX into a shared
-// `SiteSidebar.tsx` component and wrapping routes with it in your router,
-// instead of copy-pasting into every page file. Happy to do that refactor
-// if you want — just share your router/App.tsx file.

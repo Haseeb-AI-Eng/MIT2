@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { Search, Menu } from 'lucide-react';
+import { Search, Menu, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { SearchPanel } from './SearchPanel';
 import LogoIcon from './Logo';
@@ -165,6 +165,50 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
 
           {/* Right side icons */}
           <div className="flex items-center gap-2 md:gap-3">
+            {/* Social Media Icons */}
+            <div className="hidden md:flex items-center gap-2 md:gap-2 mr-2">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2 rounded-full transition-colors ${
+                  isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <Facebook className="w-4 h-4" strokeWidth={2} />
+              </a>
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2 rounded-full transition-colors ${
+                  isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <Twitter className="w-4 h-4" strokeWidth={2} />
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2 rounded-full transition-colors ${
+                  isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <Linkedin className="w-4 h-4" strokeWidth={2} />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2 rounded-full transition-colors ${
+                  isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <Instagram className="w-4 h-4" strokeWidth={2} />
+              </a>
+            </div>
+
             <button
               onClick={() => setSearchOpen(true)}
               className={`p-2 md:p-2.5 rounded-full transition-colors ${
