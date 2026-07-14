@@ -937,6 +937,7 @@ async function fetchProjectWithTeam(idOrSlug) {
               in: {
                 role: "$$member.role",
                 joinedAt: "$$member.createdAt",
+                isNew: { $ifNull: ["$$member.isNew", false] },
                 user: {
                   $arrayElemAt: [
                     {
@@ -1071,6 +1072,7 @@ app.post("/api/projects", async (req, res) => {
           userId: memberId,
           role: member.role || "Researcher",
           createdAt: new Date(),
+          isNew: false,
         });
       }
     }
@@ -1114,6 +1116,7 @@ app.post("/api/projects", async (req, res) => {
         userId,
         role: "Lead Researcher",
         createdAt: new Date(),
+        isNew: false,
       });
     }
 
@@ -2217,6 +2220,7 @@ app.post("/api/form-submissions/lead-confirm", async (req, res) => {
           userId: studentUser._id,
           role: updated.value.role || "Student",
           createdAt: new Date(),
+          isNew: true,
         });
       }
     }

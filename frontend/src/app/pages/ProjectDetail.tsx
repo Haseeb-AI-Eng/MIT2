@@ -108,9 +108,9 @@ export function ProjectDetail() {
   const teamMembers: Array<{ name: string; role: string; email?: string; joinedAt?: string; isNew?: boolean }> = (project.team || [])
     .map((member: any) => {
       const joinedAt = member?.joinedAt ? new Date(member.joinedAt).toISOString() : undefined;
-      const isNew = joinedAt
+      const isNew = member?.isNew ?? (joinedAt
         ? Date.now() - new Date(joinedAt).getTime() < 1000 * 60 * 60 * 24 * 14
-        : false;
+        : false);
 
       if (member?.user?.name) {
         return {
