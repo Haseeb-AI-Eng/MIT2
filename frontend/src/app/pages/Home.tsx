@@ -194,7 +194,7 @@ export const Home = React.memo(function Home() {
     About: '/about',
     Projects: '/support-media-lab',
     'Academia Outreach': '/mas-graduate-program',
-    Solutions: '/',
+    Solutions: '/solutions',
     Products: '/360-vr-tour',
     'Add Research Project': '/add-research-project',
   };

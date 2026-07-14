@@ -181,17 +181,6 @@ export function Research() {
         <div className="flex w-full items-start gap-0">
           <SideNav />
           <div className="flex-1 min-w-0 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-10">
-              <div>
-                <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">
-                  Research Projects
-                </p>
-              </div>
-              <p className="text-black/50">
-                {loading ? '' : `${total} research project${total !== 1 ? 's' : ''}`}
-              </p>
-            </div>
-
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
                 style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}>

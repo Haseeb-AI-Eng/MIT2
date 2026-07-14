@@ -13,7 +13,7 @@ const navLinks = [
   { label: 'About', path: '/about' },
   { label: 'Projects', path: '/support-media-lab' },
   { label: 'Academia Outreach', path: '/mas-graduate-program' },
-  { label: 'Solutions', path: '/' },
+  { label: 'Solutions', path: '/solutions' },
   { label: 'Products', path: '/360-vr-tour' },
   { label: 'Add Research Project', path: '/add-research-project' },
 ];

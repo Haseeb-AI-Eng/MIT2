@@ -18,7 +18,7 @@ const routeMap: Record<string, string> = {
   About: '/about',
   Projects: '/support-media-lab',
   'Academia Outreach': '/mas-graduate-program',
-  Solutions: '/',
+  Solutions: '/solutions',
   Products: '/360-vr-tour',
   'Add Research Project': '/add-research-project',
 };

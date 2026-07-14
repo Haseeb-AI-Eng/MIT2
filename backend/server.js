@@ -1465,7 +1465,8 @@ async function start() {
         console.log(`\n📊 Database has ${count} articles.`);
       }
 
-      startCronJob();
+      // ✅ Scraping disabled - uncomment startCronJob() to re-enable
+      // startCronJob();
     } catch (err) {
       console.error('Background init error:', err);
     }

@@ -10,7 +10,7 @@ export function Footer() {
     'About': '/about',
     'Projects': '/support-media-lab',
     'Academia Outreach': '/mas-graduate-program',
-    'Solutions': '/',
+    'Solutions': '/solutions',
     'Products': '/360-vr-tour',
     'Member Portal': '/',
     'For Press + Media': '/',
