@@ -36,6 +36,7 @@ export function Projects() {
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const abortRef = useRef<AbortController | null>(null);
   const navigate = useNavigate();
+  const gridRef = useRef<HTMLDivElement | null>(null);
 
   const loadProjects = useCallback(async (pageNum: number, replace: boolean) => {
     // Cancel any in-flight request
@@ -69,6 +70,36 @@ export function Projects() {
     loadProjects(1, true);
     return () => { abortRef.current?.abort(); };
   }, [loadProjects]);
+
+  // Measure grid items and set grid-row-end so grid-flow-dense packs tightly
+  useEffect(() => {
+    const updateSpans = () => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const rowHeight = 10; // should match auto-rows value
+      const gap = 24; // gap-6 -> 1.5rem (24px)
+      const items = Array.from(grid.querySelectorAll('.project-card')) as HTMLElement[];
+      items.forEach((item) => {
+        const inner = item.querySelector('.card-inner') as HTMLElement | null;
+        const height = inner ? inner.getBoundingClientRect().height : item.getBoundingClientRect().height;
+        const rowSpan = Math.ceil((height + gap) / rowHeight);
+        item.style.gridRowEnd = `span ${rowSpan}`;
+      });
+    };
+
+    // Update after images load and on resize
+    const timeout = setTimeout(updateSpans, 100);
+    const ro = new ResizeObserver(updateSpans);
+    if (gridRef.current) {
+      Array.from(gridRef.current.querySelectorAll('.card-inner')).forEach((el) => ro.observe(el));
+    }
+    window.addEventListener('resize', updateSpans);
+    return () => {
+      clearTimeout(timeout);
+      ro.disconnect();
+      window.removeEventListener('resize', updateSpans);
+    };
+  }, [projects, loadingMore]);
 
   // Fetch view counts when projects change
   useEffect(() => {
@@ -151,19 +182,26 @@ export function Projects() {
           <div className="py-20 text-center text-black/60">No published projects are available yet.</div>
         ) : (
           <>
-            <div className="masonry-layout">
+            <div
+              ref={gridRef}
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-[10px]"
+            >
               {projects.map((project, index) => (
-                <div key={project._id ?? project.slug} className="masonry-item">
-                  <ResearchProjectCard
-                    project={project}
-                    cardType={getProjectCardType(project, index)}
-                    viewCount={viewCounts[project._id ?? project.slug] ?? 0}
-                    onClick={() => handleProjectClick(project)}
-                  />
+                <div key={project._id ?? project.slug} className="project-card">
+                  <div className="card-inner">
+                    <ResearchProjectCard
+                      project={project}
+                      cardType={getProjectCardType(project, index)}
+                      viewCount={viewCounts[project._id ?? project.slug] ?? 0}
+                      onClick={() => handleProjectClick(project)}
+                    />
+                  </div>
                 </div>
               ))}
               {loadingMore && Array.from({ length: 3 }).map((_, i) => (
-                <div key={`more-${i}`} className="masonry-item rounded-[32px] bg-slate-100 p-6 animate-pulse h-[320px]" />
+                <div key={`more-${i}`} className="project-card">
+                  <div className="card-inner rounded-none bg-slate-100 p-6 animate-pulse h-[320px]" />
+                </div>
               ))}
             </div>
 

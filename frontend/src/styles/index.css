@@ -44,6 +44,11 @@
   column-span: all;
 }
 
+/* Grid-based masonry helpers */
+.project-card {
+  align-self: start;
+}
+
 
 @media (max-width: 1100px) {
   .masonry-layout {
