@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Trash2, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 interface ResearchCardProps {
   logoText: string;
@@ -11,7 +11,6 @@ interface ResearchCardProps {
   authorName?: string;
   viewCount?: number;
   onClick?: () => void;
-  onDelete?: () => void;
 }
 
 // Generates a geometric MIT Media Lab–style SVG logo from 1–2 letters
@@ -55,15 +54,7 @@ export function ResearchCard({
   authorName,
   viewCount = 0,
   onClick,
-  onDelete,
 }: ResearchCardProps) {
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onDelete && confirm('Are you sure you want to delete this research project?')) {
-      onDelete();
-    }
-  };
-
   // Show up to 3 tags inline, then "+N more"
   const visibleTags = tags.slice(0, 3);
   const extraCount = tags.length - visibleTags.length;
@@ -122,17 +113,7 @@ export function ResearchCard({
           </div>
         )}
 
-        {/* Delete button — top right, subtle */}
-        {onDelete && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="absolute top-4 right-4 p-1.5 text-black/20 hover:text-red-500 transition"
-            title="Delete project"
-          >
-            <Trash2 size={15} />
-          </button>
-        )}
+
       </div>
     </motion.div>
   );

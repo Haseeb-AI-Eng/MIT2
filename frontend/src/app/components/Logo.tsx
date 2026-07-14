@@ -14,6 +14,7 @@ const COLS = 4;
 const ROWS = 6;
 const CELL = 16;
 const GAP = 2.5;
+const BLACK = '#000000';
 
 export function LogoIcon({ height = 56, outlineColor = '#000000' }: { height?: number; outlineColor?: string }) {
   const width = height * (COLS / ROWS);
@@ -37,13 +38,11 @@ export function LogoIcon({ height = 56, outlineColor = '#000000' }: { height?: n
           return (
             <rect
               key={`${r}-${c}`}
-              x={x + 1}
-              y={y + 1}
-              width={s - 2}
-              height={s - 2}
-              fill="none"
-              stroke={outlineColor}
-              strokeWidth={1.5}
+              x={x}
+              y={y}
+              width={s}
+              height={s}
+              fill={BLACK}
             />
           );
         })

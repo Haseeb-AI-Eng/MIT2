@@ -4,7 +4,7 @@ import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount } from 
 import { ResearchCard } from '../components/ResearchCard';
 import { TopPageNav } from '../components/TopPageNav';
 
-const cyclingWords = ['#health', '#design', '#AI', '#robotics', '#climate', '#education'];
+const cyclingWords = ['#health', '#design', '#AI', '#robotics', '#education'];
 const PAGE_SIZE = 12;
 
 function makeLogoText(text: string) {
@@ -127,10 +127,6 @@ export function Research() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleDeleteProject = (projectId: string) => {
-    setProjects(projects.filter((p) => (p._id ?? p.slug) !== projectId));
-  };
-
   const handleProjectClick = async (project: any) => {
     const projectId = project._id ?? project.slug;
     
@@ -212,7 +208,6 @@ export function Research() {
                       authorName={getAuthorName(project)}
                       viewCount={viewCounts[project._id ?? project.slug] ?? 0}
                       onClick={() => handleProjectClick(project)}
-                      onDelete={() => handleDeleteProject(project._id ?? project.slug)}
                     />
                   ))}
                   {loadingMore && Array.from({ length: 3 }).map((_, i) => <ResearchCardSkeleton key={`more-${i}`} />)}
