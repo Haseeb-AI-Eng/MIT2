@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { AlertCircle, LogOut, ChevronLeft, ChevronRight, Eye, Trash2, CheckCircle, Clock, Filter, Calendar, TrendingUp } from 'lucide-react';
@@ -54,6 +55,13 @@ export function AdminDashboard() {
   const [stats, setStats] = useState({ total: 0, byStatus: {} });
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<'applications' | 'siteContent'>('applications');
+  const [siteContent, setSiteContent] = useState<any | null>(null);
+  const [siteContentLoading, setSiteContentLoading] = useState(true);
+  const [siteContentSaveLoading, setSiteContentSaveLoading] = useState(false);
+  const [siteContentError, setSiteContentError] = useState('');
+  const [siteContentSuccess, setSiteContentSuccess] = useState('');
 
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null;
@@ -143,6 +151,161 @@ export function AdminDashboard() {
     fetchStats();
   }, [page, status, search]);
 
+  useEffect(() => {
+    if (!token || !user) return;
+    fetchSiteContent();
+  }, [token, user]);
+
+  const fetchSiteContent = async () => {
+    setSiteContentLoading(true);
+    setSiteContentError('');
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'https://hello-world--k34449363.replit.app'}/api/site-content/about`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to load site content');
+      }
+
+      const data = await response.json();
+      setSiteContent(data.content);
+    } catch (err) {
+      setSiteContentError(err instanceof Error ? err.message : 'Failed to load site content');
+    } finally {
+      setSiteContentLoading(false);
+    }
+  };
+
+  const updateSiteContent = (path: string[], value: string) => {
+    setSiteContent((prev: any) => {
+      if (!prev) return prev;
+      const next = { ...prev };
+      let target: any = next;
+      for (let i = 0; i < path.length - 1; i += 1) {
+        if (target[path[i]] == null) target[path[i]] = {};
+        target = target[path[i]];
+      }
+      target[path[path.length - 1]] = value;
+      return next;
+    });
+  };
+
+  const handleSaveSiteContent = async () => {
+    if (!siteContent) return;
+    setSiteContentSaveLoading(true);
+    setSiteContentError('');
+    setSiteContentSuccess('');
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'https://hello-world--k34449363.replit.app'}/api/site-content/about`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content: siteContent }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to save site content');
+      }
+
+      const data = await response.json();
+      setSiteContent(data.content);
+      setSiteContentSuccess('Site content updated successfully.');
+    } catch (err) {
+      setSiteContentError(err instanceof Error ? err.message : 'Failed to save site content');
+    } finally {
+      setSiteContentSaveLoading(false);
+    }
+  };
+
+  const renderSiteContentField = (
+    label: string,
+    value: string,
+    onChange: (value: string) => void,
+    placeholder = '',
+    isTextarea = false,
+  ) =>
+    isTextarea ? (
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold text-gray-700">{label}</label>
+        <Textarea
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className="min-h-[120px] bg-slate-50"
+        />
+      </div>
+    ) : (
+      <div className="space-y-2">
+        <label className="block text-sm font-semibold text-gray-700">{label}</label>
+        <Input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className="bg-slate-50"
+        />
+      </div>
+    );
+
+  const generateSectionFields = (section: any, index: number) => (
+    <div key={section.id || index} className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        {renderSiteContentField(
+          `Section ${index + 1} Title`,
+          section.title || '',
+          (value) => updateSiteContent(['sections', String(index), 'title'], value),
+          `Section ${index + 1} title`,
+        )}
+        {renderSiteContentField(
+          `Section ${index + 1} Description`,
+          section.description || '',
+          (value) => updateSiteContent(['sections', String(index), 'description'], value),
+          `Section ${index + 1} description`,
+          true,
+        )}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {section.cards?.map((card: any, cardIndex: number) => (
+          <div key={cardIndex} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Card {cardIndex + 1}</h4>
+            {renderSiteContentField(
+              'Card Title',
+              card.title || '',
+              (value) => updateSiteContent(['sections', String(index), 'cards', String(cardIndex), 'title'], value),
+              'Card title',
+            )}
+            {renderSiteContentField(
+              'Card Text',
+              card.text || '',
+              (value) => updateSiteContent(['sections', String(index), 'cards', String(cardIndex), 'text'], value),
+              'Card text',
+              true,
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/admin/login');
+  };
+
   const handleStatusChange = async (submissionId: string, newStatus: string) => {
     try {
       const response = await fetch(
@@ -151,33 +314,29 @@ export function AdminDashboard() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify({ status: newStatus })
-        }
+          body: JSON.stringify({ status: newStatus }),
+        },
       );
 
       if (!response.ok) throw new Error('Failed to update status');
 
-      // Show success message and dialog
       const statusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).replace('-', ' ');
       setSuccessMessage(`Application status changed to: ${statusText}`);
       setShowSuccess(true);
       setShowSuccessDialog(true);
 
-      // Update local state
-      setSubmissions(prev => 
-        prev.map(sub => sub._id === submissionId ? { ...sub, status: newStatus } : sub)
+      setSubmissions(prev =>
+        prev.map(sub => (sub._id === submissionId ? { ...sub, status: newStatus } : sub)),
       );
-      
+
       if (selectedSubmission?._id === submissionId) {
         setSelectedSubmission({ ...selectedSubmission, status: newStatus });
       }
 
-      // Refetch stats
       fetchStats();
 
-      // Close details and redirect after 3 seconds
       setTimeout(() => {
         setShowSuccess(false);
         setShowSuccessDialog(false);
@@ -197,31 +356,23 @@ export function AdminDashboard() {
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
+            'Authorization': `Bearer ${token}`,
+          },
+        },
       );
 
       if (!response.ok) throw new Error('Failed to delete submission');
 
-      // Update local state instead of refetching
       setSubmissions(prev => prev.filter(sub => sub._id !== submissionToDelete));
       setTotal(prev => prev - 1);
-      
+
       setDeleteConfirm(false);
       setSubmissionToDelete(null);
-      
-      // Only refetch stats once
+
       fetchStats();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete submission');
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/admin/login');
   };
 
   const getStatusColor = (status: string) => {

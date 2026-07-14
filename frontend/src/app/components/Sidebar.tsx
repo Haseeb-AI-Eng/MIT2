@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 export const Sidebar = React.memo(function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeSection, setActiveSection] = useState('News + Updates');
+  const [activeSection, setActiveSection] = useState('Highlights');
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -37,50 +37,39 @@ export const Sidebar = React.memo(function Sidebar() {
   }, [location.pathname]);
 
   const sections = [
-    'News + Updates',
+    'Highlights',
     'Research',
     'About',
-    'Support the Media Lab',
-    'EL Graduate Program',
-    'People',
-    'Alumni + Friends',
-    'Events',
-    '360 VR Tour',
+    'Projects',
+    'Academia Outreach',
+    'Solutions',
+    'Products',
     'Add Research Project',
   ];
 
   const routeMap: Record<string, string> = {
-    'News + Updates': '/',
+    Highlights: '/',
     Research: '/research',
-    Projects: '/projects',
     About: '/about',
-    'Support the Media Lab': '/support-media-lab',
-    'EL Graduate Program': '/mas-graduate-program',
-    People: '/people',
-    'Alumni + Friends': '/alumni-friends',
-    Events: '/',
-    '360 VR Tour': '/360-vr-tour',
+    Projects: '/support-media-lab',
+    'Academia Outreach': '/mas-graduate-program',
+    Solutions: '/',
+    Products: '/360-vr-tour',
     'Add Research Project': '/add-research-project',
   };
 
   useEffect(() => {
     const currentPath = location.pathname;
     if (currentPath === '/') {
-      setActiveSection('News + Updates');
+      setActiveSection('Highlights');
     } else if (currentPath.startsWith('/research') || currentPath.startsWith('/projects')) {
       setActiveSection('Research');
     } else if (currentPath === '/about') {
       setActiveSection('About');
     } else if (currentPath === '/support-media-lab') {
-      setActiveSection('Support the Media Lab');
+      setActiveSection('Projects');
     } else if (currentPath === '/mas-graduate-program') {
-      setActiveSection('EL Graduate Program');
-    } else if (currentPath === '/people') {
-      setActiveSection('People');
-    } else if (currentPath === '/alumni-friends') {
-      setActiveSection('Alumni + Friends');
-    } else if (currentPath === '/360-vr-tour') {
-      setActiveSection('360 VR Tour');
+      setActiveSection('Academia Outreach');
     } else if (currentPath === '/add-research-project') {
       setActiveSection('Add Research Project');
     }

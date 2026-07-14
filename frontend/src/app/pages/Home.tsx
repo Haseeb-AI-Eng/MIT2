@@ -80,7 +80,7 @@ export const Home = React.memo(function Home() {
   const [projectViews, setProjectViews] = useState<Record<string, number>>(getLocalProjectViews);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [activeSection, setActiveSection] = useState('News + Updates');
+  const [activeSection, setActiveSection] = useState('Highlights');
 
   const intervalRef = useRef<number | null>(null);
   const visibleRef = useRef<any[]>([]);
@@ -189,16 +189,13 @@ export const Home = React.memo(function Home() {
   );
 
   const routeMap: Record<string, string> = {
-    'News + Updates': '/',
+    Highlights: '/',
     Research: '/research',
-    Projects: '/projects',
     About: '/about',
-    'Support the Media Lab': '/support-media-lab',
-    'EL Graduate Program': '/mas-graduate-program',
-    People: '/people',
-    'Alumni + Friends': '/alumni-friends',
-    Events: '/',
-    '360 VR Tour': '/360-vr-tour',
+    Projects: '/support-media-lab',
+    'Academia Outreach': '/mas-graduate-program',
+    Solutions: '/',
+    Products: '/360-vr-tour',
     'Add Research Project': '/add-research-project',
   };
 
@@ -254,7 +251,7 @@ export const Home = React.memo(function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative w-full text-[40px] sm:text-[44px] md:text-[48px] md:ml-36 leading-[1.0] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none font-sans font-semibold"
+            className="relative w-full text-[32px] sm:text-[36px] md:text-[42px] md:ml-36 leading-[1.0] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none font-sans font-bold"
             style={{ fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             Imagine what we can become.
@@ -267,12 +264,12 @@ export const Home = React.memo(function Home() {
       <section className="relative w-full z-20">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch auto-rows-auto grid-flow-dense w-full bg-white relative">
           
-          {/* Sidebar: Occupies the first column, spans row 1 & 2 area for better alignment */}
-          <aside className="hidden lg:block lg:col-start-1 lg:row-start-1 lg:row-span-2 relative z-50 -mt-[140px] border-r border-black/10 self-stretch bg-white">
+          {/* Sidebar: Occupies the first column in row 1 */}
+          <aside className="hidden lg:block lg:col-start-1 lg:row-start-1 relative z-50 -mt-[140px] border-r border-black/10 self-stretch bg-white">
             <div className="sticky top-[140px] z-20 bg-white">
               <nav className="py-4">
                 <div className="space-y-0">
-                  {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'EL Graduate Program', 'People', 'Alumni + Friends', 'Events', '360 VR Tour', 'Add Research Project'].map((section) => (
+                  {['Highlights', 'Research', 'About', 'Projects', 'Academia Outreach', 'Solutions', 'Products', 'Add Research Project'].map((section) => (
                     <button
                       key={section}
                       onClick={() => {
@@ -296,13 +293,6 @@ export const Home = React.memo(function Home() {
               </nav>
             </div>
           </aside>
-
-          {/* Header: Sits next to sidebar in row 1 */}
-          <div className="col-span-2 lg:col-start-2 lg:col-span-3 min-w-0 pt-4 pb-2 -mt-[40px] relative z-40 bg-white border-b border-black/5">
-            <div className="mb-6 px-4 md:px-6">
-              <p className="text-[12px] uppercase tracking-[0.24em] text-black/40">Latest Research</p>
-            </div>
-          </div>
 
           {/* Article Cards */}
           {loading && (

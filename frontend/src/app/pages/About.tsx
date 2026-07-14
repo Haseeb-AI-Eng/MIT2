@@ -1,164 +1,44 @@
 import { SideNav } from '../components/SideNav';
 
-const aboutSections = [
+const peopleTeam = [
   {
-    id: 'about-building',
-    title: 'About the Building',
+    name: 'Haseeb Ejaz',
+    title: 'Associate Professor of Elements Research Lab and Sciences',
     description:
-      'The labs leadership built a culture of experimentation and generosity. This team supports ambitious research by enabling interdisciplinary collaboration, rapid prototyping, and public engagement.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'Research stewardship',
-        text: 'Our leaders help shape projects that balance impact, ethics, and community value.',
-      },
-      {
-        title: 'Creative partnerships',
-        text: 'Faculty, students, and industry partners bring diverse expertise to every lab initiative.',
-      },
-    ],
+      'Haseeb leads a multidisciplinary team focused on material systems, interactive media, and new forms of computational expression. His work bridges research, design, engineering, and performance to create emergent technologies that feel poetic, rigorous, and deeply human.',
   },
   {
-    id: 'faqs',
-    title: 'Lab FAQs',
+    name: 'Ayesha Khalid',
+    title: 'Research Fellow, Immersive Systems',
     description:
-      'From access and participation to research timelines, this section answers the most common questions about how the lab operates and how people can get involved.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'How to participate',
-        text: 'New collaborators join through research groups, events, fellowships, and open calls.',
-      },
-      {
-        title: 'What we fund',
-        text: 'The lab supports exploratory work across design, engineering, culture, and social systems.',
-      },
-    ],
+      'Ayesha develops immersive experiences and interactive installations that blend physical computing, sound, and spatial design. She supports cross-disciplinary research across multiple labs.',
   },
   {
-    id: 'history',
-    title: 'History',
+    name: 'Samuel Ortiz',
+    title: 'Creative Technologist, Human-Computer Interaction',
     description:
-      'The lab has evolved over decades from a creative research studio into a global network of designers, scientists, and educators. Its history is rooted in curiosity, risk-taking, and social impact.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'Milestones',
-        text: 'Historic projects have shaped everything from interactive media to new approaches to health and climate.',
-      },
-      {
-        title: 'Generations of makers',
-        text: 'Students, alumni, and faculty continually revisit the labs ethos while inventing new directions.',
-      },
-    ],
+      'Samuel explores new interfaces for collaboration, real-time media, and storytelling. He brings design rigor to experimental research and prototyping.',
   },
   {
-    id: 'contact',
-    title: 'Contact',
+    name: 'Lina Chen',
+    title: 'Project Lead, Computational Art',
     description:
-      'The lab encourages questions from students, collaborators, donors, and journalists. Reach out to the core team to connect with the right people for your interest.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'Visitor inquiries',
-        text: 'Plan a visit, request a tour, or ask about current exhibitions and events.',
-      },
-      {
-        title: 'General questions',
-        text: 'Email the labs central coordinator for directions, partnerships, and community outreach.',
-      },
-    ],
+      'Lina combines computational design, generative systems, and visual culture to create work that is both technically sophisticated and deeply expressive.',
+  },
+];
+
+const alumniHighlights = [
+  {
+    title: 'Community Updates',
+    text: 'This page shares news, opportunities, and stories from our alumni and friends community. Contributors can post announcements and stay connected to the lab’s ongoing work.',
   },
   {
-    id: 'press',
-    title: 'For Press + Media',
-    description:
-      'Press and media inquiries are welcomed. The lab offers commentary, research summaries, and media access to highlight projects that are changing the landscape of technology and society.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'Media requests',
-        text: 'A dedicated team supports interviews, images, and feature requests for journalists.',
-      },
-      {
-        title: 'Research stories',
-        text: 'We help translate technical work into compelling stories for public audiences.',
-      },
-    ],
-  },
-  {
-    id: 'community',
-    title: 'Community',
-    description:
-      'The labs community is broad: researchers, students, staff, and external partners all contribute to a culture of generosity and shared discovery.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'Peer networks',
-        text: 'Collaborators learn from one another across labs, projects, and disciplines.',
-      },
-      {
-        title: 'Public programs',
-        text: 'Events, talks, and open studios keep the work accessible to a wide audience.',
-      },
-    ],
-  },
-  {
-    id: 'jobs',
-    title: 'Job Opportunities',
-    description:
-      'The lab offers opportunities for researchers, designers, engineers, and administrators who want to work at the intersection of technology and society.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'Open positions',
-        text: 'Roles are updated frequently to reflect current research needs and program priorities.',
-      },
-      {
-        title: 'Fellowships',
-        text: 'Fellowship programs invite external talent to participate in lab research for a season.',
-      },
-    ],
-  },
-  {
-    id: 'visiting',
-    title: 'Visiting the Lab',
-    description:
-      'Visitors are invited to explore installations, see live work, and connect with researchers. Guided tours and open events help make the space feel welcoming and generative.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'Plan your visit',
-        text: 'Learn when the lab is open and how to schedule a tour or observe a demo.',
-      },
-      {
-        title: 'Event calendar',
-        text: 'Public talks and exhibitions are shared on the labs event schedule.',
-      },
-    ],
-  },
-  {
-    id: 'support',
-    title: 'Support the Media Lab',
-    description:
-      'Support fuels the labs ability to pursue bold research, welcome diverse voices, and develop work that matters. Contributions make an immediate difference to people and projects.',
-    image: '/image.gif',
-    cards: [
-      {
-        title: 'Corporate partnership',
-        text: 'Industry partners help scale research and connect ideas to real-world impact.',
-      },
-      {
-        title: 'Alumni + friends',
-        text: 'Community support sustains ambitious, long-term experimentation and learning.',
-      },
-    ],
+    title: 'Alumni + Friends',
+    text: 'The alumni network supports mentorship, partnerships, and financial contributions that help keep the lab experiments open, bold, and community-centered.',
   },
 ];
 
 export function About() {
-  const sortedAboutSections = [...aboutSections].sort((a, b) => a.title.localeCompare(b.title));
-
   return (
     <div className="min-h-screen bg-white">
       <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[400px] md:min-h-0 flex items-center">
@@ -244,31 +124,44 @@ export function About() {
             </div>
           </section>
 
-              {sortedAboutSections.map((section) => (
-                <section key={section.id} id={section.id} className="space-y-8">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <p className="text-[12px] uppercase tracking-[0.3em] text-black/50 mb-3">{section.title}</p>
-                  <h3 className="text-[28px] font-semibold text-black">{section.title}</h3>
+              <section id="people" className="space-y-8">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <p className="text-[12px] uppercase tracking-[0.3em] text-black/50 mb-3">People</p>
+                    <h3 className="text-[28px] font-semibold text-black">We are a diverse group of thinkers and inventors</h3>
+                  </div>
                 </div>
-                <div className="text-right lg:text-left text-black/60 text-sm">
-                  <span>{section.cards[0].title}</span>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-black/70 leading-relaxed">{section.description}</p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {section.cards.map((card) => (
-                    <div key={card.title} className="rounded-none border border-black/10 bg-[#fafafa] p-5">
-                      <p className="text-[15px] font-semibold text-black">{card.title}</p>
-                      <p className="mt-3 text-black/70 leading-relaxed">{card.text}</p>
+                <p className="max-w-3xl text-black/70 leading-relaxed">
+                  All team members are part of different research projects and work together to shape the future of EI Arts and Sciences.
+                </p>
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {peopleTeam.map((member) => (
+                    <div key={member.name} className="rounded-none border border-black/10 bg-[#fafafa] p-6">
+                      <p className="text-[13px] uppercase tracking-[0.3em] text-red-500 mb-3">{member.title}</p>
+                      <h4 className="text-[22px] font-semibold text-black mb-3">{member.name}</h4>
+                      <p className="text-black/70 leading-relaxed">{member.description}</p>
                     </div>
                   ))}
                 </div>
-              </div>
-                </section>
-              ))}
+              </section>
+
+              <section id="alumni-friends" className="space-y-8">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <p className="text-[12px] uppercase tracking-[0.3em] text-black/50 mb-3">Alumni + Friends</p>
+                    <h3 className="text-[28px] font-semibold text-black">Community updates, opportunities, and support</h3>
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {alumniHighlights.map((item) => (
+                    <div key={item.title} className="rounded-none border border-black/10 bg-[#fafafa] p-6">
+                      <p className="text-[15px] font-semibold text-black mb-3">{item.title}</p>
+                      <p className="text-black/70 leading-relaxed">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
             </main>
           </div>
         </div>

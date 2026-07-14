@@ -5,20 +5,19 @@ export function Footer() {
   const navigate = useNavigate();
 
   const routeMap: Record<string, string> = {
-    'News + Updates': '/',
+    'Highlights': '/',
     'Research': '/research',
     'About': '/about',
-    'Support the Media Lab': '/support-media-lab',
-    'EL Graduate Program': '/mas-graduate-program',
-    'People': '/people',
-    'Events': '/',
+    'Projects': '/support-media-lab',
+    'Academia Outreach': '/mas-graduate-program',
+    'Solutions': '/',
+    'Products': '/360-vr-tour',
     'Member Portal': '/',
     'For Press + Media': '/',
     'Publications': '/',
     'Contact': '/',
     'Accessibility': '/',
     'Donate to the Lab': '/support-media-lab',
-    '360 VR Tour': '/360-vr-tour'
   };
 
   const handleNavigate = (linkName: string) => {
@@ -37,13 +36,13 @@ export function Footer() {
             </Link>
           </div>
           <nav className="flex flex-col gap-3">
-            {['News + Updates', 'Research', 'About', 'Support the Media Lab', 'EL Graduate Program', 'People', 'Events', 'For Press + Media'].map((link) => (
+            {['Highlights', 'Research', 'About', 'Projects', 'Academia Outreach', 'Solutions', 'Products', 'For Press + Media'].map((link) => (
               <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
             ))}
           </nav>
           <div className="flex flex-col gap-3">
             <span className="text-[14px] font-semibold text-black/50 mb-1">More ways to explore</span>
-            {['Publications', 'Contact', '360 VR Tour'].map((link) => (
+            {['Publications', 'Contact'].map((link) => (
               <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
             ))}
             <Link to="/add-research-project" className="text-[14px] text-black/80 hover:text-black transition-colors font-semibold">+ Add Research Project</Link>

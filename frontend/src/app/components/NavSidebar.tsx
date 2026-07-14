@@ -8,15 +8,13 @@ interface NavSidebarProps {
 }
 
 const navLinks = [
-  { label: 'News + Updates', path: '/' },
+  { label: 'Highlights', path: '/' },
   { label: 'Research', path: '/research' },
   { label: 'About', path: '/about' },
-  { label: 'Support the Media Lab', path: '/support-media-lab' },
-  { label: 'EL Graduate Program', path: '/mas-graduate-program' },
-  { label: 'People', path: '/people' },
-  { label: 'Alumni + Friends', path: '/alumni-friends' },
-  { label: 'Events', path: '/' },
-  { label: '360 VR Tour', path: '/360-vr-tour' },
+  { label: 'Projects', path: '/support-media-lab' },
+  { label: 'Academia Outreach', path: '/mas-graduate-program' },
+  { label: 'Solutions', path: '/' },
+  { label: 'Products', path: '/360-vr-tour' },
   { label: 'Add Research Project', path: '/add-research-project' },
 ];
 

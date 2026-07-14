@@ -2,28 +2,24 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  'News + Updates',
+  'Highlights',
   'Research',
   'About',
-  'Support the Media Lab',
-  'EL Graduate Program',
-  'People',
-  'Alumni + Friends',
-  'Events',
-  '360 VR Tour',
+  'Projects',
+  'Academia Outreach',
+  'Solutions',
+  'Products',
   'Add Research Project',
 ] as const;
 
 const routeMap: Record<string, string> = {
-  'News + Updates': '/',
+  Highlights: '/',
   Research: '/research',
   About: '/about',
-  'Support the Media Lab': '/support-media-lab',
-  'EL Graduate Program': '/mas-graduate-program',
-  People: '/people',
-  'Alumni + Friends': '/alumni-friends',
-  Events: '/',
-  '360 VR Tour': '/360-vr-tour',
+  Projects: '/support-media-lab',
+  'Academia Outreach': '/mas-graduate-program',
+  Solutions: '/',
+  Products: '/360-vr-tour',
   'Add Research Project': '/add-research-project',
 };
 
@@ -34,7 +30,7 @@ export function SideNav() {
   const activeSection = React.useMemo(() => {
     const currentPath = location.pathname;
     const match = Object.entries(routeMap).find(([, path]) => path === currentPath);
-    return match?.[0] ?? 'News + Updates';
+    return match?.[0] ?? 'Highlights';
   }, [location.pathname]);
 
   return (
