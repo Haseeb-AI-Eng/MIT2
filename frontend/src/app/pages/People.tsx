@@ -152,11 +152,11 @@ export function People() {
           <SideNav />
           <div className="flex-1 min-w-0 px-4 md:px-8 lg:px-12 py-16 max-w-[1400px] mx-auto">
             <div className="space-y-12">
-          <div className="rounded-[40px] overflow-hidden bg-slate-900 text-white shadow-2xl shadow-slate-900/20">
+            <div className="rounded-none overflow-hidden bg-slate-900 text-white shadow-2xl shadow-slate-900/20">
             <div className="relative h-[420px] bg-slate-800">
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/50 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 flex justify-center pb-10">
-                <div className="w-[240px] h-[240px] rounded-full border-8 border-white overflow-hidden bg-slate-700 shadow-xl">
+                  <div className="w-[240px] h-[240px] rounded-none border-8 border-white overflow-hidden bg-slate-700 shadow-xl">
                   <img src={haseebImage} alt="Haseeb Ejaz" className="w-full h-full object-cover" />
                 </div>
               </div>
@@ -174,8 +174,8 @@ export function People() {
 
               <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {mergedTeamMembers.map((member) => (
-              <div key={member.name} className="rounded-[32px] border border-slate-200/10 bg-white p-6 shadow-sm shadow-slate-900/10">
-                <div className="h-64 overflow-hidden rounded-[28px] bg-slate-200">
+              <div key={member.name} className="rounded-none border border-slate-200/10 bg-white p-6 shadow-sm shadow-slate-900/10">
+                <div className="h-64 overflow-hidden rounded-none bg-slate-200">
                   <div className="h-full flex items-center justify-center bg-slate-100 text-slate-400">
                     <span className="text-sm uppercase tracking-[0.35em]">No image</span>
                   </div>

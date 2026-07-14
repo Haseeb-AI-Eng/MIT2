@@ -195,14 +195,14 @@ export function About() {
             <main className="space-y-16">
               <section className="grid gap-8 lg:grid-cols-[1.8fr_1.2fr]">
             <div className="space-y-6">
-              <div className="rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm">
+              <div className="rounded-none border border-black/10 bg-white p-8 shadow-sm">
                 <p className="text-[12px] uppercase tracking-[0.3em] text-black/50 mb-4">Featured Story</p>
                 <h2 className="text-[32px] font-semibold text-black">A short motivation for research and impact</h2>
                 <p className="text-black/70 leading-relaxed">
                   Research is the engine behind our most meaningful work. It motivates people to ask bigger questions, stay curious, and build solutions that matter for real communities.
                 </p>
               </div>
-              <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-black">
+              <div className="overflow-hidden rounded-none border border-black/10 bg-black">
                 <video controls poster="/image.gif" className="block w-full aspect-[16/9] object-cover">
                   <source
                     src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
@@ -220,21 +220,21 @@ export function About() {
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="rounded-[2rem] border border-black/10 bg-white p-8 shadow-sm">
+              <div className="space-y-6">
+              <div className="rounded-none border border-black/10 bg-white p-8 shadow-sm">
                 <p className="text-[12px] uppercase tracking-[0.3em] text-black/50 mb-4">Why research matters</p>
                 <p className="text-black/70 leading-relaxed">
                   Our research is motivated by curiosity and responsibility. It explores systems, technologies, and social practices with the goal of creating useful, thoughtful change.
                 </p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
+                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-none border border-black/10 bg-white p-6 shadow-sm">
                   <p className="text-[13px] font-semibold text-black">Human-centered design</p>
                   <p className="mt-3 text-black/70 leading-relaxed">
                     Research is grounded in the people it serves, not only in the technologies it produces.
                   </p>
                 </div>
-                <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
+                <div className="rounded-none border border-black/10 bg-white p-6 shadow-sm">
                   <p className="text-[13px] font-semibold text-black">Long-term experimentation</p>
                   <p className="mt-3 text-black/70 leading-relaxed">
                     The lab supports work that evolves over months and years, so ideas can mature thoughtfully.
@@ -256,20 +256,15 @@ export function About() {
                 </div>
               </div>
 
-              <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="space-y-5">
-                  <p className="text-black/70 leading-relaxed">{section.description}</p>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {section.cards.map((card) => (
-                      <div key={card.title} className="rounded-[1.5rem] border border-black/10 bg-[#fafafa] p-5">
-                        <p className="text-[15px] font-semibold text-black">{card.title}</p>
-                        <p className="mt-3 text-black/70 leading-relaxed">{card.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-black">
-                  <img src={section.image} alt={section.title} className="block w-full h-full object-cover" />
+              <div>
+                <p className="text-black/70 leading-relaxed">{section.description}</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {section.cards.map((card) => (
+                    <div key={card.title} className="rounded-none border border-black/10 bg-[#fafafa] p-5">
+                      <p className="text-[15px] font-semibold text-black">{card.title}</p>
+                      <p className="mt-3 text-black/70 leading-relaxed">{card.text}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
                 </section>
