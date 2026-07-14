@@ -3,7 +3,7 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
-import { SideNav } from '../components/SideNav';
+import { TopPageNav } from '../components/TopPageNav';
 
 interface Announcement {
   _id?: string;
@@ -166,7 +166,7 @@ export function AlumniFriends() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[450px] md:min-h-0 flex items-center justify-center">
+      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[320px] md:min-h-0 flex items-center justify-center">
         <div className="absolute inset-0">
           <img
             src="/pexels-pavel-danilyuk-7944238.jpg"
@@ -199,176 +199,178 @@ export function AlumniFriends() {
 
       <section className="relative w-full overflow-visible">
         <div className="flex w-full items-start gap-0">
-          <SideNav />
-          <div className="flex-1 min-w-0 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
-            <div className="mb-10 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-              <div>
-                <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Announcements</p>
-                <h2 className="text-[25px] md:text-[42px] font-semibold text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                  Community Updates
-                </h2>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handlePostClick}
-                  className="bg-black text-white hover:bg-gray-800 w-42 md:w-auto"
-                >
-                  {isAdmin && showForm ? 'Cancel' : '+ Post Announcement'}
-                </Button>
-                {isAdmin ? (
-                  <Button variant="outline" onClick={handleLogout} className="w-28 md:w-auto">
-                    Logout
+          <TopPageNav />
+          <div className="flex-1 min-w-0 w-full px-4 md:px-8 py-12">
+            <div className="mx-auto max-w-[1400px]">
+              <div className="mb-10 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+                <div>
+                  <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">Announcements</p>
+                  <h2 className="text-[25px] md:text-[42px] font-semibold text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                    Community Updates
+                  </h2>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handlePostClick}
+                    className="bg-black text-white hover:bg-gray-800 w-42 md:w-auto"
+                  >
+                    {isAdmin && showForm ? 'Cancel' : '+ Post Announcement'}
                   </Button>
-                ) : (
-                  <Button onClick={() => setShowAdminPrompt((prev) => !prev)} className="bg-black text-white hover:bg-gray-800 w-40 md:w-auto">
-                    {showAdminPrompt ? 'Hide Login' : 'Admin Login'}
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {showAdminPrompt && !isAdmin && (
-              <Card className="p-6 mb-8 border border-black/10">
-                <p className="text-sm text-black/70 mb-4">
-                  Community updates are posted from this browser only. Sign in with the admin account to unlock posting.
-                </p>
-                <form onSubmit={handleLogin} className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label htmlFor="adminEmail" className="block text-sm font-medium mb-2">
-                      Admin Email
-                    </label>
-                    <Input
-                      id="adminEmail"
-                      type="email"
-                      value={adminEmail}
-                      onChange={(e) => setAdminEmail(e.target.value)}
-                      placeholder="haseebmine24@gmail.com"
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="adminPassword" className="block text-sm font-medium mb-2">
-                      Admin Password
-                    </label>
-                    <Input
-                      id="adminPassword"
-                      type="password"
-                      value={adminPassword}
-                      onChange={(e) => setAdminPassword(e.target.value)}
-                      placeholder="Enter password"
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="md:col-span-2 flex items-center gap-3">
-                    <Button type="submit" className="bg-black text-white hover:bg-gray-800">
-                      Sign in as admin
+                  {isAdmin ? (
+                    <Button variant="outline" onClick={handleLogout} className="w-28 md:w-auto">
+                      Logout
                     </Button>
-                    {authError && <p className="text-sm text-red-600">{authError}</p>}
-                  </div>
-                </form>
-              </Card>
-            )}
+                  ) : (
+                    <Button onClick={() => setShowAdminPrompt((prev) => !prev)} className="bg-black text-white hover:bg-gray-800 w-40 md:w-auto">
+                      {showAdminPrompt ? 'Hide Login' : 'Admin Login'}
+                    </Button>
+                  )}
+                </div>
+              </div>
 
-            {showForm && isAdmin && (
-              <Card className="p-8 mb-10">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label htmlFor="title" className="block text-sm font-medium mb-2">
-                      Title *
-                    </label>
-                    <Input
-                      id="title"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleChange}
-                      placeholder="Announcement title"
-                      required
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="content" className="block text-sm font-medium mb-2">
-                      Content *
-                    </label>
-                    <Textarea
-                      id="content"
-                      name="content"
-                      value={formData.content}
-                      onChange={handleChange}
-                      placeholder="Share your announcement..."
-                      required
-                      className="w-full min-h-[150px]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {showAdminPrompt && !isAdmin && (
+                <Card className="p-6 mb-8 border border-black/10">
+                  <p className="text-sm text-black/70 mb-4">
+                    Community updates are posted from this browser only. Sign in with the admin account to unlock posting.
+                  </p>
+                  <form onSubmit={handleLogin} className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label htmlFor="authorName" className="block text-sm font-medium mb-2">
-                        Your Name *
+                      <label htmlFor="adminEmail" className="block text-sm font-medium mb-2">
+                        Admin Email
                       </label>
                       <Input
-                        id="authorName"
-                        name="authorName"
-                        value={formData.authorName}
-                        onChange={handleChange}
-                        placeholder="Your name"
-                        required
-                        className="w-full"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="authorEmail" className="block text-sm font-medium mb-2">
-                        Your Email *
-                      </label>
-                      <Input
-                        id="authorEmail"
-                        name="authorEmail"
+                        id="adminEmail"
                         type="email"
-                        value={formData.authorEmail}
+                        value={adminEmail}
+                        onChange={(e) => setAdminEmail(e.target.value)}
+                        placeholder="haseebmine24@gmail.com"
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="adminPassword" className="block text-sm font-medium mb-2">
+                        Admin Password
+                      </label>
+                      <Input
+                        id="adminPassword"
+                        type="password"
+                        value={adminPassword}
+                        onChange={(e) => setAdminPassword(e.target.value)}
+                        placeholder="Enter password"
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="md:col-span-2 flex items-center gap-3">
+                      <Button type="submit" className="bg-black text-white hover:bg-gray-800">
+                        Sign in as admin
+                      </Button>
+                      {authError && <p className="text-sm text-red-600">{authError}</p>}
+                    </div>
+                  </form>
+                </Card>
+              )}
+
+              {showForm && isAdmin && (
+                <Card className="p-8 mb-10">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                      <label htmlFor="title" className="block text-sm font-medium mb-2">
+                        Title *
+                      </label>
+                      <Input
+                        id="title"
+                        name="title"
+                        value={formData.title}
                         onChange={handleChange}
-                        placeholder="your.email@example.com"
+                        placeholder="Announcement title"
                         required
                         className="w-full"
                       />
                     </div>
-                  </div>
 
-                  <div className="flex gap-4">
-                    <Button type="submit" disabled={submitting} className="bg-black text-white hover:bg-gray-800">
-                      {submitting ? 'Posting...' : 'Post Announcement'}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </Card>
-            )}
+                    <div>
+                      <label htmlFor="content" className="block text-sm font-medium mb-2">
+                        Content *
+                      </label>
+                      <Textarea
+                        id="content"
+                        name="content"
+                        value={formData.content}
+                        onChange={handleChange}
+                        placeholder="Share your announcement..."
+                        required
+                        className="w-full min-h-[150px]"
+                      />
+                    </div>
 
-            {loading ? (
-              <div className="py-20 text-center text-black/50">Loading announcements...</div>
-            ) : announcements.length === 0 ? (
-              <div className="py-20 text-center text-black/60">
-                No announcements yet. Be the first to share!
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {announcements.map((announcement) => (
-                  <Card key={announcement._id} className="p-6 border border-black/10">
-                    <h3 className="text-[20px] font-semibold text-black mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                      {announcement.title}
-                    </h3>
-                    <p className="text-[14px] text-black/50 mb-4">
-                      by {announcement.authorName} • {new Date(announcement.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                    </p>
-                    <p className="text-[15px] text-black/80 leading-relaxed whitespace-pre-wrap">
-                      {announcement.content}
-                    </p>
-                  </Card>
-                ))}
-              </div>
-            )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="authorName" className="block text-sm font-medium mb-2">
+                          Your Name *
+                        </label>
+                        <Input
+                          id="authorName"
+                          name="authorName"
+                          value={formData.authorName}
+                          onChange={handleChange}
+                          placeholder="Your name"
+                          required
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="authorEmail" className="block text-sm font-medium mb-2">
+                          Your Email *
+                        </label>
+                        <Input
+                          id="authorEmail"
+                          name="authorEmail"
+                          type="email"
+                          value={formData.authorEmail}
+                          onChange={handleChange}
+                          placeholder="your.email@example.com"
+                          required
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <Button type="submit" disabled={submitting} className="bg-black text-white hover:bg-gray-800">
+                        {submitting ? 'Posting...' : 'Post Announcement'}
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </Card>
+              )}
+
+              {loading ? (
+                <div className="py-20 text-center text-black/50">Loading announcements...</div>
+              ) : announcements.length === 0 ? (
+                <div className="py-20 text-center text-black/60">
+                  No announcements yet. Be the first to share!
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {announcements.map((announcement) => (
+                    <Card key={announcement._id} className="p-6 border border-black/10">
+                      <h3 className="text-[20px] font-semibold text-black mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                        {announcement.title}
+                      </h3>
+                      <p className="text-[14px] text-black/50 mb-4">
+                        by {announcement.authorName} • {new Date(announcement.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </p>
+                      <p className="text-[15px] text-black/80 leading-relaxed whitespace-pre-wrap">
+                        {announcement.content}
+                      </p>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

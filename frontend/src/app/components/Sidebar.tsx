@@ -41,10 +41,10 @@ export const Sidebar = React.memo(function Sidebar() {
     'Research',
     'About',
     'Projects',
-    'Academia Outreach',
     'Solutions',
     'Products',
-    'Add Research Project',
+    'Academia Outreach',
+    'Contact',
   ];
 
   const routeMap: Record<string, string> = {
@@ -52,10 +52,10 @@ export const Sidebar = React.memo(function Sidebar() {
     Research: '/research',
     About: '/about',
     Projects: '/support-media-lab',
-    'Academia Outreach': '/mas-graduate-program',
     Solutions: '/solutions',
     Products: '/360-vr-tour',
-    'Add Research Project': '/add-research-project',
+    'Academia Outreach': '/mas-graduate-program',
+    Contact: '/contact',
   };
 
   useEffect(() => {

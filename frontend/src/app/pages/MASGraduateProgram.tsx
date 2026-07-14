@@ -1,4 +1,4 @@
-import { SideNav } from '../components/SideNav';
+import { TopPageNav } from '../components/TopPageNav';
 import { HeroVideo } from './HeroVideo';
 
 export function MASGraduateProgram() {
@@ -22,9 +22,10 @@ export function MASGraduateProgram() {
       </section>
 
       <section className="relative w-full overflow-visible">
+        <TopPageNav />
         <div className="flex w-full items-start gap-0">
-          <SideNav />
-          <div className="flex-1 min-w-0 px-4 md:px-8 lg:px-12 py-12 max-w-[1400px] mx-auto">
+          <div className="flex-1 min-w-0 w-full px-4 md:px-8 lg:px-12 py-12">
+            <div className="mx-auto max-w-[1400px]">
             <main className="space-y-16">
               <section className="space-y-8">
             <div>
@@ -68,6 +69,7 @@ export function MASGraduateProgram() {
             </div>
               </section>
             </main>
+            </div>
           </div>
         </div>
       </section>

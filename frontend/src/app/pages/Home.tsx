@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { NewsCard } from '../components/NewsCard';
+import { TopPageNav } from '../components/TopPageNav';
 import { HeroVideo } from './HeroVideo';
 import {
   fetchAllPublishedProjects,
@@ -47,21 +48,14 @@ function getRandomIndices(count: number, max: number) {
   return Array.from(indices);
 }
 
-function getGridSpanClasses(colSpan: number, isRowStart: boolean, role: CardRole, isFirstRow: boolean) {
-  let classes = '';
-  if (isRowStart) {
-    classes += isFirstRow ? 'lg:col-start-2 ' : 'lg:col-start-1 ';
-  }
-
+function getGridSpanClasses(colSpan: number, _isRowStart: boolean, role: CardRole, _isFirstRow: boolean) {
   if (role === 'huge' || role === 'wide') {
-    return classes + 'col-span-1 sm:col-span-2 lg:col-span-2 row-span-2 ';
+    return 'col-span-1 sm:col-span-2 lg:col-span-2 row-span-2';
   }
   if (colSpan === 2) {
-    classes += 'col-span-1 sm:col-span-2 lg:col-span-2 ';
-  } else {
-    classes += 'col-span-1 ';
+    return 'col-span-1 sm:col-span-2 lg:col-span-2';
   }
-  return classes.trim();
+  return 'col-span-1';
 }
 
 interface AssignedCard {
@@ -74,13 +68,11 @@ interface AssignedCard {
 
 export const Home = React.memo(function Home() {
   const navigate = useNavigate();
-  const [publishedProjects, setPublishedProjects] = useState<any[]>([]);
   const [visibleProjects, setVisibleProjects] = useState<any[]>([]);
   const [hiddenProjects, setHiddenProjects] = useState<any[]>([]);
   const [projectViews, setProjectViews] = useState<Record<string, number>>(getLocalProjectViews);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [activeSection, setActiveSection] = useState('Highlights');
 
   const intervalRef = useRef<number | null>(null);
   const visibleRef = useRef<any[]>([]);
@@ -92,7 +84,6 @@ export const Home = React.memo(function Home() {
       .then((res) => {
         if (!active) return;
         const projects = res.projects || [];
-        setPublishedProjects(projects);
         setVisibleProjects(projects.slice(0, MAX_VISIBLE_PROJECTS));
         setHiddenProjects(projects.slice(MAX_VISIBLE_PROJECTS));
       })
@@ -188,29 +179,17 @@ export const Home = React.memo(function Home() {
     [navigate]
   );
 
-  const routeMap: Record<string, string> = {
-    Highlights: '/',
-    Research: '/research',
-    About: '/about',
-    Projects: '/support-media-lab',
-    'Academia Outreach': '/mas-graduate-program',
-    Solutions: '/solutions',
-    Products: '/360-vr-tour',
-    'Add Research Project': '/add-research-project',
-  };
-
   const assignedCards = useMemo<AssignedCard[]>(() => {
     const result: AssignedCard[] = [];
     let projectIdx = 0;
 
-    // Row 1: 3 projects (1x1) to leave space for the sidebar in col 1
-    const firstPattern = ROW_PATTERNS[0];
-    for (let i = 0; i < 3 && projectIdx < filteredProjects.length; i++) {
+    const firstPattern = { roles: ['normal', 'normal', 'normal', 'normal'] as CardRole[], cols: [1, 1, 1, 1] };
+    for (let i = 0; i < firstPattern.roles.length && projectIdx < filteredProjects.length; i++) {
       result.push({
         project: filteredProjects[projectIdx++],
         role: 'normal',
         colSpan: firstPattern.cols[i],
-        isRowStart: i === 0, 
+        isRowStart: i === 0,
         isFirstRow: true,
       });
     }
@@ -241,7 +220,7 @@ export const Home = React.memo(function Home() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section
         data-hero-section
-        className="relative w-full bg-black text-white min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center justify-center overflow-hidden z-0"
+        className="relative w-full bg-black text-white aspect-auto md:aspect-[16/5] min-h-[40vh] md:min-h-0 flex items-center justify-center overflow-hidden z-0"
       >
         <div className="absolute inset-0">
           <HeroVideo />
@@ -260,40 +239,9 @@ export const Home = React.memo(function Home() {
       </section>
 
       {/* ── Unified Grid Area ──────── */}
-      {/* Fix 2: Ensure the section doesn't have redundant overflow settings that conflict with its children */}
       <section className="relative w-full z-20">
+        <TopPageNav />
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch auto-rows-auto grid-flow-dense w-full bg-white relative">
-          
-          {/* Sidebar: Occupies the first column in row 1 */}
-          <aside className="hidden lg:block lg:col-start-1 lg:row-start-1 relative z-50 -mt-[140px] border-r border-black/10 self-stretch bg-white">
-            <div className="sticky top-[140px] z-20 bg-white">
-              <nav className="py-4">
-                <div className="space-y-0">
-                  {['Highlights', 'Research', 'About', 'Projects', 'Academia Outreach', 'Solutions', 'Products', 'Add Research Project'].map((section) => (
-                    <button
-                      key={section}
-                      onClick={() => {
-                        setActiveSection(section);
-                        navigate(routeMap[section] || '/');
-                      }}
-                      className={`w-full text-left px-6 pl-8 py-2 text-[13px] leading-5 transition-colors font-bold ${
-                        activeSection === section
-                          ? 'text-[#E91E63]'
-                          : 'text-black hover:text-black'
-                      }`}
-                      style={{
-                        fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {section}
-                    </button>
-                  ))}
-                </div>
-              </nav>
-            </div>
-          </aside>
-
           {/* Article Cards */}
           {loading && (
             <div className="lg:col-start-2 lg:col-span-3 animate-pulse bg-black/5 h-64 m-6" />

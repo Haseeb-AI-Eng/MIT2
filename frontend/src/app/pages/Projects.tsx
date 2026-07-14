@@ -147,7 +147,7 @@ export function Projects() {
       <section data-hero-section className="relative overflow-hidden bg-black text-white">
         <img src="/image.gif" alt="Projects hero" className="absolute inset-0 w-full h-full object-cover opacity-60" fetchPriority="high" />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
+        <div className="relative mx-auto max-w-[1200px] px-6 py-16 text-center">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">Research Projects</p>
           <h1 className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto">
             A modern research showcase inspired by MIT Media Lab.
@@ -158,34 +158,35 @@ export function Projects() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-8">
-          <div>
-            <p className="text-[12px] uppercase tracking-[0.25em] text-black/40 mb-2">Published Projects</p>
-            <h2 className="text-[28px] md:text-[36px] font-semibold text-black">Responsive masonry showcase for active research.</h2>
+      <div className="w-full px-4 md:px-8 py-12">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-8">
+            <div>
+              <p className="text-[12px] uppercase tracking-[0.25em] text-black/40 mb-2">Published Projects</p>
+              <h2 className="text-[28px] md:text-[36px] font-semibold text-black">Responsive masonry showcase for active research.</h2>
+            </div>
+            <p className="text-black/60">
+              {loading ? '' : `${total} project${total !== 1 ? 's' : ''} available`}
+            </p>
           </div>
-          <p className="text-black/60">
-            {loading ? '' : `${total} project${total !== 1 ? 's' : ''} available`}
-          </p>
-        </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {Array.from({ length: PAGE_SIZE }).map((_, i) => <ProjectCardSkeleton key={i} />)}
-          </div>
-        ) : error ? (
-          <div className="py-20 text-center text-red-600">
-            Unable to load projects.{' '}
-            <button className="underline text-blue-600" onClick={() => loadProjects(1, true)}>Retry</button>
-          </div>
-        ) : projects.length === 0 ? (
-          <div className="py-20 text-center text-black/60">No published projects are available yet.</div>
-        ) : (
-          <>
-            <div
-              ref={gridRef}
-              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-[10px]"
-            >
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {Array.from({ length: PAGE_SIZE }).map((_, i) => <ProjectCardSkeleton key={i} />)}
+            </div>
+          ) : error ? (
+            <div className="py-20 text-center text-red-600">
+              Unable to load projects.{' '}
+              <button className="underline text-blue-600" onClick={() => loadProjects(1, true)}>Retry</button>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="py-20 text-center text-black/60">No published projects are available yet.</div>
+          ) : (
+            <>
+              <div
+                ref={gridRef}
+                className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-[10px]"
+              >
               {projects.map((project, index) => (
                 <div key={project._id ?? project.slug} className="project-card">
                   <div className="card-inner">
@@ -205,18 +206,19 @@ export function Projects() {
               ))}
             </div>
 
-            {page < totalPages && !loadingMore && (
-              <div className="mt-10 flex justify-center">
-                <button
-                  onClick={() => loadProjects(page + 1, false)}
-                  className="px-8 py-3 border border-black text-black text-[14px] tracking-widest uppercase hover:bg-black hover:text-white transition-colors duration-200"
-                >
-                  Load More
-                </button>
-              </div>
-            )}
-          </>
-        )}
+              {page < totalPages && !loadingMore && (
+                <div className="mt-10 flex justify-center">
+                  <button
+                    onClick={() => loadProjects(page + 1, false)}
+                    className="px-8 py-3 border border-black text-black text-[14px] tracking-widest uppercase hover:bg-black hover:text-white transition-colors duration-200"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -12,10 +12,10 @@ const navLinks = [
   { label: 'Research', path: '/research' },
   { label: 'About', path: '/about' },
   { label: 'Projects', path: '/support-media-lab' },
-  { label: 'Academia Outreach', path: '/mas-graduate-program' },
   { label: 'Solutions', path: '/solutions' },
   { label: 'Products', path: '/360-vr-tour' },
-  { label: 'Add Research Project', path: '/add-research-project' },
+  { label: 'Academia Outreach', path: '/mas-graduate-program' },
+  { label: 'Contact', path: '/contact' },
 ];
 
 export function NavSidebar({ isOpen, onClose }: NavSidebarProps) {

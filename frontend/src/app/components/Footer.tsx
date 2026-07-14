@@ -9,13 +9,13 @@ export function Footer() {
     'Research': '/research',
     'About': '/about',
     'Projects': '/support-media-lab',
-    'Academia Outreach': '/mas-graduate-program',
     'Solutions': '/solutions',
     'Products': '/360-vr-tour',
+    'Academia Outreach': '/mas-graduate-program',
+    'Contact': '/contact',
     'Member Portal': '/',
     'For Press + Media': '/',
     'Publications': '/',
-    'Contact': '/',
     'Accessibility': '/',
     'Donate to the Lab': '/support-media-lab',
   };
@@ -36,7 +36,7 @@ export function Footer() {
             </Link>
           </div>
           <nav className="flex flex-col gap-3">
-            {['Highlights', 'Research', 'About', 'Projects', 'Academia Outreach', 'Solutions', 'Products', 'For Press + Media'].map((link) => (
+            {['Highlights', 'Research', 'About', 'Projects', 'Solutions', 'Products', 'Academia Outreach', 'For Press + Media'].map((link) => (
               <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
             ))}
           </nav>
@@ -45,7 +45,6 @@ export function Footer() {
             {['Publications', 'Contact'].map((link) => (
               <Link key={link} to={routeMap[link] || '/'} className="text-left text-[14px] text-black/80 hover:text-black transition-colors">{link}</Link>
             ))}
-            <Link to="/add-research-project" className="text-[14px] text-black/80 hover:text-black transition-colors font-semibold">+ Add Research Project</Link>
           </div>
         </div>
         <div className="flex flex-col items-start lg:items-end gap-4">

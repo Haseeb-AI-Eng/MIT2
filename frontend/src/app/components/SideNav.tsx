@@ -6,10 +6,10 @@ const navItems = [
   'Research',
   'About',
   'Projects',
-  'Academia Outreach',
   'Solutions',
   'Products',
-  'Add Research Project',
+  'Academia Outreach',
+  'Contact',
 ] as const;
 
 const routeMap: Record<string, string> = {
@@ -17,10 +17,10 @@ const routeMap: Record<string, string> = {
   Research: '/research',
   About: '/about',
   Projects: '/support-media-lab',
-  'Academia Outreach': '/mas-graduate-program',
   Solutions: '/solutions',
   Products: '/360-vr-tour',
-  'Add Research Project': '/add-research-project',
+  'Academia Outreach': '/mas-graduate-program',
+  Contact: '/contact',
 };
 
 export function SideNav() {

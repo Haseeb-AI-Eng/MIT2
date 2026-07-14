@@ -153,7 +153,7 @@ export function ProjectDetail() {
           bleed past the section bounds. */}
       <section
         data-hero-section
-        className="relative bg-black text-white flex items-center justify-center text-center overflow-hidden min-h-[380px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px]"
+        className="relative bg-black text-white flex items-center justify-center text-center overflow-hidden aspect-auto md:aspect-[16/5] min-h-[40vh] md:min-h-0"
       >
         <div className="absolute inset-0">
           <img
@@ -191,15 +191,6 @@ export function ProjectDetail() {
           className="hidden md:flex flex-col flex-shrink-0 border-r border-black/10 relative z-10 -mt-24 bg-white shadow-[0_-16px_24px_-12px_rgba(0,0,0,0.18)]"
           style={{ width: '320px', minWidth: '280px', padding: '1.5rem 1.5rem 2rem' }}
         >
-          {/* Back link */}
-          <button
-            type="button"
-            onClick={() => navigate('/research')}
-            className="flex items-center gap-1 text-[13px] text-black/60 hover:text-black mb-5 transition-colors"
-          >
-            ‹ Research
-          </button>
-
           <div className="border-t border-black/10 pt-5 mb-5">
             {teamMembers.length > 0 && (
               <div className="mb-1">

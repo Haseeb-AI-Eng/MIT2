@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import * as THREE from 'three';
-import { SideNav } from '../components/SideNav';
+import { TopPageNav } from '../components/TopPageNav';
 import { HeroVideo } from './HeroVideo';
 
 const videoUrl = '/YTDown.com_YouTube_Telenor-360-DVC_Media_fZMWZNUZDzE_001_1080s.mp4';
@@ -152,30 +152,28 @@ export function VRTourPage() {
       </section>
 
       <section className="relative w-full overflow-visible">
-        <div className="flex w-full items-start gap-0">
-          <SideNav />
-          <div className="flex-1 min-w-0 px-4 py-8 sm:px-6 md:px-8 lg:px-12 lg:py-12">
-            <div className="mx-auto max-w-[1400px] rounded-none border border-black/10 bg-white p-4 shadow-sm sm:p-6 md:p-10">
-              <div className="relative overflow-hidden rounded-none border border-black/10 bg-black">
-                <div ref={containerRef} className="aspect-[16/10] min-h-[420px] w-full md:min-h-[560px]" />
+        <TopPageNav />
+        <div className="w-full px-4 py-8 sm:px-6 md:px-8 lg:px-12 lg:py-12 bg-white">
+          <div className="w-full rounded-none border border-black/10 bg-white p-4 shadow-sm sm:p-6 md:p-10">
+            <div className="relative w-full overflow-visible rounded-none border border-black/10 bg-black">
+              <div ref={containerRef} className="w-full h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px]" />
+            </div>
+
+            <div className="mt-8 w-full grid gap-6 lg:grid-cols-2">
+              <div className="rounded-none border border-black/10 bg-[#fafafa] p-6">
+                <h2 className="text-lg font-semibold text-black">How to enjoy it</h2>
+                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-black/70">
+                  <li>• Drag inside the scene to change your viewing direction.</li>
+                  <li>• The 360 tour begins automatically as soon as the scene is ready.</li>
+                  <li>• This is rendered as a real 360 environment rather than a flat video frame.</li>
+                </ul>
               </div>
 
-              <div className="mt-8 grid gap-6 lg:grid-cols-2">
-                <div className="rounded-none border border-black/10 bg-[#fafafa] p-6">
-                  <h2 className="text-lg font-semibold text-black">How to enjoy it</h2>
-                  <ul className="mt-3 space-y-2 text-sm leading-relaxed text-black/70">
-                    <li>• Drag inside the scene to change your viewing direction.</li>
-                    <li>• The 360 tour begins automatically as soon as the scene is ready.</li>
-                    <li>• This is rendered as a real 360 environment rather than a flat video frame.</li>
-                  </ul>
-                </div>
-
-                <div className="rounded-none border border-black/10 bg-[#fafafa] p-6">
-                  <h2 className="text-lg font-semibold text-black">Playback</h2>
-                  <p className="mt-3 text-sm leading-relaxed text-black/70">
-                    The video is playing from your local project file, so it can be viewed directly on the site without relying on a blocked YouTube embed.
-                  </p>
-                </div>
+              <div className="rounded-none border border-black/10 bg-[#fafafa] p-6">
+                <h2 className="text-lg font-semibold text-black">Playback</h2>
+                <p className="mt-3 text-sm leading-relaxed text-black/70">
+                  The video is playing from your local project file, so it can be viewed directly on the site without relying on a blocked YouTube embed.
+                </p>
               </div>
             </div>
           </div>

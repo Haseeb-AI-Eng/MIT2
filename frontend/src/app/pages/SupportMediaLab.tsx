@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { SideNav } from '../components/SideNav';
+import { TopPageNav } from '../components/TopPageNav';
 
 export function SupportMediaLab() {
   return (
     <div className="min-h-screen bg-white">
-      <section data-hero-section className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[50vh] md:min-h-0 flex items-center justify-center overflow-hidden">
+      <section data-hero-section className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[320px] md:min-h-0 flex items-center justify-center overflow-hidden">
         {/* Background image/gif layer */}
         <div className="absolute inset-0">
           <img
@@ -27,8 +27,8 @@ export function SupportMediaLab() {
       </section>
 
       <section className="relative w-full overflow-visible">
+        <TopPageNav />
         <div className="flex w-full items-start gap-0">
-          <SideNav />
           <div className="flex-1 min-w-0 px-4 md:px-8 lg:px-12 py-16 max-w-[1400px] mx-auto">
             <div className="max-w-[940px] mx-auto space-y-10 text-slate-800">
               <div className="space-y-8">

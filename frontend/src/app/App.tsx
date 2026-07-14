@@ -18,6 +18,7 @@ import { AddResearchProject } from './pages/AddResearchProject';
 import { Apply } from './pages/Apply';
 import { VRTourPage } from './pages/VRTourPage';
 import { Solutions } from './pages/Solutions';
+import { Contact } from './pages/Contact';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminSignup } from './pages/AdminSignup';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -77,6 +78,7 @@ export default function App() {
         <Route path="/apply" element={<Layout onMenuClick={toggleNav}><Apply /></Layout>} />
         <Route path="/360-vr-tour" element={<Layout onMenuClick={toggleNav}><VRTourPage /></Layout>} />
         <Route path="/solutions" element={<LayoutNoSidebar onMenuClick={toggleNav}><Solutions /></LayoutNoSidebar>} />
+        <Route path="/contact" element={<LayoutNoSidebar onMenuClick={toggleNav}><Contact /></LayoutNoSidebar>} />
         <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ArticleDetail /></LayoutNoSidebar>} />
         <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ProjectDetail /></LayoutNoSidebar>} />
         <Route path="/lead-confirm" element={<LayoutNoSidebar onMenuClick={toggleNav}><LeadConfirm /></LayoutNoSidebar>} />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import haseebImage from '../assets/pic.jpeg';
-import { SideNav } from '../components/SideNav';
+import { TopPageNav } from '../components/TopPageNav';
 
 type TeamMember = {
   name: string;
@@ -149,8 +149,9 @@ export function People() {
 
       <section className="relative w-full overflow-visible">
         <div className="flex w-full items-start gap-0">
-          <SideNav />
-          <div className="flex-1 min-w-0 px-4 md:px-8 lg:px-12 py-16 max-w-[1400px] mx-auto">
+          <TopPageNav />
+          <div className="flex-1 min-w-0 w-full px-4 md:px-8 lg:px-12 py-16">
+            <div className="mx-auto max-w-[1400px]">
             <div className="space-y-12">
             <div className="rounded-none overflow-hidden bg-slate-900 text-white shadow-2xl shadow-slate-900/20">
             <div className="relative h-[420px] bg-slate-800">
@@ -188,6 +189,7 @@ export function People() {
               </div>
                 ))}
               </div>
+            </div>
             </div>
           </div>
         </div>

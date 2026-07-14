@@ -148,18 +148,18 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 will-change-[opacity] ${
-          isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
+          isScrolled ? 'bg-white/60 backdrop-blur-lg shadow-sm' : 'bg-transparent'
         }`}
       >
         <div
           className={`px-4 md:px-6 flex items-center justify-between border-b transition-all duration-300 ${
-            isScrolled ? 'border-black/10 py-3' : 'border-transparent pt-6 md:pt-12 pb-2 md:pb-4'
+            isScrolled ? 'border-black/5 py-2' : 'border-transparent pt-6 md:pt-12 pb-2 md:pb-4'
           }`}
         >
           {/* Logo: icon only */}
           <Link to="/" className="flex items-center shrink-0">
-            <div className="flex items-center transition-all duration-300 h-[80px]">
-              <LogoIcon height={isMobile ? 56 : isScrolled ? 42 : 56} outlineColor={outlineColor} />
+            <div className={`flex items-center transition-all duration-300 ${isScrolled ? 'h-[40px]' : 'h-[80px]'}`}>
+              <LogoIcon height={isMobile ? 56 : isScrolled ? 32 : 56} outlineColor={outlineColor} />
             </div>
           </Link>
 

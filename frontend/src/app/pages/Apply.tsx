@@ -107,7 +107,7 @@ export function Apply() {
   }, []);
 
   const renderHero = () => (
-    <section data-hero-section className="relative overflow-hidden bg-black text-white min-h-[380px] sm:min-h-0 sm:aspect-[16/5] flex items-center justify-center">
+    <section data-hero-section className="relative overflow-hidden bg-black text-white min-h-[320px] sm:min-h-0 sm:aspect-[16/5] flex items-center justify-center">
       <img
         src="/image.gif"
         alt="Apply hero"

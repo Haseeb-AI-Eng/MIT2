@@ -81,7 +81,7 @@ export function Solutions() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-black text-white min-h-[400px] md:min-h-[500px] flex items-center">
+      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[40vh] md:min-h-0 flex items-center">
         <div className="absolute inset-0">
           <HeroVideo src="/hero-animation.mp4" />
         </div>
@@ -120,8 +120,9 @@ export function Solutions() {
 
       {/* Solutions Grid */}
       <section className="relative w-full overflow-visible py-16 md:py-24">
-        <div className="mx-auto max-w-[1400px] px-6 md:px-8 lg:px-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="w-full px-4 md:px-6 lg:px-8">
+          <div className="mx-auto max-w-[1400px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full">
             {filteredCards.map((card) => (
               <div
                 key={card.id}
@@ -158,6 +159,7 @@ export function Solutions() {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         </div>
       </section>

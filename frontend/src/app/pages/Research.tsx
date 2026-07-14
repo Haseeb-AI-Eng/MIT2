@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount } from '../api';
 import { ResearchCard } from '../components/ResearchCard';
-import { SideNav } from '../components/SideNav';
+import { TopPageNav } from '../components/TopPageNav';
 
 const cyclingWords = ['#health', '#design', '#AI', '#robotics', '#climate', '#education'];
 const PAGE_SIZE = 12;
@@ -153,7 +153,7 @@ export function Research() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section data-hero-section className="relative overflow-hidden bg-black text-white">
+      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[40vh] md:min-h-0 flex items-center justify-center">
         <img
           src="/image.gif"
           alt="Research hero"
@@ -161,7 +161,7 @@ export function Research() {
           fetchPriority="high"
         />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative mx-auto max-w-[1200px] px-6 py-24 text-center">
+        <div className="relative mx-auto max-w-[1200px] px-6 text-center z-10">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">
             EI research
           </p>
@@ -178,9 +178,10 @@ export function Research() {
       </section>
 
       <section className="relative w-full overflow-visible">
+        <TopPageNav />
         <div className="flex w-full items-start gap-0">
-          <SideNav />
-          <div className="flex-1 min-w-0 px-4 md:px-8 py-12 max-w-[1400px] mx-auto">
+          <div className="flex-1 min-w-0 w-full px-4 md:px-8 py-12">
+            <div className="mx-auto max-w-[1400px]">
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 border-t border-l border-black/12"
                 style={{ borderTop: '1px solid rgba(0,0,0,0.12)', borderLeft: '1px solid rgba(0,0,0,0.12)' }}>
@@ -246,6 +247,7 @@ export function Research() {
                 </p>
               </div>
             )}
+            </div>
           </div>
         </div>
       </section>

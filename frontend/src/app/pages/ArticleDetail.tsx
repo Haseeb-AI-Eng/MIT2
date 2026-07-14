@@ -88,9 +88,7 @@ export function ArticleDetail() {
         data-hero-section
         className="relative text-white flex items-center text-left"
         style={{
-          minHeight: '260px',
-          maxHeight: '360px',
-          height: '28vw',
+
           backgroundColor: '#000',
           backgroundImage: article.image ? `url(${article.image})` : undefined,
           backgroundSize: 'cover',
@@ -115,13 +113,6 @@ export function ArticleDetail() {
           className="hidden md:flex flex-col flex-shrink-0 border-r border-black/10"
           style={{ width: '260px', minWidth: '220px', padding: '2rem 1.5rem' }}
         >
-          <Link
-            to="/"
-            onClick={(e) => { e.preventDefault(); navigate('/'); }}
-            className="flex items-center gap-1 text-[13px] text-black/60 hover:text-black mb-6 transition-colors"
-          >
-            ‹ {article.category || 'News'}
-          </Link>
           <div className="text-sm text-black/70 leading-relaxed">
             {article.source && <p className="mb-1">{article.source}</p>}
             <p className="mb-1">By Rubina Veerakone</p>
