@@ -51,11 +51,11 @@ export function Footer() {
         </div>
         <div className="flex flex-col items-start lg:items-end gap-4">
           <div className="flex gap-4 text-black">
-            <button onClick={() => handleNavigate('X')} className="hover:text-black/60 transition-colors cursor-pointer">X</button>
-            <button onClick={() => handleNavigate('FB')} className="hover:text-black/60 transition-colors cursor-pointer">FB</button>
-            <button onClick={() => handleNavigate('IG')} className="hover:text-black/60 transition-colors cursor-pointer">IG</button>
-            <button onClick={() => handleNavigate('YT')} className="hover:text-black/60 transition-colors cursor-pointer">YT</button>
-            <button onClick={() => handleNavigate('RSS')} className="hover:text-black/60 transition-colors cursor-pointer">RSS</button>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">X</a>
+            <a href="https://www.facebook.com/elementsinteractive" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">FB</a>
+            <a href="https://www.instagram.com/elementsinteractive" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">IG</a>
+            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">YT</a>
+            <a href="https://www.linkedin.com/company/elements-interactive" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">LI</a>
           </div>
           <Link to="/" className="inline-flex items-center justify-center transition-transform hover:scale-105" aria-label="Home">
             <LogoIcon height={40} outlineColor="#000" />

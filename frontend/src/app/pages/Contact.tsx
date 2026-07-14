@@ -218,10 +218,10 @@ export function Contact() {
             Stay updated on our latest research, projects, and initiatives. Connect with us on social media.
           </p>
           <div className="flex justify-center gap-6">
-            <a href="#" className="text-white hover:text-[#E91E63] transition-colors font-semibold">Twitter</a>
-            <a href="#" className="text-white hover:text-[#E91E63] transition-colors font-semibold">Instagram</a>
-            <a href="#" className="text-white hover:text-[#E91E63] transition-colors font-semibold">LinkedIn</a>
-            <a href="#" className="text-white hover:text-[#E91E63] transition-colors font-semibold">YouTube</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#E91E63] transition-colors font-semibold">Twitter</a>
+            <a href="https://www.instagram.com/elementsinteractive" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#E91E63] transition-colors font-semibold">Instagram</a>
+            <a href="https://www.linkedin.com/company/elements-interactive" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#E91E63] transition-colors font-semibold">LinkedIn</a>
+            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#E91E63] transition-colors font-semibold">YouTube</a>
           </div>
         </div>
       </section>
