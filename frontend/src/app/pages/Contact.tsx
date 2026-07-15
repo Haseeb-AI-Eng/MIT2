@@ -98,14 +98,14 @@ export function Contact() {
                 </div>
 
                 <div>
-                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Phone num</p>
+                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Phone number</p>
                   <a href="tel:+92512099274" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
                     0092 51 2099274
                   </a>
                 </div>
 
                 <div>
-                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Whatsapp num</p>
+                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Whatsapp number</p>
                   <a href="https://wa.me/923349393264" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
                     0092 3349393264
                   </a>
