@@ -131,12 +131,6 @@ export function VRTourPage() {
         </div>
 
         <div className="relative mx-auto flex min-h-[360px] max-w-7xl flex-col justify-center px-6 py-16 text-center sm:min-h-[420px] md:px-10 md:py-20 lg:px-12 lg:py-24">
-          <div className="mb-6 flex justify-start">
-            <Link to="/" className="inline-flex items-center text-sm font-medium text-white/80 transition-colors hover:text-white">
-              ← Back to home
-            </Link>
-          </div>
-
           <div className="mx-auto max-w-3xl">
             <p className="mb-4 text-[11px] uppercase tracking-[0.35em] text-white/70">
               360 VR Tour
