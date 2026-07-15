@@ -198,7 +198,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                 <Linkedin className="w-3 h-3 md:w-5 md:h-5" strokeWidth={2} />
               </a>
               <a
-                href="https://twitter.com"
+                href="https://x.com/eiPakistan"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`p-1.5 md:p-2 rounded-full transition-colors ${

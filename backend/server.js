@@ -2325,19 +2325,8 @@ async function start() {
           `✅ Added ${synced} projects' leads/creators to team members`,
         );
 
-      await loadScraperModule();
-
-      const count = await articlesCollection.countDocuments();
-      if (count === 0) {
-        console.log(
-          "\n📭 Database empty. Running initial scrape in background...\n",
-        );
-        scrapeAll().catch(console.error);
-      } else {
-        console.log(`\n📊 Database has ${count} articles.`);
-      }
-
-      startCronJob();
+      // Scraping is disabled per request. No initial scrape or scheduled scraping will run.
+      console.log('\n⚠️ Article scraping is disabled. Skipping scraper startup.');
     } catch (err) {
       console.error("Background init error:", err);
     }
