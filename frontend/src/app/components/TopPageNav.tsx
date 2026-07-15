@@ -20,9 +20,9 @@ export function TopPageNav() {
   const activeSection = navItems.find((item) => routes[item] === location.pathname)?.toString() ?? 'Highlights';
 
   return (
-    <div className="sticky top-0 z-40 bg-white/60 backdrop-blur-lg border-b border-black/5">
+    <div className="relative z-40 bg-white/60 backdrop-blur-lg border-b border-black/5">
       <div className="mx-auto max-w-[1400px] px-6 md:px-8 lg:px-12">
-        <div className="flex min-w-0 flex-wrap md:flex-nowrap gap-3 md:gap-8 justify-center py-2 overflow-x-hidden whitespace-normal">
+        <div className="flex min-w-0 flex-wrap md:flex-nowrap gap-2 md:gap-8 justify-center py-3 whitespace-normal">
           {navItems.map((nav) => (
             <button
               key={nav}
