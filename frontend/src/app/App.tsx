@@ -34,9 +34,9 @@ interface LayoutProps {
 
 function Layout({ children, onMenuClick }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white overflow-x-clip">
       <Header onMenuClick={onMenuClick} />
-      <main className="w-full overflow-x-hidden">{children}</main>
+      <main className="w-full overflow-x-clip">{children}</main>
       <Footer />
     </div>
   );
@@ -44,9 +44,9 @@ function Layout({ children, onMenuClick }: LayoutProps) {
 
 function LayoutNoSidebar({ children, onMenuClick }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white overflow-x-clip">
       <Header onMenuClick={onMenuClick} />
-      <main className="w-full overflow-x-hidden">{children}</main>
+      <main className="w-full overflow-x-clip">{children}</main>
       <Footer />
     </div>
   );
@@ -60,8 +60,8 @@ export default function App() {
   const toggleNav = () => setIsNavOpen(true);
 
   return (
-    // ✅ Added overflow-x-hidden wrapper to prevent horizontal bleed from negative margins
-    <div className="overflow-x-hidden w-full">
+    // ✅ Added overflow-x-clip wrapper to prevent horizontal bleed without creating a second vertical scroll container
+    <div className="overflow-x-clip w-full">
       <ScrollToTop />
       <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
       <Routes>

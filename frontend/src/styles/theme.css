@@ -136,12 +136,32 @@
 
   html {
     font-size: var(--font-size);
+    /* Prevent the html element from creating its own scroll container
+       alongside body — this is the fix for the duplicate scrollbar. */
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    /* Reserve the scrollbar's space from the very first paint so the
+       browser never has to add/remove/repaint it when async content
+       (project grid, hero video) loads in and changes page height.
+       This is what causes the "two scrollbars at start, one after
+       scrolling" artifact. */
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
   }
 
   body {
     @apply bg-background text-foreground;
     /* Single source of truth for font — change --font-sans in :root to update everywhere */
     font-family: var(--font-sans);
+    /* body is the single source of vertical scroll for the page */
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
   }
 
   h1 {

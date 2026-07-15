@@ -215,8 +215,7 @@ export const Home = React.memo(function Home() {
   }, [filteredProjects]);
 
   return (
-    /* Fix 1: Add overflow-x-hidden to prevent horizontal overflow which often triggers double scrollbars */
-    <div className="relative overflow-x-hidden w-full">
+    <div className="relative w-full max-w-full overflow-x-clip">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section
         data-hero-section
@@ -241,10 +240,26 @@ export const Home = React.memo(function Home() {
       {/* ── Unified Grid Area ──────── */}
       <section className="relative w-full z-20">
         <TopPageNav />
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch auto-rows-auto grid-flow-dense w-full bg-white relative">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0 items-stretch auto-rows-auto grid-flow-dense w-full max-w-full min-w-0 bg-white relative">
           {/* Article Cards */}
           {loading && (
-            <div className="lg:col-start-2 lg:col-span-3 animate-pulse bg-black/5 h-64 m-6" />
+            /* Fix 2: Reserve roughly the same height as the loaded grid instead of a
+               short h-64 placeholder. This prevents the page from suddenly growing
+               taller once projects finish loading, which was causing the browser
+               to recalculate/repaint the scrollbar (the "two scrollbars at start,
+               one after scrolling" artifact). Spans the full grid width across all
+               breakpoints so it reserves the same footprint the real grid will use. */
+            <div
+              className="col-span-2 lg:col-span-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-0 animate-pulse"
+              aria-hidden="true"
+            >
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="col-span-1 h-[280px] sm:h-[320px] bg-black/5 border-b border-r border-black/5"
+                />
+              ))}
+            </div>
           )}
           {!loading && error && (
             <div className="lg:col-start-2 lg:col-span-3 text-red-600 px-6">Could not fetch latest projects.</div>
@@ -259,7 +274,7 @@ export const Home = React.memo(function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.35, ease: 'easeOut', delay: (index % 6) * 0.05 }}
-                className={`${getGridSpanClasses(colSpan, !!isRowStart, role, !!isFirstRow)} ${role === 'wide' || role === 'huge' ? 'row-span-2' : ''} h-full w-full border-b border-r border-black/5`}
+                className={`min-w-0 max-w-full ${getGridSpanClasses(colSpan, !!isRowStart, role, !!isFirstRow)} ${role === 'wide' || role === 'huge' ? 'row-span-2' : ''} h-full w-full border-b border-r border-black/5`}
                 style={role === 'wide' || role === 'huge' ? { gridRow: 'span 2' } : undefined}
               >
                 <NewsCard
