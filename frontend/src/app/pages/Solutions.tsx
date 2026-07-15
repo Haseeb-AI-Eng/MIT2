@@ -100,10 +100,9 @@ export function Solutions() {
       {/* Navigation Tabs */}
       <div className="sticky top-0 z-40 bg-white border-b border-black/10">
         <div className="mx-auto max-w-[1400px] px-6 md:px-8 lg:px-12">
-          <div className="flex gap-8 overflow-x-auto whitespace-nowrap py-4 scrollbar-hide">
+          <div className="flex justify-center gap-8 overflow-x-auto whitespace-nowrap py-4 scrollbar-hide">
             {tabs.map((tab) => (
               <button
-                key={tab}
                 onClick={() => setActiveTab(tab === 'All Solutions' ? 'all' : tab)}
                 className={`px-0 py-2 text-[13px] md:text-[14px] font-semibold transition-colors border-b-2 ${
                   activeTab === (tab === 'All Solutions' ? 'all' : tab)

@@ -225,12 +225,12 @@ export const Home = React.memo(function Home() {
         <div className="absolute inset-0">
           <HeroVideo />
         </div>
-        <div className="relative z-10 w-full max-w-[90vw] px-4 sm:px-6 pt-20 md:pt-24">
+        <div className="relative z-10 w-full max-w-[90vw] px-4 sm:px-6 pt-20 md:pt-24 text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="relative w-full text-[32px] sm:text-[36px] md:text-[42px] md:ml-36 leading-[1.0] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none font-sans font-bold"
+            className="relative w-full text-[32px] sm:text-[36px] md:text-[42px] leading-[1.0] sm:leading-tight px-0 md:px-8 max-w-full md:max-w-none font-sans font-bold"
             style={{ fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             Imagine what we can become.
