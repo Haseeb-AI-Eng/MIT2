@@ -99,8 +99,8 @@ export function Contact() {
 
                 <div>
                   <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Phone num</p>
-                  <a href="tel:+92512099117" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
-                    0092 51 2099117
+                  <a href="tel:+92512099274" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
+                    0092 51 2099274
                   </a>
                 </div>
 
