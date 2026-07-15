@@ -42,7 +42,7 @@ const alumniHighlights = [
 export function About() {
   return (
     <div className="min-h-screen bg-white">
-      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[320px] md:min-h-0 flex items-center">
+      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[50vh] md:min-h-0 flex items-center">
         {/* Background Layer */}
         <div className="absolute inset-0">
           <HeroVideo src="/hero-about.mp4" />
