@@ -179,10 +179,9 @@ export function AddResearchProject() {
         </div>
       </section>
       <section className="relative w-full overflow-visible">
-        <div className="flex w-full items-start gap-0">
-          <TopPageNav />
-          <div className="flex-1 min-w-0 w-full px-4 md:px-8 py-12">
-            <div className="mx-auto max-w-[1400px]">
+        <TopPageNav />
+        <div className="w-full px-4 md:px-8 py-12">
+          <div className="mx-auto max-w-[1400px]">
             <div className="mb-12">
               <p className="text-[12px] uppercase tracking-[0.24em] text-black/40 mb-2">New Project Form</p>
             </div>
@@ -339,7 +338,6 @@ export function AddResearchProject() {
             </div>
               </form>
             </Card>
-            </div>
           </div>
         </div>
       </section>
