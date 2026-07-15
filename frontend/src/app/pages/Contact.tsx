@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { HeroVideo } from './HeroVideo';
+import { TopPageNav } from '../components/TopPageNav';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -61,6 +62,8 @@ export function Contact() {
           </p>
         </div>
       </section>
+
+      <TopPageNav />
 
       {/* Contact Section */}
       <section className="relative w-full overflow-visible py-16 md:py-24">
