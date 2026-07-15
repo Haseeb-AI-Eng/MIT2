@@ -164,58 +164,58 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
           </Link>
 
           {/* Right side icons */}
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-1 md:gap-3">
             {/* Social Media Icons */}
-            <div className="flex items-center gap-2 md:gap-2 mr-2">
+            <div className="flex items-center gap-1 md:gap-2 mr-2">
               <a
                 href="https://www.facebook.com/elementsinteractive"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`p-2 rounded-full transition-colors ${
+                className={`p-1.5 md:p-2 rounded-full transition-colors ${
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Facebook className="w-5 h-5 md:w-4 md:h-4" strokeWidth={2} />
+                <Facebook className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
               </a>
               <a
                 href="https://www.instagram.com/elementsinteractive"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`p-2 rounded-full transition-colors ${
+                className={`p-1.5 md:p-2 rounded-full transition-colors ${
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Instagram className="w-5 h-5 md:w-4 md:h-4" strokeWidth={2} />
+                <Instagram className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
               </a>
               <a
                 href="https://www.linkedin.com/company/elements-interactive"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`p-2 rounded-full transition-colors ${
+                className={`p-1.5 md:p-2 rounded-full transition-colors ${
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Linkedin className="w-5 h-5 md:w-4 md:h-4" strokeWidth={2} />
+                <Linkedin className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
               </a>
               <a
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`p-2 rounded-full transition-colors ${
+                className={`p-1.5 md:p-2 rounded-full transition-colors ${
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Twitter className="w-5 h-5 md:w-4 md:h-4" strokeWidth={2} />
+                <Twitter className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
               </a>
             </div>
 
             <button
               onClick={() => setSearchOpen(true)}
-              className={`p-2 md:p-2.5 rounded-full transition-colors ${
+              className={`p-1.5 md:p-2.5 rounded-full transition-colors ${
                 isScrolled ? 'text-black font-bold hover:bg-black/5' : 'text-white hover:bg-white/10'
               }`}
             >
-              <Search className="w-5 h-5 md:w-5 md:h-5" strokeWidth={3.5} />
+              <Search className="w-4 h-4 md:w-5 md:h-5" strokeWidth={3.5} />
             </button>
 
             <button
