@@ -161,7 +161,7 @@ export function Research() {
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">
             EI research
           </p>
-          <h1 className="text-[32px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto">
+          <h1 className="text-[24px] sm:text-[28px] md:text-[52px] font-semibold leading-tight md:leading-[1.1] max-w-4xl mx-auto">
             We are an interdisciplinary research lab working to invent the future of{' '}
             <span
               className="text-[#FF0000] inline-block transition-opacity duration-300"

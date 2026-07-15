@@ -61,3 +61,15 @@
     column-count: 1;
   }
 }
+
+@media (max-width: 767px) {
+  [data-hero-section] h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.1 !important;
+  }
+
+  [data-hero-section] h2 {
+    font-size: 1.4rem !important;
+    line-height: 1.15 !important;
+  }
+}

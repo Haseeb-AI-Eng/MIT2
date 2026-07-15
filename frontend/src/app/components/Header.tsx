@@ -175,7 +175,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Facebook className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
+                <Facebook className="w-3 h-3 md:w-5 md:h-5" strokeWidth={2} />
               </a>
               <a
                 href="https://www.instagram.com/elementsinteractive"
@@ -185,7 +185,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Instagram className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
+                <Instagram className="w-3 h-3 md:w-5 md:h-5" strokeWidth={2} />
               </a>
               <a
                 href="https://www.linkedin.com/company/elements-interactive"
@@ -195,7 +195,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Linkedin className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
+                <Linkedin className="w-3 h-3 md:w-5 md:h-5" strokeWidth={2} />
               </a>
               <a
                 href="https://twitter.com"
@@ -205,7 +205,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Twitter className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2} />
+                <Twitter className="w-3 h-3 md:w-5 md:h-5" strokeWidth={2} />
               </a>
             </div>
 
@@ -215,7 +215,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                 isScrolled ? 'text-black font-bold hover:bg-black/5' : 'text-white hover:bg-white/10'
               }`}
             >
-              <Search className="w-4 h-4 md:w-5 md:h-5" strokeWidth={3.5} />
+              <Search className="w-3 h-3 md:w-5 md:h-5" strokeWidth={3.5} />
             </button>
 
             <button
@@ -224,7 +224,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                 isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
               }`}
             >
-              <Menu className="w-4 h-4 md:w-5 md:h-5" strokeWidth={4} />
+              <Menu className="w-3 h-3 md:w-5 md:h-5" strokeWidth={4} />
             </button>
 
             {/* Stacked wordmark: ELEMENTS / INTERACTIVE — color follows scroll state */}
@@ -236,13 +236,13 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
             >
               <span
                 ref={elementsTextRef}
-                className={`font-normal uppercase text-[19px] md:text-[28px] inline-block transition-colors duration-300 ${wordmarkColor}`}
+                className={`font-normal uppercase text-[15px] md:text-[28px] inline-block transition-colors duration-300 ${wordmarkColor}`}
               >
                 ELEMENTS
               </span>
               <span
                 ref={interactiveTextRef}
-                className={`font-normal uppercase text-[19px] md:text-[28px] inline-block transition-colors duration-300 ${wordmarkColor}`}
+                className={`font-normal uppercase text-[15px] md:text-[28px] inline-block transition-colors duration-300 ${wordmarkColor}`}
                 style={{ letterSpacing: '-0.035em' }}
               >
                 INTERACTIVE
