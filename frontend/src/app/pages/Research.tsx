@@ -149,7 +149,7 @@ export function Research() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[40vh] md:min-h-0 flex items-center justify-center">
+      <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[50vh] md:min-h-0 flex items-center justify-center">
         <img
           src="/image.gif"
           alt="Research hero"

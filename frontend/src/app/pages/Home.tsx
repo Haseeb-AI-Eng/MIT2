@@ -220,7 +220,7 @@ export const Home = React.memo(function Home() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section
         data-hero-section
-        className="relative w-full bg-black text-white aspect-auto md:aspect-[16/5] min-h-[40vh] md:min-h-0 flex items-center justify-center overflow-hidden z-0"
+        className="relative w-full bg-black text-white aspect-auto md:aspect-[16/5] min-h-[50vh] md:min-h-0 flex items-center justify-center overflow-hidden z-0"
       >
         <div className="absolute inset-0">
           <HeroVideo />
