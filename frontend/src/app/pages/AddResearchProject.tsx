@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -8,34 +8,18 @@ import { X } from 'lucide-react';
 import { getApiUrl, clientCacheInvalidate } from '../api';
 import { TopPageNav } from '../components/TopPageNav';
 
-function compressImage(file: File, maxWidth = 600, maxHeight = 450, quality = 0.6): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      let { width, height } = img;
-      if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return reject(new Error('Canvas not supported'));
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
-}
 export function AddResearchProject() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [videoUploading, setVideoUploading] = useState(false);
+  const [pexelsQuery, setPexelsQuery] = useState('elements interactive');
+  const [pexelsImages, setPexelsImages] = useState([]);
+  const [pexelsPage, setPexelsPage] = useState(1);
+  const [pexelsTotal, setPexelsTotal] = useState(0);
+  const [pexelsLoading, setPexelsLoading] = useState(false);
+  const [pexelsError, setPexelsError] = useState(null);
+  const PEXELS_API_KEY = (import.meta as any).env?.VITE_PEXELS_API_KEY || 'owQSKPi8JGkbR2MiYPWL27S4SK9BbGXfC10gdWBtuSpmf5BADUkD1CP0';
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -47,9 +31,9 @@ export function AddResearchProject() {
     videoUrl: '',
     teamMembers: [{ name: '', role: '' }],
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [imagePreview, setImagePreview] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!formData.image) {
       alert('Please upload a project image.');
@@ -69,7 +53,7 @@ export function AddResearchProject() {
           lead: formData.lead,
           email: formData.email,
           videoUrl: formData.videoUrl,
-          teamMembers: formData.teamMembers.filter((m) => m.name.trim()),
+          teamMembers: formData.teamMembers.filter((member: any) => member.name.trim()),
         }),
       });
       if (!response.ok) {
@@ -95,29 +79,10 @@ export function AddResearchProject() {
       setLoading(false);
     }
   };
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Image is too large. Please upload an image under 10MB.');
-      e.target.value = '';
-      return;
-    }
-    try {
-      const compressed = await compressImage(file, 800, 600, 0.72);
-      setImagePreview(compressed);
-      setFormData((prev) => ({ ...prev, image: compressed }));
-    } catch {
-      alert('Failed to process image. Please try a different file.');
-      e.target.value = '';
-    }
-  };
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoUpload = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 100 * 1024 * 1024) {
@@ -137,18 +102,18 @@ export function AddResearchProject() {
       });
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
-      setFormData((prev) => ({ ...prev, videoUrl: data.videoUrl }));
+      setFormData({ ...formData, videoUrl: data.videoUrl });
     } catch (err) {
       console.error('Video upload error:', err);
       alert('Failed to upload video. Please try again or paste a video URL below.');
       setVideoPreview(null);
-      setFormData((prev) => ({ ...prev, videoUrl: '' }));
+      setFormData({ ...formData, videoUrl: '' });
       e.target.value = '';
     } finally {
       setVideoUploading(false);
     }
   };
-  const handleTeamMemberChange = (index: number, field: 'name' | 'role', value: string) => {
+  const handleTeamMemberChange = (index: any, field: any, value: any) => {
     const newMembers = [...formData.teamMembers];
     newMembers[index] = { ...newMembers[index], [field]: value };
     setFormData({ ...formData, teamMembers: newMembers });
@@ -156,8 +121,52 @@ export function AddResearchProject() {
   const addTeamMember = () => {
     setFormData({ ...formData, teamMembers: [...formData.teamMembers, { name: '', role: '' }] });
   };
-  const removeTeamMember = (index: number) => {
-    setFormData({ ...formData, teamMembers: formData.teamMembers.filter((_, i) => i !== index) });
+
+  const handlePexelsImageSearch = async (query = pexelsQuery, page = 1, append = false) => {
+    if (!query.trim()) {
+      setPexelsError('Please enter a search term.');
+      return;
+    }
+
+    setPexelsLoading(true);
+    setPexelsError(null);
+
+    try {
+      const res = await fetch(
+        `https://api.pexels.com/v1/search?query=${encodeURIComponent(query.trim())}&per_page=80&page=${page}`,
+        {
+          headers: {
+            Authorization: PEXELS_API_KEY,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`Pexels search failed (${res.status})`);
+      }
+
+      const data = await res.json();
+      setPexelsImages((prev) => (append ? [...prev, ...(data.photos || [])] : data.photos || []));
+      setPexelsPage(data.page || page);
+      setPexelsTotal(data.total_results || 0);
+    } catch (error: any) {
+      console.error('Pexels search error:', error);
+      setPexelsError(error?.message || 'Unable to load Pexels images.');
+    } finally {
+      setPexelsLoading(false);
+    }
+  };
+
+  const handlePexelsSelect = (imageUrl) => {
+    setImagePreview(imageUrl);
+    setFormData({ ...formData, image: imageUrl });
+  };
+
+  useEffect(() => {
+    handlePexelsImageSearch(pexelsQuery, 1, false);
+  }, []);
+  const removeTeamMember = (index: any) => {
+    setFormData({ ...formData, teamMembers: formData.teamMembers.filter((member: any, i: any) => i !== index) });
   };
   return (
     <div className="min-h-screen bg-white">
@@ -279,24 +288,75 @@ export function AddResearchProject() {
               </div>
               <div className="lg:col-span-1">
                 <div>
-                  <label htmlFor="image" className="block text-sm font-medium mb-2">
-                    Project Image * <span className="text-gray-400 font-normal">(auto-compressed)</span>
+                  <label htmlFor="pexelsSearch" className="block text-sm font-medium mb-2">
+                    Project Image * <span className="text-gray-400 font-normal">(choose from Pexels)</span>
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-gray-400 transition">
-                    <input id="image" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                    <label htmlFor="image" className="cursor-pointer block">
-                      {imagePreview ? (
-                        <div className="space-y-2">
-                          <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
-                          <p className="text-xs text-gray-500">Click to change image</p>
-                        </div>
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Input
+                        id="pexelsSearch"
+                        name="pexelsSearch"
+                        value={pexelsQuery}
+                        onChange={(e) => setPexelsQuery(e.target.value)}
+                        placeholder="Search Pexels images"
+                        className="flex-1"
+                      />
+                      <Button type="button" onClick={() => handlePexelsImageSearch(pexelsQuery)} disabled={pexelsLoading}>
+                        Search
+                      </Button>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 p-4 bg-white">
+                      {pexelsLoading ? (
+                        <p className="text-sm text-gray-600">Loading images…</p>
+                      ) : pexelsError ? (
+                        <p className="text-sm text-red-600">{pexelsError}</p>
+                      ) : pexelsImages.length === 0 ? (
+                        <p className="text-sm text-gray-600">No images found. Try a different term.</p>
                       ) : (
-                        <div className="py-8">
-                          <p className="text-sm font-medium text-gray-700">Upload image</p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG or GIF (auto-compressed for fast loading)</p>
+                        <>
+                          <div className="mb-3 flex items-center justify-between text-xs text-gray-600">
+                            <span>{pexelsTotal.toLocaleString()} results</span>
+                            <span>Page {pexelsPage}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 max-h-[360px] overflow-y-auto">
+                            {pexelsImages.map((photo) => (
+                              <button
+                                key={photo.id}
+                                type="button"
+                                onClick={() => handlePexelsSelect(photo.src.medium)}
+                                className="block rounded-lg overflow-hidden border transition hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <img src={photo.src.medium} alt={photo.alt || 'Pexels image'} className="w-full h-28 object-cover" />
+                              </button>
+                            ))}
+                          </div>
+                          {pexelsImages.length < pexelsTotal && (
+                            <div className="mt-3 text-center">
+                              <Button
+                                type="button"
+                                onClick={() => handlePexelsImageSearch(pexelsQuery, pexelsPage + 1, true)}
+                                disabled={pexelsLoading}
+                                className="w-full"
+                              >
+                                Load more images
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className="border rounded-lg overflow-hidden">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Selected project" className="w-full h-60 object-cover" />
+                      ) : (
+                        <div className="h-60 flex items-center justify-center bg-gray-50 text-gray-500">
+                          Select an image from the Pexels results above.
                         </div>
                       )}
-                    </label>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Images are loaded directly from Pexels. If you want specific photos from the Elements Interactive gallery, search terms like "elements interactive", "mixed reality", or "creative studio".
+                    </p>
                   </div>
                 </div>
               </div>
