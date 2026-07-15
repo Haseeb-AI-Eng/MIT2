@@ -77,25 +77,47 @@ export function Contact() {
 
               <div className="space-y-6">
                 <div>
-                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Email</p>
-                  <a href="mailto:hello@elementslabs.com" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
-                    hello@elementslabs.com
+                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">For Info Email</p>
+                  <a href="mailto:info@elementsinteractive.pk" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
+                    info@elementsinteractive.pk
+                  </a>
+                </div>
+
+                <div>
+                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">For Talent Registration</p>
+                  <a href="mailto:talent@elementsinteractive.pk" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
+                    talent@elementsinteractive.pk
+                  </a>
+                </div>
+
+                <div>
+                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">For Job Openings</p>
+                  <a href="mailto:hr@elementsinteractive.pk" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
+                    hr@elementsinteractive.pk
                   </a>
                 </div>
 
                 <div>
                   <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Phone</p>
-                  <a href="tel:+1234567890" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
-                    +1 (234) 567-890
+                  <a href="tel:+92512099117" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
+                    0092 51 2099117
                   </a>
                 </div>
 
                 <div>
-                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Address</p>
+                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">WhatsApp</p>
+                  <a href="https://wa.me/923349393264" className="text-[16px] text-black hover:text-[#E91E63] transition-colors font-semibold">
+                    0092 3349393264
+                  </a>
+                </div>
+
+                <div>
+                  <p className="text-[12px] uppercase tracking-[0.2em] text-black/50 mb-2">Address (Pakistan)</p>
                   <p className="text-[16px] text-black">
-                    School of Architecture + Planning<br />
-                    Elements Interactive Institute<br />
-                    Cambridge, MA 02139
+                    Elements Interactive<br />
+                    M-13, 2nd Floor, Emirates Tower, F-7 Markaz<br />
+                    Islamabad<br />
+                    Pakistan
                   </p>
                 </div>
 
