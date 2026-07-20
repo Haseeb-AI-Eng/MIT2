@@ -162,6 +162,15 @@ function parseProjectDescription(description: string) {
 
   const headingPrefixRegex = new RegExp(`^(${[...headingKeywords].map((keyword) => keyword.replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&')).join('|')})(?:\s*:\s*|\s+)(.*)$`, 'i');
   const genericHeadingPrefixRegex = /^([A-Z][A-Za-z\s]{2,}?):\s*(.*)$/;
+  const titleCaseHeadingRegex = /^[A-Z][A-Za-z0-9&'’\-]*(?:\s+[A-Z][A-Za-z0-9&'’\-]*){1,4}$/;
+
+  const isTitleCaseHeadingLine = (line: string) => {
+    const trimmed = line.trim();
+    if (trimmed.length > 45) return false;
+    if (/[.!?]$/.test(trimmed)) return false;
+    const words = trimmed.split(/\s+/);
+    return words.length >= 2 && words.length <= 5 && titleCaseHeadingRegex.test(trimmed);
+  };
 
   const isHeadingLine = (line: string) => {
     const trimmed = line.trim();
@@ -170,7 +179,8 @@ function parseProjectDescription(description: string) {
       headingKeywords.has(trimmed.replace(/:$/, '')) ||
       headingPrefixRegex.test(trimmed) ||
       genericHeadingPrefixRegex.test(trimmed) ||
-      /^[A-Z\s]{3,}$/.test(trimmed)
+      /^[A-Z\s]{3,}$/.test(trimmed) ||
+      isTitleCaseHeadingLine(trimmed)
     );
   };
 
@@ -188,11 +198,27 @@ function parseProjectDescription(description: string) {
 
   const cleanHeading = (line: string) => line.replace(/^(#{1,6})\s+/, '').replace(/:$/, '').trim();
 
+  const mergeSpecificTitleSubtitleLines = (lines: string[]) => {
+    if (lines.length >= 2) {
+      const normalizedTitle = lines[0].replace(/^#{1,6}\s*/, '').replace(/:$/, '').trim();
+      const normalizedSubtitle = lines[1].trim();
+      if (
+        /^The Unseen Gaze$/i.test(normalizedTitle) &&
+        /^Elements Interactive,\s*Pexels,\s*and Pakistan['’]s Digital Visual Narrative$/i.test(normalizedSubtitle)
+      ) {
+        return lines.slice(2);
+      }
+    }
+    return lines;
+  };
+
   return rawBlocks.flatMap((block) => {
-    const lines = block
+    let lines = block
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean);
+
+    lines = mergeSpecificTitleSubtitleLines(lines);
 
     if (lines.length === 0) return [];
 
@@ -402,8 +428,36 @@ export function ProjectDetail() {
     explicitReferences.length > 0
       ? { body: project.description || '', references: [] as string[] }
       : splitDescriptionReferences(project.description || '');
+  const sanitizedDescriptionBody =
+    project.title === 'The Unseen Gaze'
+      ? descriptionBody
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .filter((line, idx) => {
+            if (idx === 0 && /^#{1,6}\s*The Unseen Gaze:?$/i.test(line)) {
+              return false;
+            }
+            if (
+              idx === 1 &&
+              /^Elements Interactive,\s*Pexels,\s*and Pakistan['’]s Digital Visual Narrative$/i.test(line)
+            ) {
+              return false;
+            }
+            return true;
+          })
+          .join('\n')
+      : descriptionBody;
   const referenceItems = explicitReferences.length > 0 ? explicitReferences : inlineReferences;
-  const descriptionSections = parseProjectDescription(descriptionBody);
+  const descriptionSections = parseProjectDescription(sanitizedDescriptionBody);
+  const displayTitle = project.title;
+  const detailSubtitle =
+    project.title === 'The Unseen Gaze'
+      ? 'Elements Interactive, Pexels, and Pakistan’s Digital Visual Narrative'
+      : (project.subtitle || project.shortDescription) &&
+        (project.subtitle || project.shortDescription) !== project.title
+      ? project.subtitle || project.shortDescription
+      : '';
 
   const videoSrc = project.videoUrl || '/16521670-hd_1920_1080_25fps.mp4';
 
@@ -573,9 +627,14 @@ export function ProjectDetail() {
           </button>
 
           <div className="mb-10">
-            <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-5 text-left">
-              {project.subtitle || project.shortDescription || project.title}
+            <p className={`text-[17px] md:text-[19px] leading-snug mb-2 text-left ${project.title === 'The Unseen Gaze' ? 'font-normal' : 'font-bold'}`}>
+              {displayTitle}
             </p>
+            {detailSubtitle ? (
+              <p className="text-[15px] md:text-[16px] italic text-black/70 mb-5">
+                {detailSubtitle}
+              </p>
+            ) : null}
             {descriptionSections.length > 0 && (
               <div className="space-y-8 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
                 {descriptionSections.map((section, idx) => {

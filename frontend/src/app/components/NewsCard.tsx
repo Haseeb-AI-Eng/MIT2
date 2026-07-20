@@ -35,6 +35,92 @@ function trimText(text: string, maxChars: number = 200): string {
   return text;
 }
 
+const HEADING_KEYWORDS = new Set([
+  'Narrative',
+  'Abstract',
+  'Introduction',
+  'Community Service',
+  'Conceptual Framework',
+  'Visual Representation and Social Semiotics',
+  'Nation Branding, Soft Power, and Platform Circulation',
+  'Elements Interactive on Pexels as a Case Study',
+  'Research Opportunities for Media Students',
+  'Semiotic and Content Analysis',
+  'Research Opportunities for Technology Students',
+  'Metadata, APIs, and Data Collection',
+  'Discussion',
+  'Background',
+  'Methodology',
+  'Results',
+  'Conclusion',
+  'Summary',
+]);
+
+function getAdjustedNewsCardText(title: string, description?: string) {
+  const mergedTitle = 'The Unseen Gaze: Elements Interactive, Pexels, and Pakistan’s Digital Visual Narrative';
+  const expectedSubtitle = 'Elements Interactive, Pexels, and Pakistan’s Digital Visual Narrative';
+  if (!description) return { title, description };
+
+  const normalized = description.replace(/\r\n/g, '\n').trim();
+  const lines = normalized.split('\n').map((line) => line.trim()).filter(Boolean);
+  if (title === 'The Unseen Gaze' && lines[0] === expectedSubtitle) {
+    return {
+      title: mergedTitle,
+      description: lines.slice(1).join(' '),
+    };
+  }
+
+  return { title, description };
+}
+
+function isTitleCaseHeadingLine(line: string) {
+  const trimmed = line.trim();
+  if (trimmed.length > 45) return false;
+  if (/[.!?]$/.test(trimmed)) return false;
+  const words = trimmed.split(/\s+/);
+  return words.length >= 2 && words.length <= 5 && /^[A-Z][A-Za-z0-9&'’\-]*(?:\s+[A-Z][A-Za-z0-9&'’\-]*){1,4}$/.test(trimmed);
+}
+
+function parseNewsCardPreview(description?: string) {
+  if (!description) return { heading: '', text: '' };
+
+  const normalized = description.replace(/\r\n/g, '\n').trim();
+  const lines = normalized.split('\n').map((line) => line.trim()).filter(Boolean);
+  if (lines.length === 0) return { heading: '', text: '' };
+
+  const headingRegex = new RegExp(
+    `^(${[...HEADING_KEYWORDS].map((keyword) => keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?::)?(?:\\s+(.+))?$`,
+    'i'
+  );
+
+  let heading = '';
+  let headingLineRest = '';
+  let headingLineIndex = -1;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const match = lines[i].match(headingRegex);
+    if (match) {
+      heading = match[1].trim();
+      headingLineRest = match[2]?.trim() || '';
+      headingLineIndex = i;
+      break;
+    }
+    if (HEADING_KEYWORDS.has(lines[i]) || isTitleCaseHeadingLine(lines[i])) {
+      heading = lines[i];
+      headingLineRest = '';
+      headingLineIndex = i;
+      break;
+    }
+  }
+
+  if (headingLineIndex === -1) {
+    return { heading: '', text: lines.join(' ') };
+  }
+
+  const remainingLines = [headingLineRest, ...lines.slice(headingLineIndex + 1)].filter(Boolean);
+  return { heading, text: remainingLines.join(' ') };
+}
+
 // ── Fixed image heights per breakpoint, per role ──────────────────────────
 // Using a fixed pixel height (rather than aspect-square, which scales with
 // the container's *width*) is what actually guarantees every card in a row
@@ -78,7 +164,11 @@ function NewsCardComponent(props: NewsCardProps) {
     aspect = 'normal',
     onClick,
   } = props;
-  const trimmedDescription = description ? trimText(description) : undefined;
+  const adjusted = getAdjustedNewsCardText(title, description);
+  const preview = parseNewsCardPreview(adjusted.description);
+  const trimmedDescription = preview.text ? trimText(preview.text) : undefined;
+  const displayTitle = adjusted.title;
+  const previewHeading = preview.heading;
 
   // Sometimes uploaded videos are stored inside the image/coverImage field.
   const resolvedVideoUrl = videoUrl || (isVideoMedia(image) ? image : '');
@@ -150,8 +240,13 @@ function NewsCardComponent(props: NewsCardProps) {
           }`}
           style={{ fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif" }}
         >
-          {title}
+          {displayTitle}
         </h3>
+        {previewHeading && (
+          <p className="text-[13px] uppercase tracking-[0.2em] text-slate-900 font-bold mb-1">
+            {previewHeading}
+          </p>
+        )}
         {trimmedDescription && (
           <p
             className={`font-sans text-black/75 group-hover:text-[#199BD8] transition-colors duration-200 line-clamp-3 ${
