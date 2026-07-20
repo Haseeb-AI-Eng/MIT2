@@ -13,11 +13,13 @@ export function AddResearchProject() {
   const [loading, setLoading] = useState(false);
   const [videoUploading, setVideoUploading] = useState(false);
   const [pexelsQuery, setPexelsQuery] = useState('elements interactive');
-  const [pexelsImages, setPexelsImages] = useState([]);
+  const [pexelsMediaType, setPexelsMediaType] = useState<'image' | 'video'>('image');
+  const [pexelsResults, setPexelsResults] = useState<any[]>([]);
   const [pexelsPage, setPexelsPage] = useState(1);
   const [pexelsTotal, setPexelsTotal] = useState(0);
   const [pexelsLoading, setPexelsLoading] = useState(false);
   const [pexelsError, setPexelsError] = useState(null);
+  const [selectedPexelsVideo, setSelectedPexelsVideo] = useState<any>(null);
   const PEXELS_API_KEY = (import.meta as any).env?.VITE_PEXELS_API_KEY || 'owQSKPi8JGkbR2MiYPWL27S4SK9BbGXfC10gdWBtuSpmf5BADUkD1CP0';
 
   const [formData, setFormData] = useState({
@@ -122,7 +124,7 @@ export function AddResearchProject() {
     setFormData({ ...formData, teamMembers: [...formData.teamMembers, { name: '', role: '' }] });
   };
 
-  const handlePexelsImageSearch = async (query = pexelsQuery, page = 1, append = false) => {
+  const handlePexelsSearch = async (query = pexelsQuery, page = 1, append = false) => {
     if (!query.trim()) {
       setPexelsError('Please enter a search term.');
       return;
@@ -130,40 +132,56 @@ export function AddResearchProject() {
 
     setPexelsLoading(true);
     setPexelsError(null);
+    setSelectedPexelsVideo(null);
 
     try {
-      const res = await fetch(
-        `https://api.pexels.com/v1/search?query=${encodeURIComponent(query.trim())}&per_page=80&page=${page}`,
-        {
-          headers: {
-            Authorization: PEXELS_API_KEY,
-          },
-        }
-      );
+      const endpoint =
+        pexelsMediaType === 'video'
+          ? `https://api.pexels.com/videos/search?query=${encodeURIComponent(query.trim())}&per_page=40&page=${page}`
+          : `https://api.pexels.com/v1/search?query=${encodeURIComponent(query.trim())}&per_page=80&page=${page}`;
+
+      const res = await fetch(endpoint, {
+        headers: {
+          Authorization: PEXELS_API_KEY,
+        },
+      });
 
       if (!res.ok) {
         throw new Error(`Pexels search failed (${res.status})`);
       }
 
       const data = await res.json();
-      setPexelsImages((prev) => (append ? [...prev, ...(data.photos || [])] : data.photos || []));
+      const items = pexelsMediaType === 'video' ? data.videos || [] : data.photos || [];
+      setPexelsResults((prev) => (append ? [...prev, ...items] : items));
       setPexelsPage(data.page || page);
       setPexelsTotal(data.total_results || 0);
     } catch (error: any) {
       console.error('Pexels search error:', error);
-      setPexelsError(error?.message || 'Unable to load Pexels images.');
+      setPexelsError(error?.message || 'Unable to load Pexels media.');
     } finally {
       setPexelsLoading(false);
     }
   };
 
-  const handlePexelsSelect = (imageUrl) => {
-    setImagePreview(imageUrl);
-    setFormData({ ...formData, image: imageUrl });
+  const handlePexelsSelect = (item: any) => {
+    if (pexelsMediaType === 'video') {
+      const videoFile = (item.video_files || []).find((file: any) => file.file_type === 'video/mp4') || item.video_files?.[0];
+      if (!videoFile) {
+        alert('Could not load the selected video file.');
+        return;
+      }
+      setSelectedPexelsVideo(videoFile);
+      setVideoPreview(videoFile.link);
+      setFormData({ ...formData, videoUrl: videoFile.link });
+    } else {
+      const imageUrl = item.src?.medium || item.src?.original || item.src?.large;
+      setImagePreview(imageUrl);
+      setFormData({ ...formData, image: imageUrl });
+    }
   };
 
   useEffect(() => {
-    handlePexelsImageSearch(pexelsQuery, 1, false);
+    handlePexelsSearch(pexelsQuery, 1, false);
   }, []);
   const removeTeamMember = (index: any) => {
     setFormData({ ...formData, teamMembers: formData.teamMembers.filter((member: any, i: any) => i !== index) });
@@ -292,26 +310,36 @@ export function AddResearchProject() {
                     Project Image * <span className="text-gray-400 font-normal">(choose from Pexels)</span>
                   </label>
                   <div className="space-y-4">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-col sm:flex-row">
                       <Input
                         id="pexelsSearch"
                         name="pexelsSearch"
                         value={pexelsQuery}
                         onChange={(e) => setPexelsQuery(e.target.value)}
-                        placeholder="Search Pexels images"
+                        placeholder="Search Pexels media"
                         className="flex-1"
                       />
-                      <Button type="button" onClick={() => handlePexelsImageSearch(pexelsQuery)} disabled={pexelsLoading}>
-                        Search
-                      </Button>
+                      <div className="flex gap-2">
+                        <select
+                          value={pexelsMediaType}
+                          onChange={(e) => setPexelsMediaType(e.target.value as 'image' | 'video')}
+                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="image">Images</option>
+                          <option value="video">Videos</option>
+                        </select>
+                        <Button type="button" onClick={() => handlePexelsSearch(pexelsQuery)} disabled={pexelsLoading}>
+                          Search
+                        </Button>
+                      </div>
                     </div>
                     <div className="rounded-lg border border-gray-200 p-4 bg-white">
                       {pexelsLoading ? (
-                        <p className="text-sm text-gray-600">Loading images…</p>
+                        <p className="text-sm text-gray-600">Loading media…</p>
                       ) : pexelsError ? (
                         <p className="text-sm text-red-600">{pexelsError}</p>
-                      ) : pexelsImages.length === 0 ? (
-                        <p className="text-sm text-gray-600">No images found. Try a different term.</p>
+                      ) : pexelsResults.length === 0 ? (
+                        <p className="text-sm text-gray-600">No media found. Try a different term.</p>
                       ) : (
                         <>
                           <div className="mb-3 flex items-center justify-between text-xs text-gray-600">
@@ -319,26 +347,39 @@ export function AddResearchProject() {
                             <span>Page {pexelsPage}</span>
                           </div>
                           <div className="grid grid-cols-2 gap-2 max-h-[360px] overflow-y-auto">
-                            {pexelsImages.map((photo) => (
+                            {pexelsResults.map((item) => (
                               <button
-                                key={photo.id}
+                                key={item.id}
                                 type="button"
-                                onClick={() => handlePexelsSelect(photo.src.medium)}
+                                onClick={() => handlePexelsSelect(item)}
                                 className="block rounded-lg overflow-hidden border transition hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                               >
-                                <img src={photo.src.medium} alt={photo.alt || 'Pexels image'} className="w-full h-28 object-cover" />
+                                {pexelsMediaType === 'video' ? (
+                                  <div className="relative h-28 bg-black/5 flex items-center justify-center">
+                                    <img
+                                      src={item.image}
+                                      alt={item.user?.name || 'Pexels video'}
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <span className="absolute inset-0 flex items-center justify-center text-white text-xl bg-black/30">
+                                      ▶
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <img src={item.src.medium} alt={item.alt || 'Pexels image'} className="w-full h-28 object-cover" />
+                                )}
                               </button>
                             ))}
                           </div>
-                          {pexelsImages.length < pexelsTotal && (
+                          {pexelsResults.length < pexelsTotal && (
                             <div className="mt-3 text-center">
                               <Button
                                 type="button"
-                                onClick={() => handlePexelsImageSearch(pexelsQuery, pexelsPage + 1, true)}
+                                onClick={() => handlePexelsSearch(pexelsQuery, pexelsPage + 1, true)}
                                 disabled={pexelsLoading}
                                 className="w-full"
                               >
-                                Load more images
+                                Load more
                               </Button>
                             </div>
                           )}
