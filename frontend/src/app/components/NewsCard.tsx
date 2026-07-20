@@ -52,6 +52,20 @@ const FEATURED_IMAGE_HEIGHT = 'h-[180px] sm:h-[300px] md:h-[380px] lg:h-[500px]'
 const NORMAL_TEXT_HEIGHT = 'min-h-[150px] sm:min-h-[160px]';
 const FEATURED_TEXT_HEIGHT = 'min-h-[170px] sm:min-h-[190px]';
 
+function isVideoMedia(url?: string): boolean {
+  if (!url) return false;
+
+  const cleanUrl = url.toLowerCase().split('?')[0].replace(/\/+$/, '');
+
+  if (/\.(mp4|webm|ogg|mov|m4v)$/i.test(cleanUrl)) return true;
+  if (cleanUrl.includes('/video/upload/')) return true;
+  if (cleanUrl.startsWith('data:video/')) return true;
+  if (cleanUrl.includes('/pexels.com/video/') || cleanUrl.includes('/videos.pexels.com/')) return true;
+  if (/\/video\//.test(cleanUrl) && !/\.(jpe?g|png|gif|svg|webp)$/i.test(cleanUrl)) return true;
+
+  return false;
+}
+
 function NewsCardComponent(props: NewsCardProps) {
   const {
     image,
@@ -65,6 +79,10 @@ function NewsCardComponent(props: NewsCardProps) {
     onClick,
   } = props;
   const trimmedDescription = description ? trimText(description) : undefined;
+
+  // Sometimes uploaded videos are stored inside the image/coverImage field.
+  const resolvedVideoUrl = videoUrl || (isVideoMedia(image) ? image : '');
+  const resolvedImage = resolvedVideoUrl === image ? '' : image || '';
 
   const isFeatured = aspect === 'wide' || aspect === 'side';
   const imageHeightClass = isFeatured ? FEATURED_IMAGE_HEIGHT : NORMAL_IMAGE_HEIGHT;
@@ -84,30 +102,30 @@ function NewsCardComponent(props: NewsCardProps) {
       <div
         className={`relative overflow-hidden bg-gray-100 flex-shrink-0 w-full ${imageHeightClass}`}
       >
-        {videoUrl ? (
+        {resolvedVideoUrl ? (
           <video
             className="absolute inset-0 w-full h-full object-cover"
-            src={videoUrl}
+            src={resolvedVideoUrl}
             muted
             loop
             playsInline
             autoPlay
             preload="metadata"
-            poster={image || undefined}
+            poster={resolvedImage || undefined}
           />
         ) : (
           <ImageWithFallback
-            src={image || ''}
+            src={resolvedImage}
             alt={title}
             loading="lazy"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
           />
         )}
-        {videoUrl && (
+        {resolvedVideoUrl && (
           <div className="absolute inset-0 bg-black/20 pointer-events-none" />
         )}
         <div className="absolute left-3 bottom-3 z-20">
-          <ProjectCardLogo label={category || title} />
+          <ProjectCardLogo />
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#199BD8] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left z-10" />
         <div className="absolute left-[45%] bottom-0 -translate-x-1/2 translate-y-1/2 h-0 w-0 border-l-[18px] border-r-[18px] border-b-[18px] border-l-transparent border-r-transparent group-hover:border-b-[#199BD8] border-b-white transition-colors duration-500 pointer-events-none z-20" />

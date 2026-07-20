@@ -645,7 +645,6 @@ app.get("/api/projects/fast", async (req, res) => {
               teamCount: 1,
               hasImage: 1,
               videoUrl: 1,
-              video_url: "$videoUrl",
             },
           },
         ])
@@ -769,6 +768,7 @@ app.get("/api/projects", async (req, res) => {
               false,
             ],
           },
+          videoUrl: 1,
         },
       },
     ];
@@ -2328,7 +2328,9 @@ async function start() {
         );
 
       // Scraping is disabled per request. No initial scrape or scheduled scraping will run.
-      console.log('\n⚠️ Article scraping is disabled. Skipping scraper startup.');
+      console.log(
+        "\n⚠️ Article scraping is disabled. Skipping scraper startup.",
+      );
     } catch (err) {
       console.error("Background init error:", err);
     }
