@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { fetchProjectByIdOrSlug } from '../api';
@@ -24,6 +24,98 @@ function makeLogoText(text: string) {
     .filter(Boolean)
     .map((word) => word[0].toUpperCase());
   return parts.slice(0, 2).join('') || text.slice(0, 2).toUpperCase();
+}
+
+function normalizeProjectReferences(project: any): string[] {
+  const values = [] as string[];
+  const preferredFields = [
+    'references',
+    'articles',
+    'sources',
+    'bibliography',
+    'citations',
+  ];
+
+  for (const field of preferredFields) {
+    const item = project?.[field];
+    if (!item) continue;
+    if (Array.isArray(item)) {
+      values.push(...item.filter(Boolean).map(String));
+      break;
+    }
+    if (typeof item === 'string') {
+      values.push(...item
+        .split(/\r?\n|\s*\u2022\s*|;\s*/)
+        .map((line) => line.trim())
+        .filter(Boolean));
+      break;
+    }
+  }
+
+  return values;
+}
+
+// ── Fallback: pull references out of `description` itself ──────────────────
+// Some projects don't have a dedicated references/bibliography field — the
+// citation list was just pasted straight into the description, all as one
+// run-on paragraph. This looks for the short "header" that typically opens
+// an APA-style reference entry (e.g. "Bezemer, J., & Kress, G. (2008)." or
+// "Elements Interactive. (n.d.).") and, if it finds at least two of them,
+// treats everything from the first one onward as a references block and
+// splits it into individual bullet entries. A single "(2024)." appearing in
+// ordinary prose won't trigger this — it takes two or more to look like an
+// actual reference list rather than a coincidental year in parentheses.
+const CITATION_HEADER_REGEX = /[A-Z][A-Za-z.,&'’\-\s]{0,80}?\((?:\d{4}[a-z]?|n\.d\.)\)\./g;
+
+function splitDescriptionReferences(description: string): { body: string; references: string[] } {
+  if (!description) return { body: description || '', references: [] };
+
+  const starts: number[] = [];
+  const regex = new RegExp(CITATION_HEADER_REGEX);
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(description)) !== null) {
+    starts.push(match.index);
+    if (match.index === regex.lastIndex) regex.lastIndex += 1; // guard against zero-length matches
+  }
+
+  if (starts.length < 2) {
+    return { body: description, references: [] };
+  }
+
+  const refStart = starts[0];
+  const body = description.slice(0, refStart).trim();
+  const references: string[] = [];
+  for (let i = 0; i < starts.length; i++) {
+    const start = starts[i];
+    const end = i + 1 < starts.length ? starts[i + 1] : description.length;
+    const entry = description.slice(start, end).trim();
+    if (entry) references.push(entry);
+  }
+
+  return { body, references };
+}
+
+// Renders a block of text with any bare URLs turned into clickable links —
+// used for reference entries, since citations often end in a raw link
+// (e.g. "... https://doi.org/10.1080/...").
+function linkifyText(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) =>
+    /^https?:\/\//.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline break-all hover:text-blue-800"
+      >
+        {part}
+      </a>
+    ) : (
+      <Fragment key={i}>{part}</Fragment>
+    )
+  );
 }
 
 function ProjectIcon({ label }: { label: string }) {
@@ -139,6 +231,17 @@ export function ProjectDetail() {
 
   const tags: string[] = project.tags || [];
   const detailedExplanation = generateDetailedExplanation(project);
+
+  // Prefer an explicit references/bibliography field if the project has one.
+  // Otherwise, fall back to detecting a citation list embedded in the
+  // description itself and split it out into bullet points.
+  const explicitReferences = normalizeProjectReferences(project);
+  const { body: descriptionBody, references: inlineReferences } =
+    explicitReferences.length > 0
+      ? { body: project.description || '', references: [] as string[] }
+      : splitDescriptionReferences(project.description || '');
+  const referenceItems = explicitReferences.length > 0 ? explicitReferences : inlineReferences;
+
   const videoSrc = project.videoUrl || '/16521670-hd_1920_1080_25fps.mp4';
 
   return (
@@ -310,9 +413,11 @@ export function ProjectDetail() {
             <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-5 text-justify">
               {project.subtitle || project.shortDescription || project.title}
             </p>
-            <p className="text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
-              {project.description}
-            </p>
+            {descriptionBody && (
+              <p className="text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
+                {descriptionBody}
+              </p>
+            )}
           </div>
 
           <div className="mb-10 rounded-2xl overflow-hidden border border-black/10 bg-black aspect-video">
@@ -327,6 +432,19 @@ export function ProjectDetail() {
               <p key={idx}>{p}</p>
             ))}
           </div>
+
+          {referenceItems.length > 0 && (
+            <section className="mb-10">
+              <h2 className="text-[20px] font-semibold mb-4">References</h2>
+              <ul className="list-disc list-inside space-y-2 text-black/80">
+                {referenceItems.map((item, idx) => (
+                  <li key={idx} className="text-[15px] leading-relaxed">
+                    {linkifyText(item)}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <div className="flex flex-wrap items-center gap-3 mt-12 pt-6 border-t border-black/10">
             {project.status && (
