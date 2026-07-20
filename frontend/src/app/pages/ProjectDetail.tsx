@@ -118,6 +118,166 @@ function linkifyText(text: string) {
   );
 }
 
+function parseProjectDescription(description: string) {
+  if (!description) return [];
+
+  const normalized = description.replace(/\r\n/g, '\n').trim();
+  const rawBlocks = normalized
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  const headingKeywords = new Set([
+    'Narrative',
+    'Abstract',
+    'Introduction',
+    'Community Service',
+    'Background',
+    'Conceptual Framework',
+    'Visual Representation and Social Semiotics',
+    'Nation Branding, Soft Power, and Platform Circulation',
+    'Elements Interactive on Pexels as a Case Study',
+    'Research Opportunities for Media Students',
+    'Semiotic and Content Analysis',
+    'Visual Nation Branding and Public Diplomacy',
+    'Copyright, Licensing, and Digital Ethics',
+    'Research Opportunities for Technology Students',
+    'Metadata, APIs, and Data Collection',
+    'Visual Trend Analysis and Dashboards',
+    'Machine Learning and Computer Vision',
+    'Methodology',
+    'Methods',
+    'Results',
+    'Discussion',
+    'Conclusion',
+    'Summary',
+    'Acknowledgements',
+    'References',
+    'Bibliography',
+    'Findings',
+    'Overview',
+    'Implications',
+    'Next Steps',
+  ]);
+
+  const headingPrefixRegex = new RegExp(`^(${[...headingKeywords].map((keyword) => keyword.replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&')).join('|')}):\s*(.*)$`, 'i');
+
+  const isHeadingLine = (line: string) => {
+    const trimmed = line.trim();
+    return (
+      /^(#{1,6})\s+/.test(trimmed) ||
+      headingKeywords.has(trimmed.replace(/:$/, '')) ||
+      headingPrefixRegex.test(trimmed) ||
+      /^[A-Z\s]{3,}$/.test(trimmed)
+    );
+  };
+
+  const parseHeadingPrefix = (line: string) => {
+    const trimmed = line.trim();
+    const match = trimmed.match(headingPrefixRegex);
+    if (match) {
+      return {
+        heading: match[1].replace(/:$/, '').trim(),
+        rest: match[2].trim(),
+      };
+    }
+    return null;
+  };
+
+  const cleanHeading = (line: string) => line.replace(/^(#{1,6})\s+/, '').replace(/:$/, '').trim();
+
+  return rawBlocks.flatMap((block) => {
+    const lines = block
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) return [];
+
+    const isList = lines.every((line) => /^([*\-•]|\d+\.)\s+/.test(line));
+    if (isList) {
+      return [{
+        type: 'list' as const,
+        items: lines.map((line) => line.replace(/^([*\-•]|\d+\.)\s+/, '').trim()),
+      }];
+    }
+
+    const sections: Array<any> = [];
+    let currentHeading: string | null = null;
+    let currentSubheading: string | null = null;
+    let currentLines: string[] = [];
+
+    const flushCurrent = () => {
+      if (currentHeading && currentLines.length > 0) {
+        sections.push({
+          type: 'section' as const,
+          heading: currentHeading,
+          subheading: currentSubheading,
+          text: currentLines.join(' '),
+        });
+      } else if (currentHeading && currentSubheading) {
+        sections.push({
+          type: 'section' as const,
+          heading: currentHeading,
+          subheading: currentSubheading,
+          text: '',
+        });
+      } else if (currentHeading) {
+        sections.push({
+          type: 'heading' as const,
+          text: currentHeading,
+        });
+      } else if (currentLines.length > 0) {
+        sections.push({
+          type: 'paragraph' as const,
+          text: currentLines.join(' '),
+        });
+      }
+
+      currentHeading = null;
+      currentSubheading = null;
+      currentLines = [];
+    };
+
+    for (const line of lines) {
+      const headingPrefix = parseHeadingPrefix(line);
+      if (headingPrefix) {
+        if (currentHeading && currentLines.length === 0 && !currentSubheading) {
+          currentSubheading = headingPrefix.heading;
+          if (headingPrefix.rest) {
+            currentLines.push(headingPrefix.rest);
+          }
+          continue;
+        }
+
+        flushCurrent();
+        currentHeading = headingPrefix.heading;
+        if (headingPrefix.rest) {
+          currentLines.push(headingPrefix.rest);
+        }
+        continue;
+      }
+
+      if (isHeadingLine(line)) {
+        const cleaned = cleanHeading(line);
+        if (currentHeading && currentLines.length === 0 && !currentSubheading) {
+          currentSubheading = cleaned;
+          continue;
+        }
+
+        flushCurrent();
+        currentHeading = cleaned;
+        continue;
+      }
+
+      currentLines.push(line);
+    }
+
+    flushCurrent();
+    return sections;
+  });
+}
+
 function ProjectIcon({ label }: { label: string }) {
   return (
     <div className="w-20 h-20 rounded-3xl border border-black/10 bg-slate-100 flex items-center justify-center">
@@ -241,6 +401,7 @@ export function ProjectDetail() {
       ? { body: project.description || '', references: [] as string[] }
       : splitDescriptionReferences(project.description || '');
   const referenceItems = explicitReferences.length > 0 ? explicitReferences : inlineReferences;
+  const descriptionSections = parseProjectDescription(descriptionBody);
 
   const videoSrc = project.videoUrl || '/16521670-hd_1920_1080_25fps.mp4';
 
@@ -410,13 +571,61 @@ export function ProjectDetail() {
           </button>
 
           <div className="mb-10">
-            <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-5 text-justify">
+            <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-5 text-left">
               {project.subtitle || project.shortDescription || project.title}
             </p>
-            {descriptionBody && (
-              <p className="text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
-                {descriptionBody}
-              </p>
+            {descriptionSections.length > 0 && (
+              <div className="space-y-8 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
+                {descriptionSections.map((section, idx) => {
+                  if (section.type === 'heading') {
+                    return (
+                      <h2 key={idx} className="text-[19px] md:text-[21px] font-semibold mb-3 leading-tight">
+                        {section.text}
+                      </h2>
+                    );
+                  }
+
+                  if (section.type === 'section') {
+                    return (
+                      <div key={idx} className="space-y-3">
+                        <div>
+                          <h2 className="text-[19px] md:text-[21px] font-semibold leading-tight">
+                            {section.heading}
+                          </h2>
+                          {section.subheading && (
+                            <p className="text-[15px] md:text-[16px] font-semibold text-black/70 mt-2">
+                              {section.subheading}
+                            </p>
+                          )}
+                        </div>
+                        {section.text ? (
+                          <p className="text-justify whitespace-pre-line">
+                            {section.text}
+                          </p>
+                        ) : null}
+                      </div>
+                    );
+                  }
+
+                  if (section.type === 'list') {
+                    return (
+                      <ul key={idx} className="list-disc list-inside space-y-2">
+                        {section.items.map((item, itemIdx) => (
+                          <li key={itemIdx} className="text-justify leading-relaxed">
+                            {linkifyText(item)}
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                  }
+
+                  return (
+                    <p key={idx} className="text-justify whitespace-pre-line">
+                      {section.text}
+                    </p>
+                  );
+                })}
+              </div>
             )}
           </div>
 

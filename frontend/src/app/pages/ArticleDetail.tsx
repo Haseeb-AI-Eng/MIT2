@@ -4,6 +4,137 @@ import { motion } from 'motion/react';
 import { fetchArticleBySlug, fetchRelatedArticles } from '../api';
 import { researchProjects } from '../data/researchProjects';
 
+// ── Known section headings ──────────────────────────────────────────────────
+// When an editor pastes a full article (abstract, introduction, etc.) into a
+// single flat description/content string with no line breaks, these section
+// words end up glued directly onto the sentence that follows them (e.g.
+// "...research opportunities Abstract This article contextualizes...").
+// This list lets us recognize those words and promote them to real headings.
+const KNOWN_HEADINGS = [
+  'Abstract',
+  'Introduction',
+  'Background',
+  'Literature Review',
+  'Methodology',
+  'Methods',
+  'Method',
+  'Results',
+  'Findings',
+  'Discussion',
+  'Conclusion',
+  'Conclusions',
+  'Recommendations',
+  'Summary',
+  'References',
+];
+
+// Matches a known heading word only when it's immediately followed by the
+// start of a new sentence (a capital letter) — this is what tells us it's
+// actually functioning as a heading rather than just appearing mid-sentence
+// (e.g. "the abstract nature of the problem" shouldn't split).
+const HEADING_SPLIT_REGEX = new RegExp(
+  `\\b(${KNOWN_HEADINGS.join('|')})\\b(?=\\s+[A-Z])`,
+  'g'
+);
+
+// ── Paragraph splitting ─────────────────────────────────────────────────────
+// Tries real paragraph breaks first, then single line breaks, then falls
+// back to grouping sentences (roughly 3 per paragraph) so a totally flat
+// block of text still reads like normal prose instead of one dense wall.
+function splitIntoParagraphs(text: string): string[] {
+  if (!text) return [];
+
+  const doubleBreak = text
+    .split(/\r?\n\s*\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (doubleBreak.length > 1) return doubleBreak;
+
+  const singleBreak = text
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (singleBreak.length > 1) return singleBreak;
+
+  const sentences = text.match(/[^.!?]+[.!?]+(?:\s+|$)/g) || [text];
+  const SENTENCES_PER_PARAGRAPH = 3;
+  const paragraphs: string[] = [];
+  for (let i = 0; i < sentences.length; i += SENTENCES_PER_PARAGRAPH) {
+    paragraphs.push(
+      sentences
+        .slice(i, i + SENTENCES_PER_PARAGRAPH)
+        .join(' ')
+        .trim()
+    );
+  }
+  return paragraphs.filter(Boolean);
+}
+
+interface ArticleSection {
+  heading: string | null;
+  paragraphs: string[];
+}
+
+// Splits a raw text blob into { heading, paragraphs } sections wherever a
+// known heading word is detected. Text before the first heading (e.g. a
+// subtitle/summary line) becomes an untitled leading section.
+function parseArticleSections(rawText: string): ArticleSection[] {
+  if (!rawText) return [];
+  const text = rawText.trim();
+  if (!text) return [];
+
+  const headingMatches: { heading: string; index: number }[] = [];
+  const regex = new RegExp(HEADING_SPLIT_REGEX);
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(text)) !== null) {
+    headingMatches.push({ heading: m[1], index: m.index });
+    if (m.index === regex.lastIndex) regex.lastIndex += 1;
+  }
+
+  if (headingMatches.length === 0) {
+    return [{ heading: null, paragraphs: splitIntoParagraphs(text) }];
+  }
+
+  const sections: ArticleSection[] = [];
+
+  const introText = text.slice(0, headingMatches[0].index).trim();
+  if (introText) {
+    sections.push({ heading: null, paragraphs: splitIntoParagraphs(introText) });
+  }
+
+  for (let i = 0; i < headingMatches.length; i++) {
+    const { heading, index } = headingMatches[i];
+    const contentStart = index + heading.length;
+    const contentEnd =
+      i + 1 < headingMatches.length ? headingMatches[i + 1].index : text.length;
+    const sectionText = text.slice(contentStart, contentEnd).trim();
+    sections.push({ heading, paragraphs: splitIntoParagraphs(sectionText) });
+  }
+
+  return sections;
+}
+
+// Flattens a list of already-structured paragraphs (e.g. article.content as
+// an array) into sections too, in case any individual item still has a
+// heading glued onto it (e.g. one array entry equals "Abstract This article...").
+function sectionsFromParagraphList(items: string[]): ArticleSection[] {
+  const sections: ArticleSection[] = [];
+  for (const item of items) {
+    const parsed = parseArticleSections(item);
+    for (const section of parsed) {
+      // Merge consecutive untitled sections into the previous untitled one
+      // so structured content doesn't get needlessly fragmented.
+      const last = sections[sections.length - 1];
+      if (!section.heading && last && !last.heading) {
+        last.paragraphs.push(...section.paragraphs);
+      } else {
+        sections.push(section);
+      }
+    }
+  }
+  return sections;
+}
+
 export function ArticleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,22 +177,38 @@ export function ArticleDetail() {
     });
   }, [id]);
 
-  const detailContent = useMemo(() => {
-    if (!article) return [];
+  // Decide whether `article.description` is a genuinely separate summary
+  // line (show it above as a subtitle) or whether it's the same blob as
+  // the main content (in which case showing it twice would duplicate text).
+  const { subtitle, contentSections } = useMemo<{ subtitle: string | null; contentSections: ArticleSection[] }>(() => {
+    if (!article) return { subtitle: null, contentSections: [] };
 
-    if (Array.isArray(article.content)) {
-      return article.content.filter((paragraph: string) => typeof paragraph === 'string' && paragraph.trim().length > 0);
+    const description = typeof article.description === 'string' ? article.description.trim() : '';
+
+    if (Array.isArray(article.content) && article.content.length > 0) {
+      const items = article.content.filter(
+        (p: string) => typeof p === 'string' && p.trim().length > 0
+      );
+      return {
+        subtitle: description || null,
+        contentSections: sectionsFromParagraphList(items),
+      };
     }
 
-    if (typeof article.content === 'string' && article.content.trim().length > 0) {
-      return [article.content.trim()];
+    const contentString = typeof article.content === 'string' ? article.content.trim() : '';
+
+    if (contentString && contentString !== description) {
+      return {
+        subtitle: description || null,
+        contentSections: parseArticleSections(contentString),
+      };
     }
 
-    if (typeof article.description === 'string' && article.description.trim().length > 0) {
-      return [article.description.trim()];
-    }
-
-    return [];
+    // No distinct content — description (or contentString, if that's all
+    // there is) IS the full article. Parse it for headings/paragraphs and
+    // don't also show it as a separate subtitle above.
+    const raw = contentString || description;
+    return { subtitle: null, contentSections: parseArticleSections(raw) };
   }, [article]);
 
   if (loading) {
@@ -142,10 +289,24 @@ export function ArticleDetail() {
 
         <main className="flex-1 px-6 py-12">
           <div className="max-w-[760px]">
-            {article.description && <p className="text-[18px] font-semibold text-black/80 mb-6">{article.description}</p>}
-            <div className="space-y-6 text-[16px] text-black/80 leading-relaxed">
-              {detailContent.map((paragraph: string, index: number) => (
-                <p key={index}>{paragraph}</p>
+            {subtitle && (
+              <p className="text-[18px] font-semibold text-black/80 mb-6">{subtitle}</p>
+            )}
+
+            <div className="space-y-8 text-[16px] text-black/80 leading-relaxed">
+              {contentSections.map((section, sIdx) => (
+                <div key={sIdx} className="space-y-4">
+                  {section.heading && (
+                    <h2 className="text-[20px] md:text-[22px] font-bold text-black mt-2">
+                      {section.heading}
+                    </h2>
+                  )}
+                  {section.paragraphs.map((paragraph, pIdx) => (
+                    <p key={pIdx} className="text-justify">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
               ))}
             </div>
 
