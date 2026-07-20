@@ -82,6 +82,7 @@ export function Research() {
       } else {
         setProjects(prev => dedupeProjectList([...prev, ...data.projects]));
       }
+      
       setTotal(data.total);
       setTotalPages(data.totalPages);
       setPage(pageNum);
