@@ -160,7 +160,8 @@ function parseProjectDescription(description: string) {
     'Next Steps',
   ]);
 
-  const headingPrefixRegex = new RegExp(`^(${[...headingKeywords].map((keyword) => keyword.replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&')).join('|')}):\s*(.*)$`, 'i');
+  const headingPrefixRegex = new RegExp(`^(${[...headingKeywords].map((keyword) => keyword.replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&')).join('|')})(?:\s*:\s*|\s+)(.*)$`, 'i');
+  const genericHeadingPrefixRegex = /^([A-Z][A-Za-z\s]{2,}?):\s*(.*)$/;
 
   const isHeadingLine = (line: string) => {
     const trimmed = line.trim();
@@ -168,13 +169,14 @@ function parseProjectDescription(description: string) {
       /^(#{1,6})\s+/.test(trimmed) ||
       headingKeywords.has(trimmed.replace(/:$/, '')) ||
       headingPrefixRegex.test(trimmed) ||
+      genericHeadingPrefixRegex.test(trimmed) ||
       /^[A-Z\s]{3,}$/.test(trimmed)
     );
   };
 
   const parseHeadingPrefix = (line: string) => {
     const trimmed = line.trim();
-    const match = trimmed.match(headingPrefixRegex);
+    const match = trimmed.match(headingPrefixRegex) || trimmed.match(genericHeadingPrefixRegex);
     if (match) {
       return {
         heading: match[1].replace(/:$/, '').trim(),

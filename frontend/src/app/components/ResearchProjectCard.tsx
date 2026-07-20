@@ -10,6 +10,83 @@ export type ResearchProjectCardType =
   | 'statistic'
   | 'category';
 
+const HEADING_KEYWORDS = new Set([
+  'Narrative',
+  'Abstract',
+  'Introduction',
+  'Community Service',
+  'Conceptual Framework',
+  'Visual Representation and Social Semiotics',
+  'Nation Branding, Soft Power, and Platform Circulation',
+  'Elements Interactive on Pexels as a Case Study',
+  'Research Opportunities for Media Students',
+  'Semiotic and Content Analysis',
+  'Research Opportunities for Technology Students',
+  'Metadata, APIs, and Data Collection',
+  'Discussion',
+  'Background',
+  'Methodology',
+  'Results',
+  'Conclusion',
+  'Summary',
+]);
+
+interface PreviewSection {
+  heading?: string;
+  paragraphs: string[];
+}
+
+function parseDescriptionPreview(description: string): PreviewSection[] {
+  const normalized = description.replace(/\r\n/g, '\n').trim();
+  const lines = normalized.split('\n').map((line) => line.trim()).filter(Boolean);
+  if (lines.length === 0) return [];
+
+  const sections: PreviewSection[] = [];
+  let current: PreviewSection = { paragraphs: [] };
+
+  const headingRegex = new RegExp(
+    `^(${[...HEADING_KEYWORDS].map((keyword) => keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?::)?(?:\s+(.+))?$`,
+    'i'
+  );
+
+  for (const line of lines) {
+    const match = line.match(headingRegex);
+    if (match) {
+      if (current.heading || current.paragraphs.length > 0) {
+        sections.push(current);
+      }
+      current = {
+        heading: match[1],
+        paragraphs: [],
+      };
+      if (match[2]) {
+        current.paragraphs.push(match[2].trim());
+      }
+      continue;
+    }
+
+    if (current.paragraphs.length === 0 && !current.heading && HEADING_KEYWORDS.has(line)) {
+      if (current.heading || current.paragraphs.length > 0) {
+        sections.push(current);
+      }
+      current = { heading: line, paragraphs: [] };
+      continue;
+    }
+
+    if (current.paragraphs.length > 0) {
+      current.paragraphs[current.paragraphs.length - 1] += ` ${line}`;
+    } else {
+      current.paragraphs.push(line);
+    }
+  }
+
+  if (current.heading || current.paragraphs.length > 0) {
+    sections.push(current);
+  }
+
+  return sections;
+}
+
 interface ResearchProjectCardProps {
   project: any;
   cardType: ResearchProjectCardType;
@@ -62,6 +139,10 @@ export function ResearchProjectCard({
   const image = project.coverImage || project.cover_image || project.image || '';
   const title = project.title || 'Untitled research project';
   const description = project.description || project.excerpt || project.summary || '';
+  const previewSections = parseDescriptionPreview(description);
+  const previewSection = previewSections[0] ?? null;
+  const previewHeading = previewSection?.heading;
+  const previewParagraph = previewSection?.paragraphs?.[0] || description;
   const category = getCardLabel(project);
   const dateLabel = formatDate(project.publishedAt || project.createdAt || project.updatedAt);
   const statTiles = getStatTiles(project, viewCount);
@@ -148,10 +229,17 @@ export function ResearchProjectCard({
             <h3 className={`font-sans text-slate-950 ${cardType === 'featured' ? 'text-[28px] md:text-[32px]' : 'text-[22px]'} font-semibold leading-tight mb-3`}>
               {title}
             </h3>
-            {cardType !== 'video' && description && (
-              <p className="text-[15px] leading-[1.75] text-slate-700 mb-5 line-clamp-4">
-                {description}
-              </p>
+            {cardType !== 'video' && previewParagraph && (
+              <div className="mb-5 space-y-2">
+                {previewHeading && (
+                  <p className="text-[13px] uppercase tracking-[0.25em] text-slate-900 font-bold">
+                    {previewHeading}
+                  </p>
+                )}
+                <p className="text-[15px] leading-[1.75] text-slate-700 line-clamp-4">
+                  {previewParagraph}
+                </p>
+              </div>
             )}
             {cardType === 'video' && (
               <p className="text-[14px] leading-[1.75] text-slate-600 mb-5">
