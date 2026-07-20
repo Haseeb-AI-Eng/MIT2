@@ -57,13 +57,22 @@ const HEADING_KEYWORDS = new Set([
 ]);
 
 function getAdjustedNewsCardText(title: string, description?: string) {
-  const mergedTitle = 'The Unseen Gaze: Elements Interactive, Pexels, and Pakistan’s Digital Visual Narrative';
-  const expectedSubtitle = 'Elements Interactive, Pexels, and Pakistan’s Digital Visual Narrative';
+  const mergedTitle = 'The Unseen Gaze; Elements Interactive, Pexels, and Pakistan’s Digital Visual';
+  const titleRegex = /^The Unseen Gaze:?$/i;
+  const subtitleRegex = /^Elements Interactive,\s*Pexels,\s*and Pakistan['’]s Digital Visual(?:\s+Narrative)?$/i;
+  const normalizeLine = (line: string) => line.replace(/^\s*#{1,6}\s*/, '').trim();
   if (!description) return { title, description };
 
   const normalized = description.replace(/\r\n/g, '\n').trim();
-  const lines = normalized.split('\n').map((line) => line.trim()).filter(Boolean);
-  if (title === 'The Unseen Gaze' && lines[0] === expectedSubtitle) {
+  const lines = normalized.split('\n').map((line) => normalizeLine(line.trim())).filter(Boolean);
+  if (lines.length >= 2 && titleRegex.test(lines[0]) && subtitleRegex.test(lines[1])) {
+    return {
+      title: mergedTitle,
+      description: lines.slice(2).join(' '),
+    };
+  }
+
+  if (title === 'The Unseen Gaze' && lines.length > 0 && subtitleRegex.test(lines[0])) {
     return {
       title: mergedTitle,
       description: lines.slice(1).join(' '),

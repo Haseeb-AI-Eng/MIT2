@@ -628,29 +628,26 @@ export function ProjectDetail() {
           </button>
 
           <div className="mb-10">
-            
-            <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-2 text-left">
-              {displayTitle}
-            </p>
-
-            {detailSubtitle ? (
-              <p className="text-[15px] md:text-[16px] italic text-black/70 mb-5">
-                {detailSubtitle}
+            {project.slug === 'visual-culture-digital-narrative' ? (
+              <p className="text-[16px] md:text-[19px] font-bold leading-snug mb-5 text-left whitespace-nowrap">
+                The Unseen Gaze — Elements Interactive, Pexels, and Pakistan’s Digital Visual
               </p>
-            ) : null}
+            ) : (
+              <>
+                <p className="text-[17px] md:text-[19px] font-bold leading-snug mb-2 text-left">
+                  {displayTitle}
+                </p>
 
+                {detailSubtitle ? (
+                  <p className="text-[15px] md:text-[16px] italic text-black/70 mb-5">
+                    {detailSubtitle}
+                  </p>
+                ) : null}
+              </>
+            )}
             {descriptionSections.length > 0 && (
               <div className="space-y-8 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
-                {project.slug === 'visual-culture-digital-narrative' ? (
-                  <h2 className="text-[15px] md:text-[17px] font-semibold leading-snug text-left whitespace-nowrap">
-                    The Unseen Gaze; Elements Interactive, Pexels, and Pakistan's Digital Visual
-                  </h2>
-                ) : null}
-
-                {(project.slug === 'visual-culture-digital-narrative'
-                  ? descriptionSections.slice(2)
-                  : descriptionSections
-                ).map((section, idx) => {
+                {descriptionSections.map((section, idx) => {
                   if (section.type === 'heading') {
                     return (
                       <h2 key={idx} className="text-[19px] md:text-[21px] font-semibold mb-3 leading-tight">
