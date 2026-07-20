@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount } from '../api';
+import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount, dedupeProjectList } from '../api';
 import { ResearchCard } from '../components/ResearchCard';
 import { TopPageNav } from '../components/TopPageNav';
 
@@ -78,9 +78,9 @@ export function Research() {
     try {
       const data = await fetchPublishedProjects(PAGE_SIZE, pageNum, controller.signal);
       if (replace) {
-        setProjects(data.projects);
+        setProjects(dedupeProjectList(data.projects));
       } else {
-        setProjects(prev => [...prev, ...data.projects]);
+        setProjects(prev => dedupeProjectList([...prev, ...data.projects]));
       }
       setTotal(data.total);
       setTotalPages(data.totalPages);

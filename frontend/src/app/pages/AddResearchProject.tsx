@@ -33,6 +33,7 @@ export function AddResearchProject() {
     videoUrl: '',
     teamMembers: [{ name: '', role: '' }],
   });
+  const [imageUploading, setImageUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
   const handleSubmit = async (e: any) => {
@@ -73,7 +74,7 @@ export function AddResearchProject() {
       clientCacheInvalidate('published-projects:');
       clientCacheInvalidate('projects:fast:');
       alert('Research project added and published successfully!');
-      navigate(-1);
+      navigate('/', { replace: true });
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'An error occurred. Make sure you are logged in.');
@@ -81,9 +82,71 @@ export function AddResearchProject() {
       setLoading(false);
     }
   };
-  const handleChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const isDirectVideoUrl = (url: string) => {
+    return /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url.trim());
   };
+
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === 'videoUrl' && isDirectVideoUrl(value)) {
+      setVideoPreview(value);
+    }
+  };
+  const parsePexelsVideoId = (url: string) => {
+    if (!url) return null;
+    const normalized = url.trim();
+    const pageMatch = normalized.match(/pexels\.com\/video\/(?:[\w-]+-)?(\d+)/);
+    if (pageMatch) return pageMatch[1];
+    const idMatch = normalized.match(/^(\d+)$/);
+    if (idMatch) return idMatch[1];
+    return null;
+  };
+
+  const handleLoadPexelsVideo = async () => {
+    const url = formData.videoUrl?.trim();
+    const videoId = parsePexelsVideoId(url);
+    if (!videoId) {
+      alert('Paste the Pexels video page URL or numeric video ID first.');
+      return;
+    }
+
+    setPexelsLoading(true);
+    setPexelsError(null);
+    try {
+      const res = await fetch(`https://api.pexels.com/videos/videos/${videoId}`, {
+        headers: {
+          Authorization: PEXELS_API_KEY,
+        },
+      });
+      if (!res.ok) {
+        throw new Error(`Pexels video lookup failed (${res.status})`);
+      }
+      const data = await res.json();
+      const item = data.video || data;
+      const videoFile = (item.video_files || []).find((file: any) => file.file_type === 'video/mp4') || item.video_files?.[0];
+      if (!videoFile) {
+        throw new Error('No MP4 file found for this Pexels video.');
+      }
+      const imageUrl = item.image || item.video_pictures?.[0]?.picture || formData.image;
+      setSelectedPexelsVideo(videoFile);
+      setVideoPreview(videoFile.link);
+      if (imageUrl) setImagePreview(imageUrl);
+      setFormData({
+        ...formData,
+        videoUrl: videoFile.link,
+        ...(imageUrl ? { image: imageUrl } : {}),
+      });
+      setPexelsError(null);
+      alert('Loaded the requested Pexels video. It is ready to use in the project.');
+    } catch (err: any) {
+      console.error('Pexels video lookup error:', err);
+      setPexelsError(err?.message || 'Unable to load the Pexels video.');
+    } finally {
+      setPexelsLoading(false);
+    }
+  };
+
   const handleVideoUpload = async (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -114,6 +177,21 @@ export function AddResearchProject() {
     } finally {
       setVideoUploading(false);
     }
+  };
+
+  const handleImageUpload = async (e: any) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Image is too large. Please upload an image under 20MB.');
+      e.target.value = '';
+      return;
+    }
+    setImageUploading(true);
+    const localPreview = URL.createObjectURL(file);
+    setImagePreview(localPreview);
+    setFormData({ ...formData, image: localPreview });
+    setImageUploading(false);
   };
   const handleTeamMemberChange = (index: any, field: any, value: any) => {
     const newMembers = [...formData.teamMembers];
@@ -170,9 +248,17 @@ export function AddResearchProject() {
         alert('Could not load the selected video file.');
         return;
       }
+      const imageUrl = item.image || item.video_pictures?.[0]?.picture || formData.image;
       setSelectedPexelsVideo(videoFile);
       setVideoPreview(videoFile.link);
-      setFormData({ ...formData, videoUrl: videoFile.link });
+      if (imageUrl) {
+        setImagePreview(imageUrl);
+      }
+      setFormData({
+        ...formData,
+        videoUrl: videoFile.link,
+        ...(imageUrl ? { image: imageUrl } : {}),
+      });
     } else {
       const imageUrl = item.src?.medium || item.src?.original || item.src?.large;
       setImagePreview(imageUrl);
@@ -246,10 +332,14 @@ export function AddResearchProject() {
                         <p className="text-xs text-blue-600 font-medium animate-pulse">
                           Uploading video to server…
                         </p>
-                      ) : videoPreview && formData.videoUrl ? (
+                      ) : (videoPreview || (formData.videoUrl && isDirectVideoUrl(formData.videoUrl))) ? (
                         <div className="space-y-2">
-                          <video className="w-full max-h-48 rounded bg-black" controls src={videoPreview} />
-                          <p className="text-[11px] text-green-600 font-medium">✓ Custom video uploaded successfully</p>
+                          <video
+                            className="w-full max-h-48 rounded bg-black"
+                            controls
+                            src={videoPreview || formData.videoUrl}
+                          />
+                          <p className="text-[11px] text-green-600 font-medium">✓ Custom video selected successfully</p>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between">
@@ -260,17 +350,47 @@ export function AddResearchProject() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Or paste a video URL (YouTube, Vimeo, CDN link):
+                        Or paste a video URL (YouTube, Vimeo, CDN link) or a Pexels video page URL:
                       </label>
-                      <Input
-                        name="videoUrl"
-                        value={formData.videoUrl}
-                        onChange={handleChange}
-                        placeholder="https://..."
-                        className="w-full text-sm"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          name="videoUrl"
+                          value={formData.videoUrl}
+                          onChange={handleChange}
+                          placeholder="https://..."
+                          className="w-full text-sm"
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleLoadPexelsVideo}
+                          disabled={pexelsLoading || !formData.videoUrl.trim()}
+                          className="whitespace-nowrap"
+                        >
+                          Load Pexels
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        For a specific Pexels video, paste its page URL like:
+                        <span className="block break-all">https://www.pexels.com/video/aerial-view-of-karachi-port-roundabout-traffic-38129569/</span>
+                      </p>
                     </div>
                   </div>
+                </div>
+                <div>
+                  <label htmlFor="imageUpload" className="block text-sm font-medium mb-2">
+                    Project Image (upload from system)
+                  </label>
+                  <Input
+                    id="imageUpload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={imageUploading}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    If you prefer to upload an image from your computer instead of selecting one from Pexels, use this field.
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -387,7 +507,13 @@ export function AddResearchProject() {
                       )}
                     </div>
                     <div className="border rounded-lg overflow-hidden">
-                      {imagePreview ? (
+                      {videoPreview ? (
+                        <video
+                          className="w-full h-60 object-cover bg-black"
+                          controls
+                          src={videoPreview}
+                        />
+                      ) : imagePreview ? (
                         <img src={imagePreview} alt="Selected project" className="w-full h-60 object-cover" />
                       ) : (
                         <div className="h-60 flex items-center justify-center bg-gray-50 text-gray-500">

@@ -98,12 +98,28 @@ export async function fetchFeaturedProjects(limit = 6, signal?: AbortSignal) {
   const cacheKey = `featured-projects:${limit}`;
   const cached = clientCacheGet<any[]>(cacheKey);
   if (cached) return cached;
-  const res = await fetchWithTimeout(`${API_BASE}/projects/fast?featured=true&limit=${limit}`, { signal });
+  const res = await fetchWithTimeout(
+    `${API_BASE}/projects/fast?featured=true&limit=${limit}`,
+    { signal, cache: 'no-store' }
+  );
   if (!res.ok) return [];
   const data = await res.json();
   const result = data.projects || [];
   clientCacheSet(cacheKey, result);
   return result;
+}
+
+export function dedupeProjectList(projects: any[]) {
+  const seen = new Set<string>();
+  return projects.filter((project) => {
+    const idKey = project?._id ?? project?.slug;
+    const titleKey = project?.title && String(project.title).trim();
+    const key = idKey ? String(idKey) : titleKey || "";
+    if (!key) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export interface ProjectListResult {
@@ -136,7 +152,7 @@ export async function fetchPublishedProjects(
   console.log(`[API] fetchPublishedProjects: Fetching from ${API_BASE}/projects/fast?status=published&limit=${limit}&page=${page}`);
   const fetchPromise = fetchWithTimeout(
     `${API_BASE}/projects/fast?status=published&limit=${limit}&page=${page}`,
-    { signal }
+    { signal, cache: 'no-store' }
   )
   .then(res => {
     if (!res.ok) {
@@ -173,10 +189,13 @@ export async function fetchAllPublishedProjects(signal?: AbortSignal): Promise<P
 
   const remainingPages = await Promise.all(pagePromises);
   const allProjects = [firstPage.projects, ...remainingPages.map((pageResult) => pageResult.projects)].flat();
+  const dedupedProjects = dedupeProjectList(allProjects);
 
   return {
     ...firstPage,
-    projects: allProjects,
+    projects: dedupedProjects,
+    total: dedupedProjects.length,
+    totalPages: 1,
   };
 }
 

@@ -17,6 +17,7 @@ function ProjectCardLogo() {
 
 interface NewsCardProps {
   image?: string;
+  videoUrl?: string;
   title: string;
   description?: string;
   category?: string;
@@ -51,16 +52,18 @@ const FEATURED_IMAGE_HEIGHT = 'h-[180px] sm:h-[300px] md:h-[380px] lg:h-[500px]'
 const NORMAL_TEXT_HEIGHT = 'min-h-[150px] sm:min-h-[160px]';
 const FEATURED_TEXT_HEIGHT = 'min-h-[170px] sm:min-h-[190px]';
 
-function NewsCardComponent({
-  image,
-  title,
-  description,
-  category,
-  date,
-  size = 'medium',
-  aspect = 'normal',
-  onClick,
-}: NewsCardProps) {
+function NewsCardComponent(props: NewsCardProps) {
+  const {
+    image,
+    videoUrl,
+    title,
+    description,
+    category,
+    date,
+    size = 'medium',
+    aspect = 'normal',
+    onClick,
+  } = props;
   const trimmedDescription = description ? trimText(description) : undefined;
 
   const isFeatured = aspect === 'wide' || aspect === 'side';
@@ -76,17 +79,33 @@ function NewsCardComponent({
       className="group cursor-pointer overflow-hidden bg-white rounded-none flex flex-col h-full w-full min-w-0"
       onClick={onClick}
     >
-      {/* Image container — fixed height so every card in a row matches,
+      {/* Image / video container — fixed height so every card in a row matches,
           regardless of column width. */}
       <div
         className={`relative overflow-hidden bg-gray-100 flex-shrink-0 w-full ${imageHeightClass}`}
       >
-        <ImageWithFallback
-          src={image || ''}
-          alt={title}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
-        />
+        {videoUrl ? (
+          <video
+            className="absolute inset-0 w-full h-full object-cover"
+            src={videoUrl}
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="metadata"
+            poster={image || undefined}
+          />
+        ) : (
+          <ImageWithFallback
+            src={image || ''}
+            alt={title}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
+          />
+        )}
+        {videoUrl && (
+          <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+        )}
         <div className="absolute left-3 bottom-3 z-20">
           <ProjectCardLogo label={category || title} />
         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResearchProjectCard, ResearchProjectCardType } from '../components/ResearchProjectCard';
-import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount } from '../api';
+import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount, dedupeProjectList } from '../api';
 
 const PAGE_SIZE = 12;
 
@@ -51,9 +51,9 @@ export function Projects() {
     try {
       const data = await fetchPublishedProjects(PAGE_SIZE, pageNum, controller.signal);
       if (replace) {
-        setProjects(data.projects);
+        setProjects(dedupeProjectList(data.projects));
       } else {
-        setProjects(prev => [...prev, ...data.projects]);
+        setProjects(prev => dedupeProjectList([...prev, ...data.projects]));
       }
       setTotal(data.total);
       setTotalPages(data.totalPages);

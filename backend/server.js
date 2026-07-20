@@ -644,6 +644,8 @@ app.get("/api/projects/fast", async (req, res) => {
               createdAt: 1,
               teamCount: 1,
               hasImage: 1,
+              videoUrl: 1,
+              video_url: "$videoUrl",
             },
           },
         ])

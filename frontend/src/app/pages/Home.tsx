@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { NewsCard } from '../components/NewsCard';
 import { TopPageNav } from '../components/TopPageNav';
 import { HeroVideo } from './HeroVideo';
 import {
   fetchAllPublishedProjects,
+  dedupeProjectList,
   getLocalProjectViews,
   markLocalProjectViewed,
+  clientCacheInvalidate,
 } from '../api';
 
 function getProjectId(project: any): string | undefined {
@@ -16,6 +18,19 @@ function getProjectId(project: any): string | undefined {
     project.slug ||
     (typeof project._id === 'string' ? project._id : project._id?.toString())
   );
+}
+
+// NOTE: previously this matched the word "dance" or "culture" anywhere in
+// project.title/slug. That accidentally hid legitimate projects whose title
+// or auto-generated slug happened to contain those words (e.g. a research
+// project literally about "visual culture"). Now it only excludes a project
+// if one of its actual tags is exactly "Dance" or "Culture" (case-insensitive).
+const HOME_EXCLUDED_TAGS = new Set(['dance', 'culture']);
+
+function shouldExcludeHomeProject(project: any) {
+  if (!project) return false;
+  const tags: string[] = Array.isArray(project.tags) ? project.tags : [];
+  return tags.some((tag) => HOME_EXCLUDED_TAGS.has(String(tag).trim().toLowerCase()));
 }
 
 // ─── Row layout definitions ──────────────────────────────────────────────────
@@ -68,6 +83,7 @@ interface AssignedCard {
 
 export const Home = React.memo(function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [visibleProjects, setVisibleProjects] = useState<any[]>([]);
   const [hiddenProjects, setHiddenProjects] = useState<any[]>([]);
   const [projectViews, setProjectViews] = useState<Record<string, number>>(getLocalProjectViews);
@@ -80,10 +96,22 @@ export const Home = React.memo(function Home() {
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError(false);
+    setVisibleProjects([]);
+    setHiddenProjects([]);
+
+    // The client-side cache in api.ts holds published-project responses for
+    // 30 minutes, keyed by "published-projects:<limit>:<page>". Since Home
+    // re-fetches on the same pathname ("/"), a stale cache entry would keep
+    // serving the old list even after new projects are published on the
+    // backend. Invalidate it here so Home always gets a fresh fetch.
+    clientCacheInvalidate('published-projects');
+
     fetchAllPublishedProjects()
       .then((res) => {
         if (!active) return;
-        const projects = res.projects || [];
+        const projects = dedupeProjectList((res.projects || []).filter((project) => !shouldExcludeHomeProject(project)));
         setVisibleProjects(projects.slice(0, MAX_VISIBLE_PROJECTS));
         setHiddenProjects(projects.slice(MAX_VISIBLE_PROJECTS));
       })
@@ -96,7 +124,7 @@ export const Home = React.memo(function Home() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     visibleRef.current = visibleProjects;
@@ -279,6 +307,7 @@ export const Home = React.memo(function Home() {
               >
                 <NewsCard
                   image={project.coverImage || project.cover_image || ''}
+                  videoUrl={project.videoUrl || project.video_url || ''}
                   title={project.title}
                   description={project.description}
                   category={project.tags?.[0] || 'Research'}

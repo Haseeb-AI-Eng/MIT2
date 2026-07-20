@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env PORT=8080 node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "delete-duplicate-projects": "node delete-duplicate-projects.mjs"
   },
   "dependencies": {
     "axios": "^1.7.0",
