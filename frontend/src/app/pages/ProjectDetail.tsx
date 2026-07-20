@@ -642,7 +642,7 @@ export function ProjectDetail() {
             {descriptionSections.length > 0 && (
               <div className="space-y-8 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
                 {project.slug === 'visual-culture-digital-narrative' ? (
-                  <h2 className="text-[15px] md:text-[17px] font-semibold leading-snug text-left whitespace-nowrap">
+                  <h2 className="text-[15px] md:text-[17px] font-semibold leading-snug text-left break-words">
                     The Unseen Gaze; Elements Interactive, Pexels, and Pakistan's Digital Visual
                   </h2>
                 ) : null}
