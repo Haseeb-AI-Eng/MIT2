@@ -717,7 +717,7 @@ export function ProjectDetail() {
             ) : null}
 
             {descriptionSections.length > 0 && (
-              <div className="space-y-8 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
+              <div className="space-y-8 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-left">
                 {project.slug === 'visual-culture-digital-narrative' ? (
                   <h2 className="text-[15px] md:text-[17px] font-semibold leading-snug text-left break-words">
                     The Unseen Gaze; Elements Interactive, Pexels, and Pakistan's Digital Visual
@@ -756,7 +756,7 @@ export function ProjectDetail() {
                           )}
                         </div>
                         {section.text ? (
-                          <p className="text-justify whitespace-pre-line">
+                          <p className="text-left whitespace-pre-line">
                             {project.slug === 'visual-culture-digital-narrative'
                               ? section.text.replace(
                                   /^\s*[.??]\s*(?=Elements Interactive)/i,
@@ -773,7 +773,7 @@ export function ProjectDetail() {
                     return (
                       <ul key={idx} className="list-disc list-inside space-y-2">
                         {section.items.map((item, itemIdx) => (
-                          <li key={itemIdx} className="text-justify leading-relaxed">
+                          <li key={itemIdx} className="text-left leading-relaxed">
                             {linkifyText(item)}
                           </li>
                         ))}
@@ -782,7 +782,7 @@ export function ProjectDetail() {
                   }
 
                   return (
-                    <p key={idx} className="text-justify whitespace-pre-line">
+                    <p key={idx} className="text-left whitespace-pre-line">
                       {project.slug === 'visual-culture-digital-narrative'
                               ? section.text.replace(
                                   /^\s*[.??]\s*(?=Elements Interactive)/i,
@@ -803,7 +803,7 @@ export function ProjectDetail() {
             </video>
           </div>
 
-          <div className="space-y-6 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify mb-10">
+          <div className="space-y-6 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-left mb-10">
             {detailedExplanation.map((p, idx) => (
               <p key={idx}>{p}</p>
             ))}
