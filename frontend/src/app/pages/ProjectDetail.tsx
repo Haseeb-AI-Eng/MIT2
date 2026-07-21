@@ -142,15 +142,135 @@ function linkifyText(text: string) {
   );
 }
 
+// ── Defensive repair for already-stored descriptions ────────────────────
+// Some imported documents (typically Word docs where the author bolded a
+// line instead of using a real Heading style) got saved with literal
+// markdown bold markers and escaped punctuation still in them, e.g.
+// "__1\. Introduction__". This repairs that pattern at render time too —
+// not just at import time — so content already saved before the import
+// pipeline was fixed displays correctly without needing to be re-uploaded.
+function unescapeMarkdownPunctuation(text: string) {
+  return text.replace(/\\([\\`*_{}[\]()#+\-.!>~])/g, '$1');
+}
+
+function promoteStandaloneBoldLinesToHeadings(markdown: string) {
+  const lines = markdown.split('\n');
+  const result: string[] = [];
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const boldLineMatch = line.match(/^(\*\*|__)(.+)\1$/);
+
+    if (boldLineMatch) {
+      const inner = boldLineMatch[2].trim();
+      const numberedMatch = inner.match(/^(\d+(?:\.\d+)*)\.\s*(.+)$/);
+
+      if (numberedMatch) {
+        result.push(`## ${numberedMatch[1]}. ${numberedMatch[2].trim()}`);
+        continue;
+      }
+
+      if (inner.length > 0 && inner.length <= 60 && !/[.!?:;,]$/.test(inner)) {
+        result.push(`### ${inner}`);
+        continue;
+      }
+    }
+
+    result.push(rawLine);
+  }
+
+  return result.join('\n');
+}
+
+function repairLegacyBoldHeadings(description: string) {
+  return promoteStandaloneBoldLinesToHeadings(unescapeMarkdownPunctuation(description));
+}
+
+// ── Flattened inline bullet-list repair (render-time) ────────────────────
+// Mirrors the same helper used at import time in AddResearchProject.tsx.
+// Some already-saved descriptions (imported before this fix, or from
+// sources like PDFs that never had real line breaks between bullets) have
+// their list items squished onto one line, e.g.
+// "- Photography exhibitions - Documentary filmmaking - Tourism promotion".
+// This detects that pattern and splits it back into separate "- item"
+// lines *before* parsing, so it renders as a proper bulleted list instead
+// of one run-on paragraph — without requiring the project to be re-saved.
+function splitInlineDashList(line: string): string[] | null {
+  const trimmed = line.trim();
+  if (!/^-\s+/.test(trimmed)) return null;
+  const items = trimmed
+    .replace(/^-\s+/, '')
+    .split(/\s+-\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length >= 2 ? items : null;
+}
+
+function expandInlineDashLists(text: string) {
+  return text
+    .split('\n')
+    .flatMap((line) => {
+      const items = splitInlineDashList(line);
+      return items ? items.map((item) => `- ${item}`) : [line];
+    })
+    .join('\n');
+}
+
+// ── Inline formatting ────────────────────────────────────────────────────
+// Renders a run of text with markdown bold ('**x**'/'__x__'), italic
+// ('*x*'/'_x_'), and bare URLs converted into real inline elements, instead
+// of leaving the raw markdown characters visible to the reader.
+function renderRichText(text: string) {
+  const tokenRegex = /(\*\*[^*\n]+\*\*|__[^_\n]+__|\*[^*\n]+\*|_[^_\n]+_|https?:\/\/[^\s]+)/g;
+  const parts = text.split(tokenRegex);
+
+  return parts.map((part, i) => {
+    if (!part) return null;
+
+    const boldMatch = part.match(/^(\*\*|__)([^*_]+)\1$/);
+    if (boldMatch) {
+      return <strong key={i}>{boldMatch[2]}</strong>;
+    }
+
+    const italicMatch = part.match(/^(\*|_)([^*_]+)\1$/);
+    if (italicMatch) {
+      return <em key={i}>{italicMatch[2]}</em>;
+    }
+
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 underline break-all hover:text-blue-800"
+        >
+          {part}
+        </a>
+      );
+    }
+
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
+
 function parseProjectDescription(description: string) {
   if (!description) return [];
 
-  const normalized = description.replace(/\r\n/g, '\n').trim();
-  const rawBlocks = normalized
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean);
-
+  const normalized = expandInlineDashLists(repairLegacyBoldHeadings(description)).replace(/\r\n/g, '\n').trim();
+  const lines = normalized.split('\n');
+  const sections: Array<any> = [];
+  const markdownHeadingRegex = /^(#{1,6})\s+(.+)$/;
+  // Bullet markers ('-', '*', '•') are followed directly by the item text,
+  // with no trailing period — only numbered items ("1. Item") have one.
+  // The old combined regex required a period after every marker type,
+  // which meant plain "- Item" bullets (the common case coming out of
+  // mammoth for real Word lists) were NEVER recognized as list items and
+  // silently fell through to being treated as ordinary paragraph text,
+  // where multiple bullet lines get joined into one run-on sentence.
+  const bulletListRegex = /^([*\-•])\s+(.+)$/;
+  const numberedListRegex = /^(\d+)\.\s+(.+)$/;
   const headingKeywords = new Set([
     'Narrative',
     'Abstract',
@@ -182,18 +302,64 @@ function parseProjectDescription(description: string) {
     'Overview',
     'Implications',
     'Next Steps',
+    'Executive Summary',
+    'Problem Statement',
+    'Approach',
+    'Impact',
+    'Objectives',
+    'Context',
+    'Method',
+    'Data',
+    'Outcome',
+    'Challenges',
+    'Future Work',
   ]);
 
   const headingPrefixRegex = new RegExp(`^(${[...headingKeywords].map((keyword) => keyword.replace(/[-/\^$*+?.()|[\]{}]/g, '\\$&')).join('|')})(?:\s*:\s*|\s+)(.*)$`, 'i');
-  const genericHeadingPrefixRegex = /^([A-Z][A-Za-z\s]{2,}?):\s*(.*)$/;
+  // NOTE: this is intentionally much stricter than a bare
+  // /^([A-Z][A-Za-z\s]{2,}?):\s*(.*)$/ pattern. That version had no length
+  // or word-count cap, so it would match ANY sentence that happens to end
+  // in a colon — e.g. an ordinary lead-in line like "The project covers
+  // multiple photography categories including:" — and wrongly turn the
+  // entire sentence into a heading. Real "Label: text" headings are short
+  // (a handful of words) and are always followed by actual content on the
+  // same line; a long sentence with an empty/near-empty tail after the
+  // colon is just prose, not a heading.
+  const genericHeadingPrefixRegex = /^([A-Z][A-Za-z\s]{2,}?):\s+(\S.*)$/;
+  const MAX_GENERIC_HEADING_LABEL_WORDS = 6;
+  const MAX_GENERIC_HEADING_LABEL_LENGTH = 45;
+
+  const matchGenericHeadingPrefix = (line: string) => {
+    const match = line.match(genericHeadingPrefixRegex);
+    if (!match) return null;
+    const label = match[1].trim();
+    if (label.length > MAX_GENERIC_HEADING_LABEL_LENGTH) return null;
+    if (label.split(/\s+/).length > MAX_GENERIC_HEADING_LABEL_WORDS) return null;
+    return match;
+  };
   const titleCaseHeadingRegex = /^[A-Z][A-Za-z0-9&'’\-]*(?:\s+[A-Z][A-Za-z0-9&'’\-]*){1,4}$/;
 
+  // NOTE: this heuristic only exists as a last-resort fallback for content
+  // that has no real structure left in it at all (no markdown '#', no
+  // recognized keyword, no "Label: text" prefix). It is intentionally
+  // conservative — a short, capitalized, unpunctuated line is extremely
+  // common in normal prose (e.g. "The MIT Media Lab team agreed") and was
+  // previously being misclassified as a heading far too eagerly. Now that
+  // docx/PDF imports preserve real '#'/'##' markers upstream, this path
+  // should rarely fire in practice — it's a safety net, not the primary
+  // detection mechanism.
   const isTitleCaseHeadingLine = (line: string) => {
     const trimmed = line.trim();
-    if (trimmed.length > 45) return false;
-    if (/[.!?]$/.test(trimmed)) return false;
+    if (trimmed.length > 40) return false;
+    if (/[.!?,;:]$/.test(trimmed)) return false;
     const words = trimmed.split(/\s+/);
-    return words.length >= 2 && words.length <= 5 && titleCaseHeadingRegex.test(trimmed);
+    if (words.length < 2 || words.length > 5) return false;
+    if (!titleCaseHeadingRegex.test(trimmed)) return false;
+    // Require every word to start with a capital letter (true Title Case),
+    // not just the first — cuts down on ordinary capitalized sentences
+    // like "The Team Presented Early Results" being mistaken for a heading
+    // when it's really just a short declarative line.
+    return words.every((word) => /^[A-Z]/.test(word));
   };
 
   const isHeadingLine = (line: string) => {
@@ -202,7 +368,7 @@ function parseProjectDescription(description: string) {
       /^(#{1,6})\s+/.test(trimmed) ||
       headingKeywords.has(trimmed.replace(/:$/, '')) ||
       headingPrefixRegex.test(trimmed) ||
-      genericHeadingPrefixRegex.test(trimmed) ||
+      matchGenericHeadingPrefix(trimmed) !== null ||
       /^[A-Z\s]{3,}$/.test(trimmed) ||
       isTitleCaseHeadingLine(trimmed)
     );
@@ -210,7 +376,7 @@ function parseProjectDescription(description: string) {
 
   const parseHeadingPrefix = (line: string) => {
     const trimmed = line.trim();
-    const match = trimmed.match(headingPrefixRegex) || trimmed.match(genericHeadingPrefixRegex);
+    const match = trimmed.match(headingPrefixRegex) || matchGenericHeadingPrefix(trimmed);
     if (match) {
       return {
         heading: match[1].replace(/:$/, '').trim(),
@@ -222,112 +388,104 @@ function parseProjectDescription(description: string) {
 
   const cleanHeading = (line: string) => line.replace(/^(#{1,6})\s+/, '').replace(/:$/, '').trim();
 
-  const mergeSpecificTitleSubtitleLines = (lines: string[]) => {
-    if (lines.length >= 2) {
-      const normalizedTitle = lines[0].replace(/^#{1,6}\s*/, '').replace(/:$/, '').trim();
-      const normalizedSubtitle = lines[1].trim();
+  const mergeSpecificTitleSubtitleLines = (linesArray: string[]) => {
+    if (linesArray.length >= 2) {
+      const normalizedTitle = linesArray[0].replace(/^#{1,6}\s*/, '').replace(/:$/, '').trim();
+      const normalizedSubtitle = linesArray[1].trim();
       if (
         /^The Unseen Gaze$/i.test(normalizedTitle) &&
         /^Elements Interactive,\s*Pexels,\s*and Pakistan['’]s Digital Visual Narrative$/i.test(normalizedSubtitle)
       ) {
-        return lines.slice(2);
+        return linesArray.slice(2);
       }
     }
-    return lines;
+    return linesArray;
   };
 
-  return rawBlocks.flatMap((block) => {
-    let lines = block
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean);
+  const pushParagraph = (paragraphLines: string[]) => {
+    if (!paragraphLines.length) return;
+    sections.push({ type: 'paragraph' as const, text: paragraphLines.join(' ') });
+  };
 
-    lines = mergeSpecificTitleSubtitleLines(lines);
+  const pushList = (items: string[]) => {
+    if (!items.length) return;
+    sections.push({ type: 'list' as const, items });
+  };
 
-    if (lines.length === 0) return [];
+  let currentParagraph: string[] = [];
+  let currentList: string[] = [];
 
-    const isList = lines.every((line) => /^([*\-•]|\d+\.)\s+/.test(line));
-    if (isList) {
-      return [{
-        type: 'list' as const,
-        items: lines.map((line) => line.replace(/^([*\-•]|\d+\.)\s+/, '').trim()),
-      }];
+  const flushBlock = () => {
+    pushList(currentList);
+    currentList = [];
+    pushParagraph(currentParagraph);
+    currentParagraph = [];
+  };
+
+  const normalizedLines = mergeSpecificTitleSubtitleLines(lines.map((line) => line.trim()));
+
+  for (const rawLine of normalizedLines) {
+    const line = rawLine.trim();
+    if (!line) {
+      flushBlock();
+      continue;
     }
 
-    const sections: Array<any> = [];
-    let currentHeading: string | null = null;
-    let currentSubheading: string | null = null;
-    let currentLines: string[] = [];
+    const markdownHeadingMatch = line.match(markdownHeadingRegex);
+    const listMatch = line.match(bulletListRegex) || line.match(numberedListRegex);
+    const headingPrefix = parseHeadingPrefix(line);
 
-    const flushCurrent = () => {
-      if (currentHeading && currentLines.length > 0) {
-        sections.push({
-          type: 'section' as const,
-          heading: currentHeading,
-          subheading: currentSubheading,
-          text: currentLines.join(' '),
-        });
-      } else if (currentHeading && currentSubheading) {
-        sections.push({
-          type: 'section' as const,
-          heading: currentHeading,
-          subheading: currentSubheading,
-          text: '',
-        });
-      } else if (currentHeading) {
-        sections.push({
-          type: 'heading' as const,
-          text: currentHeading,
-        });
-      } else if (currentLines.length > 0) {
-        sections.push({
-          type: 'paragraph' as const,
-          text: currentLines.join(' '),
-        });
-      }
-
-      currentHeading = null;
-      currentSubheading = null;
-      currentLines = [];
-    };
-
-    for (const line of lines) {
-      const headingPrefix = parseHeadingPrefix(line);
-      if (headingPrefix) {
-        if (currentHeading && currentLines.length === 0 && !currentSubheading) {
-          currentSubheading = headingPrefix.heading;
-          if (headingPrefix.rest) {
-            currentLines.push(headingPrefix.rest);
-          }
-          continue;
-        }
-
-        flushCurrent();
-        currentHeading = headingPrefix.heading;
-        if (headingPrefix.rest) {
-          currentLines.push(headingPrefix.rest);
-        }
-        continue;
-      }
-
-      if (isHeadingLine(line)) {
-        const cleaned = cleanHeading(line);
-        if (currentHeading && currentLines.length === 0 && !currentSubheading) {
-          currentSubheading = cleaned;
-          continue;
-        }
-
-        flushCurrent();
-        currentHeading = cleaned;
-        continue;
-      }
-
-      currentLines.push(line);
+    if (markdownHeadingMatch) {
+      flushBlock();
+      sections.push({ type: 'heading' as const, text: markdownHeadingMatch[2].trim() });
+      continue;
     }
 
-    flushCurrent();
-    return sections;
-  });
+    if (listMatch) {
+      if (currentParagraph.length) {
+        pushParagraph(currentParagraph);
+        currentParagraph = [];
+      }
+      currentList.push(listMatch[2].trim());
+      continue;
+    }
+
+    if (currentList.length) {
+      flushBlock();
+    }
+
+    if (headingPrefix) {
+      flushBlock();
+      sections.push({ type: 'heading' as const, text: headingPrefix.heading });
+      if (headingPrefix.rest) {
+        currentParagraph.push(headingPrefix.rest);
+      }
+      continue;
+    }
+
+    // FIX (was the root of the bug): this check used to be gated behind
+    // `currentParagraph.length === 0`, which meant a heading line was only
+    // ever recognized if it happened to be the very first line since the
+    // last flush. If the uploaded document didn't have a clean blank line
+    // directly before a heading (e.g. "...previous sentence.\nIntroduction\nBody
+    // text starts here..."), "Introduction" would silently get absorbed into
+    // the *previous* paragraph as plain text instead of becoming its own
+    // heading — and then the next (non-heading) line would start a fresh,
+    // empty paragraph and could get wrongly promoted to a heading itself by
+    // the Title-Case heuristic. Checking isHeadingLine() unconditionally and
+    // flushing first lets a heading interrupt an in-progress paragraph
+    // correctly, regardless of surrounding blank lines.
+    if (isHeadingLine(line)) {
+      flushBlock();
+      sections.push({ type: 'heading' as const, text: cleanHeading(line) });
+      continue;
+    }
+
+    currentParagraph.push(line);
+  }
+
+  flushBlock();
+  return sections;
 }
 
 function ProjectIcon({ label }: { label: string }) {
@@ -734,7 +892,7 @@ export function ProjectDetail() {
                         {project.slug === 'visual-culture-digital-narrative' &&
                   section.text.trim().toLowerCase() === 'narrative'
                     ? 'Narrative'
-                    : section.text}
+                    : renderRichText(section.text)}
                       </h2>
                     );
                   }
@@ -747,22 +905,24 @@ export function ProjectDetail() {
                             {project.slug === 'visual-culture-digital-narrative' &&
                             section.heading.trim().toLowerCase() === 'narrative'
                               ? 'Narrative'
-                              : section.heading}
+                              : renderRichText(section.heading)}
                           </h2>
                           {section.subheading && (
                             <p className="text-[15px] md:text-[16px] font-semibold text-black/70 mt-2">
-                              {section.subheading}
+                              {renderRichText(section.subheading)}
                             </p>
                           )}
                         </div>
                         {section.text ? (
                           <p className="text-left whitespace-pre-line">
-                            {project.slug === 'visual-culture-digital-narrative'
-                              ? section.text.replace(
-                                  /^\s*[.??]\s*(?=Elements Interactive)/i,
-                                  ''
-                                )
-                              : section.text}
+                            {renderRichText(
+                              project.slug === 'visual-culture-digital-narrative'
+                                ? section.text.replace(
+                                    /^\s*[.??]\s*(?=Elements Interactive)/i,
+                                    ''
+                                  )
+                                : section.text
+                            )}
                           </p>
                         ) : null}
                       </div>
@@ -774,7 +934,7 @@ export function ProjectDetail() {
                       <ul key={idx} className="list-disc list-inside space-y-2">
                         {section.items.map((item, itemIdx) => (
                           <li key={itemIdx} className="text-left leading-relaxed">
-                            {linkifyText(item)}
+                            {renderRichText(item)}
                           </li>
                         ))}
                       </ul>
@@ -783,12 +943,14 @@ export function ProjectDetail() {
 
                   return (
                     <p key={idx} className="text-left whitespace-pre-line">
-                      {project.slug === 'visual-culture-digital-narrative'
-                              ? section.text.replace(
-                                  /^\s*[.??]\s*(?=Elements Interactive)/i,
-                                  ''
-                                )
-                              : section.text}
+                      {renderRichText(
+                        project.slug === 'visual-culture-digital-narrative'
+                          ? section.text.replace(
+                              /^\s*[.??]\s*(?=Elements Interactive)/i,
+                              ''
+                            )
+                          : section.text
+                      )}
                     </p>
                   );
                 })}
@@ -815,7 +977,7 @@ export function ProjectDetail() {
               <ul className="list-disc list-inside space-y-2 text-black/80">
                 {referenceItems.map((item, idx) => (
                   <li key={idx} className="text-[15px] leading-relaxed">
-                    {linkifyText(item)}
+                    {renderRichText(item)}
                   </li>
                 ))}
               </ul>
@@ -839,6 +1001,3 @@ export function ProjectDetail() {
     </div>
   );
 }
-
-
-
