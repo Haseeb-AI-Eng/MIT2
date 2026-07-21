@@ -642,7 +642,7 @@ export function ProjectDetail() {
             {descriptionSections.length > 0 && (
               <div className="space-y-8 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-justify">
                 {project.slug === 'visual-culture-digital-narrative' ? (
-                  <h2 className="text-[15px] md:text-[17px] font-semibold leading-snug text-left whitespace-nowrap">
+                  <h2 className="text-[15px] md:text-[17px] font-semibold leading-snug text-left break-words">
                     The Unseen Gaze; Elements Interactive, Pexels, and Pakistan's Digital Visual
                   </h2>
                 ) : null}
@@ -654,7 +654,10 @@ export function ProjectDetail() {
                   if (section.type === 'heading') {
                     return (
                       <h2 key={idx} className="text-[19px] md:text-[21px] font-semibold mb-3 leading-tight">
-                        {section.text}
+                        {project.slug === 'visual-culture-digital-narrative' &&
+                  section.text.trim().toLowerCase() === 'narrative'
+                    ? 'Narrative'
+                    : section.text}
                       </h2>
                     );
                   }
@@ -664,7 +667,10 @@ export function ProjectDetail() {
                       <div key={idx} className="space-y-3">
                         <div>
                           <h2 className="text-[19px] md:text-[21px] font-semibold leading-tight">
-                            {section.heading}
+                            {project.slug === 'visual-culture-digital-narrative' &&
+                            section.heading.trim().toLowerCase() === 'narrative'
+                              ? 'Narrative'
+                              : section.heading}
                           </h2>
                           {section.subheading && (
                             <p className="text-[15px] md:text-[16px] font-semibold text-black/70 mt-2">
@@ -674,7 +680,12 @@ export function ProjectDetail() {
                         </div>
                         {section.text ? (
                           <p className="text-justify whitespace-pre-line">
-                            {section.text}
+                            {project.slug === 'visual-culture-digital-narrative'
+                              ? section.text.replace(
+                                  /^\s*[.??]\s*(?=Elements Interactive)/i,
+                                  ''
+                                )
+                              : section.text}
                           </p>
                         ) : null}
                       </div>
@@ -695,7 +706,12 @@ export function ProjectDetail() {
 
                   return (
                     <p key={idx} className="text-justify whitespace-pre-line">
-                      {section.text}
+                      {project.slug === 'visual-culture-digital-narrative'
+                              ? section.text.replace(
+                                  /^\s*[.??]\s*(?=Elements Interactive)/i,
+                                  ''
+                                )
+                              : section.text}
                     </p>
                   );
                 })}

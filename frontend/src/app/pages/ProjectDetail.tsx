@@ -456,7 +456,84 @@ export function ProjectDetail() {
   const sanitizedDescriptionBody = unseenGaze.title ? unseenGaze.cleanedDescription : descriptionBody;
   const referenceItems = explicitReferences.length > 0 ? explicitReferences : inlineReferences;
   const rawDescriptionSections = parseProjectDescription(sanitizedDescriptionBody);
-  const descriptionSections = rawDescriptionSections;
+
+  const descriptionSections = rawDescriptionSections.flatMap(
+    (section: any, index: number) => {
+      if (project.slug !== 'visual-culture-digital-narrative') {
+        return [section];
+      }
+
+      const previousSection = rawDescriptionSections[index - 1] as any;
+      const nextSection = rawDescriptionSections[index + 1] as any;
+
+      // Exact structure currently produced by the parser:
+      // heading = "Background"
+      // text = "From Creative Production to Digital"
+      const isExactBackgroundSection =
+        section.type === 'section' &&
+        section.heading?.trim().toLowerCase() === 'background' &&
+        !section.subheading &&
+        section.text?.trim().toLowerCase() ===
+          'from creative production to digital';
+
+      if (isExactBackgroundSection) {
+        return [
+          {
+            ...section,
+            heading: 'Background — From Creative Production to Digital',
+            text: '',
+          },
+        ];
+      }
+
+      // Also support the heading/subheading structure.
+      const isBackgroundSubheadingSection =
+        section.type === 'section' &&
+        section.heading?.trim().toLowerCase() === 'background' &&
+        section.subheading?.trim().toLowerCase() ===
+          'from creative production to digital';
+
+      if (isBackgroundSubheadingSection) {
+        return [
+          {
+            ...section,
+            heading: 'Background — From Creative Production to Digital',
+            subheading: null,
+          },
+        ];
+      }
+
+      // Also support two independently parsed heading entries.
+      const isBackgroundHeading =
+        section.type === 'heading' &&
+        section.text?.trim().toLowerCase() === 'background' &&
+        nextSection?.type === 'heading' &&
+        nextSection.text?.trim().toLowerCase() ===
+          'from creative production to digital';
+
+      if (isBackgroundHeading) {
+        return [
+          {
+            ...section,
+            text: 'Background — From Creative Production to Digital',
+          },
+        ];
+      }
+
+      const isSeparateSubtitle =
+        section.type === 'heading' &&
+        section.text?.trim().toLowerCase() ===
+          'from creative production to digital' &&
+        previousSection?.type === 'heading' &&
+        previousSection.text?.trim().toLowerCase() === 'background';
+
+      if (isSeparateSubtitle) {
+        return [];
+      }
+
+      return [section];
+    }
+  );
   const displayTitle = unseenGaze.title || project.title;
   const detailSubtitle = '';
 
@@ -762,3 +839,6 @@ export function ProjectDetail() {
     </div>
   );
 }
+
+
+
