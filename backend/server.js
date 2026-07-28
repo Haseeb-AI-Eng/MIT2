@@ -57,6 +57,14 @@ const REPLIT_DOMAIN = (process.env.REPLIT_DOMAINS || '').split(',')[0].trim();
 const API_BASE_URL = process.env.API_BASE_URL || (REPLIT_DOMAIN ? `https://${REPLIT_DOMAIN}` : `http://localhost:${PORT}`);
 
 const app = express();
+
+// MongoDB driver compatibility: findOneAndUpdate() returns the updated document
+// directly in newer drivers, but older drivers wrapped it in { value }.
+function updatedDocument(result) {
+  if (!result) return null;
+  return Object.prototype.hasOwnProperty.call(result, 'value') ? result.value : result;
+}
+
 app.use(cors());
 app.use(gzipResponse);
 app.use(express.json({ limit: '100mb' }));
@@ -402,8 +410,9 @@ app.put('/api/users/:id', authenticate, requireAdmin, async (req, res) => {
       { $set: updates },
       { returnDocument: 'after', projection: { passwordHash: 0 } }
     );
-    if (!result.value) return res.status(404).json({ error: 'User not found' });
-    res.json({ user: result.value });
+    const user = updatedDocument(result);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -775,8 +784,9 @@ app.put('/api/announcements/:id', authenticate, requireAdmin, async (req, res) =
     const result = await announcementsCollection.findOneAndUpdate(
       { _id: new ObjectId(id) }, { $set: updates }, { returnDocument: 'after' }
     );
-    if (!result.value) return res.status(404).json({ error: 'Announcement not found' });
-    res.json({ announcement: result.value });
+    const announcement = updatedDocument(result);
+    if (!announcement) return res.status(404).json({ error: 'Announcement not found' });
+    res.json({ announcement });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
@@ -998,10 +1008,11 @@ app.patch('/api/projects/:id/status', authenticate, requireAdmin, async (req, re
       { $set: { status, updatedAt: new Date() } },
       { returnDocument: 'after' }
     );
-    if (!result.value) return res.status(404).json({ error: 'Project not found' });
+    const project = updatedDocument(result);
+    if (!project) return res.status(404).json({ error: 'Project not found' });
     cacheInvalidate('projects:fast:');
     cacheInvalidate('projects:list:');
-    res.json({ project: result.value });
+    res.json({ project });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -1029,7 +1040,8 @@ app.put('/api/projects/:id', authenticate, requireAdmin, async (req, res) => {
       { $set: updates },
       { returnDocument: 'after' }
     );
-    if (!result.value) return res.status(404).json({ error: 'Project not found' });
+    const updatedProjectDoc = updatedDocument(result);
+    if (!updatedProjectDoc) return res.status(404).json({ error: 'Project not found' });
 
     if (Array.isArray(req.body.teamMembers)) {
       await projectMembersCollection.deleteMany({ projectId: new ObjectId(id) });
@@ -1064,7 +1076,7 @@ app.put('/api/projects/:id', authenticate, requireAdmin, async (req, res) => {
       }
     }
 
-    const updatedProject = result.value;
+    const updatedProject = updatedProjectDoc;
     if (updatedProject.leadEmail) {
       const leadUser = await usersCollection.findOne({ email: updatedProject.leadEmail.toLowerCase() });
       if (leadUser) {
@@ -1220,8 +1232,9 @@ app.put('/api/labs/:id', authenticate, requireAdmin, async (req, res) => {
     if (!ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid lab id' });
     const updates = { ...req.body, updatedAt: new Date() };
     const result = await labsCollection.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: updates }, { returnDocument: 'after' });
-    if (!result.value) return res.status(404).json({ error: 'Lab not found' });
-    res.json({ lab: result.value });
+    const lab = updatedDocument(result);
+    if (!lab) return res.status(404).json({ error: 'Lab not found' });
+    res.json({ lab });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
@@ -1347,8 +1360,9 @@ app.put('/api/articles/:id', authenticate, requireAdmin, async (req, res) => {
     const updates = { ...req.body, updatedAt: new Date() };
     if (updates.slug) updates.slug = await generateUniqueSlug(articlesCollection, updates.slug, id);
     const result = await articlesCollection.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: updates }, { returnDocument: 'after' });
-    if (!result.value) return res.status(404).json({ error: 'Article not found' });
-    res.json({ article: result.value });
+    const article = updatedDocument(result);
+    if (!article) return res.status(404).json({ error: 'Article not found' });
+    res.json({ article });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
@@ -1540,7 +1554,7 @@ app.put('/api/form-submissions/:id', authenticate, requireAdmin, async (req, res
       { returnDocument: 'after' }
     );
 
-    const submission = result.value !== undefined ? result.value : result;
+    const submission = updatedDocument(result);
     if (!submission) return res.status(404).json({ error: 'Submission not found' });
 
     if (status === 'accepted' && existing.status !== 'accepted') {
@@ -1566,7 +1580,7 @@ app.put('/api/form-submissions/:id', authenticate, requireAdmin, async (req, res
       }
     }
 
-    res.json({ submission: result.value });
+    res.json({ submission: updatedDocument(result) });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
