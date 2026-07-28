@@ -187,3 +187,75 @@
     line-height: 1.5;
   }
 }
+
+/* ─── Runtime public-site theme bridge ─────────────────────────────
+   The existing site was designed with many hard-coded Tailwind colors.
+   These scoped rules make the admin theme variables actually control
+   the public website without recoloring the admin dashboard itself.
+------------------------------------------------------------------- */
+.site-theme-root,
+.site-theme-scope,
+.site-theme-scope * {
+  font-family: var(--font-sans) !important;
+}
+
+.site-theme-scope {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+.site-theme-scope .bg-white,
+.site-theme-scope .bg-white\/60,
+.site-theme-scope .bg-white\/70,
+.site-theme-scope .bg-white\/80,
+.site-theme-scope .bg-white\/90,
+.site-theme-scope .bg-white\/95 {
+  background-color: color-mix(in srgb, var(--background) 92%, transparent) !important;
+}
+
+.site-theme-scope .text-black,
+.site-theme-scope .text-black\/80,
+.site-theme-scope .text-black\/70,
+.site-theme-scope .text-black\/60,
+.site-theme-scope .text-black\/50 {
+  color: var(--foreground) !important;
+}
+
+.site-theme-scope .border-black,
+.site-theme-scope .border-black\/10,
+.site-theme-scope .border-gray-200,
+.site-theme-scope .border-slate-200 {
+  border-color: var(--border) !important;
+}
+
+.site-theme-scope .bg-gray-50,
+.site-theme-scope .bg-gray-100,
+.site-theme-scope .bg-slate-50,
+.site-theme-scope .bg-slate-100 {
+  background-color: var(--muted) !important;
+}
+
+.site-theme-scope .text-gray-500,
+.site-theme-scope .text-gray-600,
+.site-theme-scope .text-slate-400,
+.site-theme-scope .text-slate-500,
+.site-theme-scope .text-slate-600 {
+  color: var(--muted-foreground) !important;
+}
+
+.site-theme-scope button:not([style*="background"]),
+.site-theme-scope a[data-theme-primary="true"] {
+  border-radius: var(--radius);
+}
+
+.site-theme-scope .theme-primary,
+.site-theme-scope [data-theme="primary"] {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+.site-theme-scope .theme-accent,
+.site-theme-scope [data-theme="accent"] {
+  background-color: var(--accent-brand) !important;
+  color: #fff !important;
+}

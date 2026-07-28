@@ -42,7 +42,7 @@ interface LayoutProps {
 
 function Layout({ children, onMenuClick }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="site-theme-scope min-h-screen bg-background text-foreground overflow-x-hidden">
       <Header onMenuClick={onMenuClick} />
       <main className="w-full overflow-x-hidden">{children}</main>
       <Footer />
@@ -52,7 +52,7 @@ function Layout({ children, onMenuClick }: LayoutProps) {
 
 function LayoutNoSidebar({ children, onMenuClick }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="site-theme-scope min-h-screen bg-background text-foreground overflow-x-hidden">
       <Header onMenuClick={onMenuClick} />
       <main className="w-full overflow-x-hidden">{children}</main>
       <Footer />
@@ -70,7 +70,7 @@ export default function App() {
   return (
     // ✅ Added overflow-x-hidden wrapper to prevent horizontal bleed from negative margins
     <SiteSettingsProvider>
-      <div className="overflow-x-hidden w-full">
+      <div className="site-theme-root overflow-x-hidden w-full">
         <ScrollToTop />
         <Toaster position="top-right" richColors />
         <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />

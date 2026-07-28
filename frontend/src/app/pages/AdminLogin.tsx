@@ -74,7 +74,7 @@ export function AdminLogin() {
               </div>
               <div className="flex flex-col gap-0 text-left">
                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight">ELEMENTS</h1>
-                <p className="text-xs font-semibold text-[#910B08] tracking-wider">INTERACTIVE</p>
+                <p className="text-xs font-semibold text-[var(--accent-brand)] tracking-wider">INTERACTIVE</p>
               </div>
             </div>
           </div>
@@ -125,7 +125,7 @@ export function AdminLogin() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#910B08] hover:bg-[#7a0906] text-white py-3 font-bold mt-6 rounded-lg transition-all"
+            className="w-full bg-[var(--accent-brand)] hover:opacity-90 text-white py-3 font-bold mt-6 rounded-lg transition-all"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

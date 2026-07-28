@@ -466,7 +466,7 @@ app.put('/api/settings', authenticate, requireAdmin, async (req, res) => {
     );
     cacheInvalidate('settings:');
     await logActivity('settings_updated', `${req.user.name} updated site settings`);
-    res.json({ settings: result.value });
+    res.json({ settings: result?.value ?? result });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 
@@ -479,7 +479,7 @@ app.post('/api/settings/reset', authenticate, requireAdmin, async (req, res) => 
       { returnDocument: 'after', upsert: true }
     );
     cacheInvalidate('settings:');
-    res.json({ settings: result.value });
+    res.json({ settings: result?.value ?? result });
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
 });
 

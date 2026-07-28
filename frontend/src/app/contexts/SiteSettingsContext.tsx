@@ -76,7 +76,9 @@ function applyThemeToDocument(settings: SiteSettings) {
   root.style.setProperty('--border', c.border);
   root.style.setProperty('--radius', `${settings.radius}rem`);
   if (settings.fontSans) {
-    root.style.setProperty('--font-sans', `'${settings.fontSans}', 'Helvetica Neue', Arial, sans-serif`);
+    const fontStack = `'${settings.fontSans}', 'Helvetica Neue', Arial, sans-serif`;
+    root.style.setProperty('--font-sans', fontStack);
+    document.body.style.fontFamily = fontStack;
   }
   if (settings.siteName) document.title = settings.siteName;
   if (settings.faviconUrl) {
@@ -97,7 +99,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch(`${getApiUrl()}/settings`);
+      const res = await fetch(`${getApiUrl()}/settings?t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         const merged = { ...DEFAULT_SETTINGS, ...data.settings, colors: { ...DEFAULT_SETTINGS.colors, ...(data.settings?.colors || {}) } };

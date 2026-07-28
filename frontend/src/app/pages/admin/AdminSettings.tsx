@@ -45,7 +45,8 @@ export function AdminSettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveSettings(form, token);
+      const saved = await saveSettings(form, token);
+      setForm(saved);
       toast.success('Site settings saved and applied');
     } catch (e: any) {
       toast.error(e.message || 'Failed to save settings');
