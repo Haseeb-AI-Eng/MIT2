@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import LogoIcon from './Logo';
+import { X } from 'lucide-react';
 
 export function Footer() {
   const navigate = useNavigate();
@@ -51,7 +52,9 @@ export function Footer() {
         </div>
         <div className="flex flex-col items-start lg:items-end gap-4">
           <div className="flex gap-4 text-black">
-            <a href="https://x.com/eiPakistan" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">X</a>
+            <a href="https://x.com/eiPakistan" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer" aria-label="X">
+              <X className="w-5 h-5" strokeWidth={2} />
+            </a>
             <a href="https://www.facebook.com/elementsinteractive" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">FB</a>
             <a href="https://www.instagram.com/elementsinteractive" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">IG</a>
             <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" className="hover:text-black/60 transition-colors cursor-pointer">YT</a>

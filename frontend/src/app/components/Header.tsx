@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { Search, Menu, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
+import { Search, Menu, Facebook, X, Linkedin, Instagram } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { SearchPanel } from './SearchPanel';
 import LogoIcon from './Logo';
@@ -157,7 +157,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
           }`}
         >
           {/* Logo: icon only */}
-          <Link to="/" className="flex items-center shrink-0">
+          <Link to="/" className="flex items-center shrink-0" title="elements interactive">
             <div className={`flex items-center transition-all duration-300 ${isScrolled ? 'h-[40px]' : 'h-[80px]'}`}>
               <LogoIcon height={isMobile ? (isScrolled ? 24 : 40) : isScrolled ? 32 : 56} outlineColor={outlineColor} />
             </div>
@@ -205,7 +205,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <Twitter className="w-3 h-3 md:w-5 md:h-5" strokeWidth={2} />
+                <X className="w-3 h-3 md:w-5 md:h-5" strokeWidth={2} />
               </a>
             </div>
 
