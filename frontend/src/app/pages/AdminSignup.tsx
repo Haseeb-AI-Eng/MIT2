@@ -5,6 +5,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { AlertCircle } from 'lucide-react';
 import { getApiUrl } from '../api';
+import { LogoIcon } from '../components/Logo';
 
 export function AdminSignup() {
   const navigate = useNavigate();
@@ -86,12 +87,12 @@ export function AdminSignup() {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-black rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-2xl">E</span>
+              <div className="w-14 h-14 bg-[#0a0a12] rounded-xl flex items-center justify-center shadow-lg">
+                <LogoIcon height={30} outlineColor="#ffffff" />
               </div>
-              <div className="flex flex-col gap-0">
+              <div className="flex flex-col gap-0 text-left">
                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight">ELEMENTS</h1>
-                <p className="text-xs font-semibold text-gray-700 tracking-wider">INTERACTIVE</p>
+                <p className="text-xs font-semibold text-[#910B08] tracking-wider">INTERACTIVE</p>
               </div>
             </div>
           </div>
@@ -173,7 +174,7 @@ export function AdminSignup() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-950 text-white py-3 font-bold mt-6 rounded-lg transition-all transform hover:scale-105 active:scale-95"
+            className="w-full bg-[#910B08] hover:bg-[#7a0906] text-white py-3 font-bold mt-6 rounded-lg transition-all"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

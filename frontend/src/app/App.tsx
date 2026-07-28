@@ -1,7 +1,7 @@
 import { Header } from './components/Header';
 import { NavSidebar } from './components/NavSidebar';
 import { Footer } from './components/Footer';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import { Home } from './pages/Home';
 import { About } from './pages/About';
@@ -17,15 +17,23 @@ import { SupportMediaLab } from './pages/SupportMediaLab';
 import { AddResearchProject } from './pages/AddResearchProject';
 import { Apply } from './pages/Apply';
 import { VRTourPage } from './pages/VRTourPage';
-import { Solutions } from './pages/Solutions';
-import { Contact } from './pages/Contact';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminSignup } from './pages/AdminSignup';
-import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminDashboardHome } from './pages/admin/AdminDashboardHome';
+import { AdminApplications } from './pages/admin/AdminApplications';
+import { AdminProjects } from './pages/admin/AdminProjects';
+import { AdminArticles } from './pages/admin/AdminArticles';
+import { AdminLabs } from './pages/admin/AdminLabs';
+import { AdminTags } from './pages/admin/AdminTags';
+import { AdminAnnouncements } from './pages/admin/AdminAnnouncements';
+import { AdminUsers } from './pages/admin/AdminUsers';
+import { AdminSettingsPage } from './pages/admin/AdminSettings';
 import { LeadConfirm } from './pages/LeadConfirm';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useKeepAlive } from '../hooks/useKeepAlive';
 import ScrollToTop from '../app/ScrollToTop';
+import { SiteSettingsProvider } from './contexts/SiteSettingsContext';
+import { Toaster } from './components/ui/sonner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,9 +42,9 @@ interface LayoutProps {
 
 function Layout({ children, onMenuClick }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white overflow-x-clip">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <Header onMenuClick={onMenuClick} />
-      <main className="w-full overflow-x-clip">{children}</main>
+      <main className="w-full overflow-x-hidden">{children}</main>
       <Footer />
     </div>
   );
@@ -44,9 +52,9 @@ function Layout({ children, onMenuClick }: LayoutProps) {
 
 function LayoutNoSidebar({ children, onMenuClick }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white overflow-x-clip">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       <Header onMenuClick={onMenuClick} />
-      <main className="w-full overflow-x-clip">{children}</main>
+      <main className="w-full overflow-x-hidden">{children}</main>
       <Footer />
     </div>
   );
@@ -60,36 +68,46 @@ export default function App() {
   const toggleNav = () => setIsNavOpen(true);
 
   return (
-    // ✅ Added overflow-x-clip wrapper to prevent horizontal bleed without creating a second vertical scroll container
-    <div className="overflow-x-clip w-full">
-      <ScrollToTop />
-      <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
-      <Routes>
-        <Route path="/" element={<Layout onMenuClick={toggleNav}><Home /></Layout>} />
-        <Route path="/about" element={<Layout onMenuClick={toggleNav}><About /></Layout>} />
-        <Route path="/research" element={<Layout onMenuClick={toggleNav}><Research /></Layout>} />
-        <Route path="/foundations" element={<Layout onMenuClick={toggleNav}><Foundations /></Layout>} />
-        <Route path="/projects" element={<LayoutNoSidebar onMenuClick={toggleNav}><Projects /></LayoutNoSidebar>} />
-        <Route path="/support-media-lab" element={<Layout onMenuClick={toggleNav}><SupportMediaLab /></Layout>} />
-        <Route path="/mas-graduate-program" element={<Layout onMenuClick={toggleNav}><MASGraduateProgram /></Layout>} />
-        <Route path="/people" element={<Layout onMenuClick={toggleNav}><People /></Layout>} />
-        <Route path="/alumni-friends" element={<Layout onMenuClick={toggleNav}><AlumniFriends /></Layout>} />
-        <Route path="/add-research-project" element={<Layout onMenuClick={toggleNav}><AddResearchProject /></Layout>} />
-        <Route path="/apply" element={<Layout onMenuClick={toggleNav}><Apply /></Layout>} />
-        <Route path="/360-vr-tour" element={<Layout onMenuClick={toggleNav}><VRTourPage /></Layout>} />
-        <Route path="/solutions" element={<LayoutNoSidebar onMenuClick={toggleNav}><Solutions /></LayoutNoSidebar>} />
-        <Route path="/contact" element={<LayoutNoSidebar onMenuClick={toggleNav}><Contact /></LayoutNoSidebar>} />
-        <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ArticleDetail /></LayoutNoSidebar>} />
-        <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ProjectDetail /></LayoutNoSidebar>} />
-        <Route path="/lead-confirm" element={<LayoutNoSidebar onMenuClick={toggleNav}><LeadConfirm /></LayoutNoSidebar>} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/signup" element={<AdminSignup />} />
-        <Route path="/admin/dashboard" element={
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
-      </Routes>
-    </div>
+    // ✅ Added overflow-x-hidden wrapper to prevent horizontal bleed from negative margins
+    <SiteSettingsProvider>
+      <div className="overflow-x-hidden w-full">
+        <ScrollToTop />
+        <Toaster position="top-right" richColors />
+        <NavSidebar isOpen={isNavOpen} onClose={() => setIsNavOpen(false)} />
+        <Routes>
+          <Route path="/" element={<Layout onMenuClick={toggleNav}><Home /></Layout>} />
+          <Route path="/about" element={<Layout onMenuClick={toggleNav}><About /></Layout>} />
+          <Route path="/research" element={<Layout onMenuClick={toggleNav}><Research /></Layout>} />
+          <Route path="/foundations" element={<Layout onMenuClick={toggleNav}><Foundations /></Layout>} />
+          <Route path="/projects" element={<LayoutNoSidebar onMenuClick={toggleNav}><Projects /></LayoutNoSidebar>} />
+          <Route path="/support-media-lab" element={<Layout onMenuClick={toggleNav}><SupportMediaLab /></Layout>} />
+          <Route path="/mas-graduate-program" element={<Layout onMenuClick={toggleNav}><MASGraduateProgram /></Layout>} />
+          <Route path="/people" element={<Layout onMenuClick={toggleNav}><People /></Layout>} />
+          <Route path="/alumni-friends" element={<Layout onMenuClick={toggleNav}><AlumniFriends /></Layout>} />
+          <Route path="/add-research-project" element={<Layout onMenuClick={toggleNav}><AddResearchProject /></Layout>} />
+          <Route path="/apply" element={<Layout onMenuClick={toggleNav}><Apply /></Layout>} />
+          <Route path="/360-vr-tour" element={<Layout onMenuClick={toggleNav}><VRTourPage /></Layout>} />
+          <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ArticleDetail /></LayoutNoSidebar>} />
+          <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ProjectDetail /></LayoutNoSidebar>} />
+          <Route path="/lead-confirm" element={<LayoutNoSidebar onMenuClick={toggleNav}><LeadConfirm /></LayoutNoSidebar>} />
+
+          {/* Admin auth */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/signup" element={<AdminSignup />} />
+
+          {/* Admin panel */}
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboardHome /></ProtectedRoute>} />
+          <Route path="/admin/applications" element={<ProtectedRoute><AdminApplications /></ProtectedRoute>} />
+          <Route path="/admin/projects" element={<ProtectedRoute><AdminProjects /></ProtectedRoute>} />
+          <Route path="/admin/articles" element={<ProtectedRoute><AdminArticles /></ProtectedRoute>} />
+          <Route path="/admin/labs" element={<ProtectedRoute><AdminLabs /></ProtectedRoute>} />
+          <Route path="/admin/tags" element={<ProtectedRoute><AdminTags /></ProtectedRoute>} />
+          <Route path="/admin/announcements" element={<ProtectedRoute><AdminAnnouncements /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute><AdminSettingsPage /></ProtectedRoute>} />
+        </Routes>
+      </div>
+    </SiteSettingsProvider>
   );
 }
