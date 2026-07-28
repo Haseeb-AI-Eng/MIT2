@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { Search, Menu, Facebook, X, Linkedin, Instagram } from 'lucide-react';
+import { Search, Menu, Facebook, Linkedin, Instagram } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { SearchPanel } from './SearchPanel';
 import LogoIcon from './Logo';
@@ -7,6 +7,13 @@ import LogoIcon from './Logo';
 interface HeaderProps {
   onMenuClick?: () => void;
 }
+
+// Official X (Twitter) logo mark — lucide's `X` icon is a close icon, not the brand mark
+const XLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 // shared LogoIcon imported from ./Logo
 
@@ -205,7 +212,7 @@ export const Header = React.memo(function Header({ onMenuClick }: HeaderProps) {
                   isScrolled ? 'text-black hover:bg-black/5' : 'text-white hover:bg-white/10'
                 }`}
               >
-                <X className="w-3 h-3 md:w-5 md:h-5" strokeWidth={2} />
+                <XLogo className="w-3 h-3 md:w-5 md:h-5" />
               </a>
             </div>
 
