@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { fetchProjectByIdOrSlug } from '../api';
@@ -67,32 +67,41 @@ function normalizeProjectReferences(project: any): string[] {
 // actual reference list rather than a coincidental year in parentheses.
 const CITATION_HEADER_REGEX = /[A-Z][A-Za-z.,&'’\-\s]{0,80}?\((?:\d{4}[a-z]?|n\.d\.)\)\./g;
 
-function splitDescriptionReferences(description: string): { body: string; references: string[] } {
-  if (!description) return { body: description || '', references: [] };
+function stripEmbeddedReferencesSection(description: string): string {
+  if (!description) return '';
 
+  const normalized = description.replace(/\r\n/g, '\n');
+  const lines = normalized.split('\n');
+
+  // Remove any References / Bibliography / Sources block from the description.
+  // References are managed separately and should never appear above the video.
+  const referenceHeadingIndex = lines.findIndex((rawLine) => {
+    const line = rawLine
+      .trim()
+      .replace(/^#{1,6}\s*/, '')
+      .replace(/^(\*\*|__)(.*?)\1$/, '$2')
+      .replace(/[:：]\s*$/, '')
+      .trim()
+      .toLowerCase();
+
+    return ['references', 'reference', 'bibliography', 'sources', 'citations'].includes(line);
+  });
+
+  if (referenceHeadingIndex >= 0) {
+    return lines.slice(0, referenceHeadingIndex).join('\n').trim();
+  }
+
+  // Legacy fallback for imported content that contains citations without a
+  // visible heading. Keep only content before the first citation sequence.
   const starts: number[] = [];
   const regex = new RegExp(CITATION_HEADER_REGEX);
   let match: RegExpExecArray | null;
-  while ((match = regex.exec(description)) !== null) {
+  while ((match = regex.exec(normalized)) !== null) {
     starts.push(match.index);
-    if (match.index === regex.lastIndex) regex.lastIndex += 1; // guard against zero-length matches
+    if (match.index === regex.lastIndex) regex.lastIndex += 1;
   }
 
-  if (starts.length < 2) {
-    return { body: description, references: [] };
-  }
-
-  const refStart = starts[0];
-  const body = description.slice(0, refStart).trim();
-  const references: string[] = [];
-  for (let i = 0; i < starts.length; i++) {
-    const start = starts[i];
-    const end = i + 1 < starts.length ? starts[i + 1] : description.length;
-    const entry = description.slice(start, end).trim();
-    if (entry) references.push(entry);
-  }
-
-  return { body, references };
+  return starts.length >= 2 ? normalized.slice(0, starts[0]).trim() : normalized.trim();
 }
 
 function extractUnseenGazeTitle(description: string) {
@@ -602,17 +611,12 @@ export function ProjectDetail() {
   const tags: string[] = project.tags || [];
   const detailedExplanation = generateDetailedExplanation(project);
 
-  // Prefer an explicit references/bibliography field if the project has one.
-  // Otherwise, fall back to detecting a citation list embedded in the
-  // description itself and split it out into bullet points.
-  const explicitReferences = normalizeProjectReferences(project);
-  const { body: descriptionBody, references: inlineReferences } =
-    explicitReferences.length > 0
-      ? { body: project.description || '', references: [] as string[] }
-      : splitDescriptionReferences(project.description || '');
+  // Remove any References/Bibliography block stored inside the description.
+  // The public project page no longer auto-renders a References heading or list.
+  // References can be added manually in the intended final section.
+  const descriptionBody = stripEmbeddedReferencesSection(project.description || '');
   const unseenGaze = extractUnseenGazeTitle(descriptionBody);
   const sanitizedDescriptionBody = unseenGaze.title ? unseenGaze.cleanedDescription : descriptionBody;
-  const referenceItems = explicitReferences.length > 0 ? explicitReferences : inlineReferences;
   const rawDescriptionSections = parseProjectDescription(sanitizedDescriptionBody);
 
   const descriptionSections = rawDescriptionSections.flatMap(
@@ -970,19 +974,6 @@ export function ProjectDetail() {
               <p key={idx}>{p}</p>
             ))}
           </div>
-
-          {referenceItems.length > 0 && (
-            <section className="mb-10">
-              <h2 className="text-[20px] font-semibold mb-4">References</h2>
-              <ul className="list-disc list-inside space-y-2 text-black/80">
-                {referenceItems.map((item, idx) => (
-                  <li key={idx} className="text-[15px] leading-relaxed">
-                    {renderRichText(item)}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
 
           <div className="flex flex-wrap items-center gap-3 mt-12 pt-6 border-t border-black/10">
             {project.status && (

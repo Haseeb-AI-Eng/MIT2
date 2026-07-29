@@ -3,17 +3,17 @@ import { AdminLayout } from '../../components/admin/AdminLayout';
 import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { Plus, Pencil, Trash2, Search, Star, ExternalLink } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Star, ExternalLink, FileText } from 'lucide-react';
 import {
-  adminFetchProjects, adminCreateProject, adminUpdateProject, adminDeleteProject, adminFetchLabs,
+  adminFetchProjects, adminFetchProject, adminCreateProject, adminUpdateProject, adminDeleteProject, adminFetchLabs,
 } from '../../adminApi';
 import { toast } from 'sonner';
+import { RichProjectEditor } from '../../components/admin/RichProjectEditor';
 
 const STATUS_STYLE: Record<string, string> = {
   draft: 'bg-slate-100 text-slate-600',
@@ -36,6 +36,7 @@ export function AdminProjects() {
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState<string | null>(null);
+  const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -60,13 +61,39 @@ export function AdminProjects() {
   );
 
   const openCreate = () => { setForm(EMPTY_FORM); setDialogOpen(true); };
-  const openEdit = (p: any) => {
-    setForm({
-      _id: p._id, title: p.title || '', description: p.description || '', coverImage: p.coverImage || '',
-      videoUrl: p.videoUrl || '', status: p.status || 'draft', tags: (p.tags || []).join(', '),
-      labId: p.labId?._id || p.labId || '', lead: p.lead || '', email: p.leadEmail || '', featured: !!p.featured,
-    });
-    setDialogOpen(true);
+  const openEdit = async (summary: any) => {
+    const id = String(summary?._id || '');
+    if (!id) {
+      toast.error('Project ID is missing');
+      return;
+    }
+
+    setOpeningProjectId(id);
+    try {
+      // The project-list endpoint intentionally returns only a 150-character
+      // description preview. Always request the single project before editing
+      // so the editor receives the complete description from MongoDB.
+      const response = await adminFetchProject(id);
+      const p = response.project || summary;
+      setForm({
+        _id: p._id || id,
+        title: p.title || '',
+        description: p.description || '',
+        coverImage: p.coverImage || p.cover_image || '',
+        videoUrl: p.videoUrl || '',
+        status: p.status || 'draft',
+        tags: (p.tags || []).join(', '),
+        labId: p.labId?._id || p.labId || '',
+        lead: p.lead || '',
+        email: p.leadEmail || p.email || '',
+        featured: !!p.featured,
+      });
+      setDialogOpen(true);
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to load the complete project');
+    } finally {
+      setOpeningProjectId(null);
+    }
   };
 
   const handleSave = async () => {
@@ -82,6 +109,7 @@ export function AdminProjects() {
         tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
         labId: form.labId || null,
         lead: form.lead,
+        leadEmail: form.email,
         email: form.email,
         featured: form.featured,
       };
@@ -184,7 +212,7 @@ export function AdminProjects() {
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       )}
-                      <button onClick={() => openEdit(p)} className="p-2 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50"><Pencil className="w-4 h-4" /></button>
+                      <button disabled={openingProjectId === p._id} onClick={() => openEdit(p)} title="Edit complete project" className="p-2 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 disabled:cursor-wait disabled:opacity-50"><Pencil className={`w-4 h-4 ${openingProjectId === p._id ? 'animate-pulse' : ''}`} /></button>
                       <button onClick={() => setToDelete(p._id)} className="p-2 text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </TableCell>
@@ -196,19 +224,29 @@ export function AdminProjects() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{form._id ? 'Edit Project' : 'New Project'}</DialogTitle>
-            <DialogDescription>{form._id ? 'Update project details' : 'Create a new research project'}</DialogDescription>
+        <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto p-0">
+          <DialogHeader className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 px-6 py-5 backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--accent-brand,#910B08)] text-white"><FileText className="h-5 w-5" /></div>
+              <div>
+                <DialogTitle className="text-xl font-extrabold">{form._id ? 'Edit Research Project' : 'Create Research Project'}</DialogTitle>
+                <DialogDescription>{form._id ? 'Update details, formatting and imported document content.' : 'Add project details manually or import a PDF/DOCX document.'}</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-6 px-6 py-5">
             <div>
               <Label className="mb-1.5 block">Title</Label>
               <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Project title" />
             </div>
             <div>
-              <Label className="mb-1.5 block">Description</Label>
-              <Textarea rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Project description" />
+              <div className="mb-2 flex items-end justify-between gap-3">
+                <div>
+                  <Label className="block text-sm font-extrabold text-slate-900">Project Content</Label>
+                  <p className="mt-1 text-xs text-slate-500">Write a formatted description or import a PDF, DOCX, TXT or Markdown document.</p>
+                </div>
+              </div>
+              <RichProjectEditor value={form.description} onChange={(description) => setForm({ ...form, description })} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -265,7 +303,7 @@ export function AdminProjects() {
               <Switch checked={form.featured} onCheckedChange={(v) => setForm({ ...form, featured: v })} />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={saving} className="bg-[var(--accent-brand,#910B08)] hover:opacity-90 text-white">
               {saving ? 'Saving...' : form._id ? 'Save Changes' : 'Create Project'}

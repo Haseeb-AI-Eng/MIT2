@@ -34,6 +34,11 @@ export const adminFetchProjects = (params: Record<string, string> = {}) => {
   const qs = new URLSearchParams(params).toString();
   return fetch(`${BASE()}/projects${qs ? `?${qs}` : ''}`).then(handle<any>);
 };
+export const adminFetchProject = (id: string) =>
+  fetch(`${BASE()}/projects/${encodeURIComponent(id)}`, {
+    headers: authHeaders(getToken(), false),
+    cache: 'no-store',
+  }).then(handle<any>);
 export const adminCreateProject = (payload: any) =>
   fetch(`${BASE()}/projects`, { method: 'POST', headers: authHeaders(getToken()), body: JSON.stringify(payload) })
     .then(handle<any>)
