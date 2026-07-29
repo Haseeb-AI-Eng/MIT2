@@ -1,6 +1,5 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
 const navItems = [
   'Highlights',
   'Research',
@@ -11,7 +10,6 @@ const navItems = [
   'Academia Outreach',
   'Contact',
 ] as const;
-
 const routeMap: Record<string, string> = {
   Highlights: '/',
   Research: '/research',
@@ -22,19 +20,16 @@ const routeMap: Record<string, string> = {
   'Academia Outreach': '/mas-graduate-program',
   Contact: '/contact',
 };
-
 export function SideNav() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const activeSection = React.useMemo(() => {
     const currentPath = location.pathname;
     const match = Object.entries(routeMap).find(([, path]) => path === currentPath);
     return match?.[0] ?? 'Highlights';
   }, [location.pathname]);
-
   return (
-    <aside className="hidden lg:block w-80 shrink-0 relative z-30 -mt-[100px]">
+    <aside className="hidden lg:block w-80 shrink-0 relative z-30">
       <div className="sticky top-[140px] z-20 bg-white">
         <nav className="py-4">
           <div className="space-y-0">
