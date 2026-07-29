@@ -17,6 +17,8 @@ import { SupportMediaLab } from './pages/SupportMediaLab';
 import { AddResearchProject } from './pages/AddResearchProject';
 import { Apply } from './pages/Apply';
 import { VRTourPage } from './pages/VRTourPage';
+import { Contact } from './pages/Contact';
+import { Solutions } from './pages/Solutions';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminSignup } from './pages/AdminSignup';
 import { AdminDashboardHome } from './pages/admin/AdminDashboardHome';
@@ -90,6 +92,8 @@ export default function App() {
           <Route path="/add-research-project" element={<Layout onMenuClick={toggleNav}><AddResearchProject /></Layout>} />
           <Route path="/apply" element={<Layout onMenuClick={toggleNav}><Apply /></Layout>} />
           <Route path="/360-vr-tour" element={<Layout onMenuClick={toggleNav}><VRTourPage /></Layout>} />
+          <Route path="/contact" element={<Layout onMenuClick={toggleNav}><Contact /></Layout>} />
+          <Route path="/solutions" element={<Layout onMenuClick={toggleNav}><Solutions /></Layout>} />
           <Route path="/article/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ArticleDetail /></LayoutNoSidebar>} />
           <Route path="/projects/:id" element={<LayoutNoSidebar onMenuClick={toggleNav}><ProjectDetail /></LayoutNoSidebar>} />
           <Route path="/lead-confirm" element={<LayoutNoSidebar onMenuClick={toggleNav}><LeadConfirm /></LayoutNoSidebar>} />
