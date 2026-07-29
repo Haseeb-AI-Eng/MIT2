@@ -5,7 +5,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { Save, RotateCcw, Palette, Type, Globe, Share2 } from 'lucide-react';
+import { Save, RotateCcw, Palette, Type, Globe, Share2, Moon, Sun, Monitor, Sparkles } from 'lucide-react';
 import { useSiteSettings, SiteSettings } from '../../contexts/SiteSettingsContext';
 import { LogoIcon } from '../../components/Logo';
 import { toast } from 'sonner';
@@ -23,6 +23,12 @@ const COLOR_FIELDS: { key: keyof SiteSettings['colors']; label: string; help: st
 
 const FONT_OPTIONS = ['Poppins', 'Inter', 'Roboto', 'Montserrat', 'Lato', 'Work Sans'];
 
+const APPEARANCE_OPTIONS = [
+  { value: 'light', label: 'Light', icon: Sun, help: 'Always publish the light theme' },
+  { value: 'dark', label: 'Dark', icon: Moon, help: 'Always publish the dark theme' },
+  { value: 'system', label: 'System', icon: Monitor, help: "Follow each visitor's device setting" },
+] as const;
+
 export function AdminSettingsPage() {
   const { settings, saveSettings, resetSettings, setPreview } = useSiteSettings();
   const [form, setForm] = useState<SiteSettings>(settings);
@@ -38,8 +44,8 @@ export function AdminSettingsPage() {
     return () => setPreview(null);
   }, [form]); // eslint-disable-line
 
-  const updateColor = (key: keyof SiteSettings['colors'], value: string) => {
-    setForm((prev) => ({ ...prev, colors: { ...prev.colors, [key]: value } }));
+  const updateColor = (key: keyof SiteSettings['colors'], value: string, palette: 'colors' | 'darkColors' = 'colors') => {
+    setForm((prev) => ({ ...prev, [palette]: { ...prev[palette], [key]: value } }));
   };
 
   const handleSave = async () => {
@@ -89,6 +95,7 @@ export function AdminSettingsPage() {
             <TabsList className="mb-6">
               <TabsTrigger value="branding" className="gap-2"><Globe className="w-4 h-4" /> Branding</TabsTrigger>
               <TabsTrigger value="colors" className="gap-2"><Palette className="w-4 h-4" /> Colors</TabsTrigger>
+              <TabsTrigger value="appearance" className="gap-2"><Moon className="w-4 h-4" /> Appearance</TabsTrigger>
               <TabsTrigger value="typography" className="gap-2"><Type className="w-4 h-4" /> Typography</TabsTrigger>
               <TabsTrigger value="social" className="gap-2"><Share2 className="w-4 h-4" /> Social</TabsTrigger>
             </TabsList>
@@ -151,6 +158,80 @@ export function AdminSettingsPage() {
               </div>
             </TabsContent>
 
+
+            <TabsContent value="appearance" className="space-y-4">
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
+                <div>
+                  <Label className="mb-3 block">Published appearance</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {APPEARANCE_OPTIONS.map(({ value, label, icon: Icon, help }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setForm({ ...form, appearanceMode: value })}
+                        className={`rounded-xl border p-4 text-left transition-all ${
+                          form.appearanceMode === value
+                            ? 'border-[var(--accent-brand,#910B08)] ring-2 ring-[var(--accent-brand,#910B08)]/15 bg-red-50/50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 mb-3" />
+                        <p className="font-bold text-slate-900">{label}</p>
+                        <p className="text-xs text-slate-500 mt-1">{help}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between rounded-xl border border-slate-200 p-4">
+                    <div>
+                      <Label className="block">Visitor theme switch</Label>
+                      <p className="text-xs text-slate-500 mt-1">Show a floating light/dark toggle on the public website.</p>
+                    </div>
+                    <Switch checked={form.allowVisitorThemeToggle} onCheckedChange={(v) => setForm({ ...form, allowVisitorThemeToggle: v })} />
+                  </div>
+                  <div className="flex items-center justify-between rounded-xl border border-slate-200 p-4">
+                    <div>
+                      <Label className="flex items-center gap-2"><Sparkles className="w-4 h-4" /> Reading progress bar</Label>
+                      <p className="text-xs text-slate-500 mt-1">A modern progress indicator appears while visitors scroll.</p>
+                    </div>
+                    <Switch checked={form.showReadingProgress} onCheckedChange={(v) => setForm({ ...form, showReadingProgress: v })} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-950 text-white rounded-xl border border-slate-800 p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-5">
+                  <Moon className="w-5 h-5" />
+                  <div>
+                    <p className="font-bold">Dark-mode palette</p>
+                    <p className="text-xs text-slate-400">These colors are applied when dark mode is active.</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {COLOR_FIELDS.map((f) => (
+                    <div key={`dark-${f.key}`}>
+                      <Label className="mb-1.5 block text-slate-200">{f.label}</Label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={/^#/.test(form.darkColors[f.key]) ? form.darkColors[f.key] : '#000000'}
+                          onChange={(e) => updateColor(f.key, e.target.value, 'darkColors')}
+                          className="w-10 h-10 rounded-lg border border-slate-700 cursor-pointer shrink-0 bg-transparent"
+                        />
+                        <Input
+                          value={form.darkColors[f.key]}
+                          onChange={(e) => updateColor(f.key, e.target.value, 'darkColors')}
+                          className="font-mono text-sm bg-slate-900 border-slate-700 text-white"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="typography" className="space-y-4">
               <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                 <Label className="mb-2 block">Font Family</Label>
@@ -195,42 +276,44 @@ export function AdminSettingsPage() {
             <div className="p-3 border-b border-slate-200 bg-slate-50">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Live Preview</p>
             </div>
-            <div className="p-6" style={{ background: form.colors.background, color: form.colors.foreground, fontFamily: form.fontSans }}>
+            {(() => { const previewColors = form.appearanceMode === 'dark' ? form.darkColors : form.colors; return (
+            <div className="p-6" style={{ background: previewColors.background, color: previewColors.foreground, fontFamily: form.fontSans }}>
               <div className="flex items-center gap-2 mb-6">
-                <LogoIcon height={28} outlineColor={form.colors.foreground} />
+                <LogoIcon height={28} outlineColor={previewColors.foreground} />
                 <div>
                   <p className="font-bold text-sm">{form.logoText || 'ELEMENTS'}</p>
                   <p className="text-[10px] opacity-60">{form.tagline}</p>
                 </div>
               </div>
-              <div className="rounded-lg p-4 mb-3" style={{ background: form.colors.muted }}>
+              <div className="rounded-lg p-4 mb-3" style={{ background: previewColors.muted }}>
                 <p className="text-sm font-semibold mb-1">Sample Card</p>
-                <p className="text-xs" style={{ color: form.colors.mutedForeground }}>
+                <p className="text-xs" style={{ color: previewColors.mutedForeground }}>
                   This is how muted surfaces and secondary text look with your chosen palette.
                 </p>
               </div>
               <div className="flex gap-2 mb-3">
                 <button
                   className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                  style={{ background: form.colors.primary, borderRadius: `${form.radius}rem` }}
+                  style={{ background: previewColors.primary, borderRadius: `${form.radius}rem` }}
                 >
                   Primary Button
                 </button>
                 <button
                   className="px-4 py-2 text-sm font-semibold"
-                  style={{ background: form.colors.secondary, borderRadius: `${form.radius}rem` }}
+                  style={{ background: previewColors.secondary, borderRadius: `${form.radius}rem` }}
                 >
                   Secondary
                 </button>
               </div>
               <div
                 className="px-4 py-2 rounded-lg text-sm font-semibold text-white inline-block"
-                style={{ background: form.colors.accent, borderRadius: `${form.radius}rem` }}
+                style={{ background: previewColors.accent, borderRadius: `${form.radius}rem` }}
               >
                 Brand Accent
               </div>
-              <p className="text-xs mt-4" style={{ color: form.colors.destructive }}>● Destructive / error state</p>
+              <p className="text-xs mt-4" style={{ color: previewColors.destructive }}>● Destructive / error state</p>
             </div>
+            ); })()}
           </div>
         </div>
       </div>

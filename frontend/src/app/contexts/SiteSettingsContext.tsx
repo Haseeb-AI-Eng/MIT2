@@ -13,6 +13,8 @@ export interface SiteColors {
   border: string;
 }
 
+export type AppearanceMode = 'light' | 'dark' | 'system';
+
 export interface SiteSettings {
   _id?: string;
   siteName: string;
@@ -20,6 +22,10 @@ export interface SiteSettings {
   logoText: string;
   faviconUrl: string;
   colors: SiteColors;
+  darkColors: SiteColors;
+  appearanceMode: AppearanceMode;
+  allowVisitorThemeToggle: boolean;
+  showReadingProgress: boolean;
   radius: string;
   fontSans: string;
   socialLinks: { twitter: string; instagram: string; youtube: string; linkedin: string };
@@ -43,6 +49,20 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     destructive: '#d4183d',
     border: 'rgba(0, 0, 0, 0.1)',
   },
+  darkColors: {
+    primary: '#f5f7ff',
+    secondary: '#20242d',
+    accent: '#d43a36',
+    background: '#0b0d12',
+    foreground: '#f5f7fb',
+    muted: '#171a22',
+    mutedForeground: '#a9b0bf',
+    destructive: '#ff5d73',
+    border: 'rgba(255, 255, 255, 0.14)',
+  },
+  appearanceMode: 'light',
+  allowVisitorThemeToggle: true,
+  showReadingProgress: true,
   radius: '0.625',
   fontSans: 'Poppins',
   socialLinks: { twitter: '', instagram: '', youtube: '', linkedin: '' },
@@ -57,13 +77,27 @@ interface SiteSettingsContextValue {
   refresh: () => Promise<void>;
   saveSettings: (s: SiteSettings, token: string) => Promise<SiteSettings>;
   resetSettings: (token: string) => Promise<SiteSettings>;
+  resolvedMode: 'light' | 'dark';
+  visitorMode: 'light' | 'dark' | null;
+  setVisitorMode: (mode: 'light' | 'dark' | null) => void;
 }
 
 const SiteSettingsContext = createContext<SiteSettingsContextValue | undefined>(undefined);
 
-function applyThemeToDocument(settings: SiteSettings) {
+function resolveAppearanceMode(settings: SiteSettings, visitorMode: 'light' | 'dark' | null): 'light' | 'dark' {
+  if (settings.allowVisitorThemeToggle && visitorMode) return visitorMode;
+  if (settings.appearanceMode === 'system') {
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return settings.appearanceMode === 'dark' ? 'dark' : 'light';
+}
+
+function applyThemeToDocument(settings: SiteSettings, resolvedMode: 'light' | 'dark') {
   const root = document.documentElement;
-  const c = settings.colors;
+  const c = resolvedMode === 'dark' ? settings.darkColors : settings.colors;
+  root.dataset.siteMode = resolvedMode;
+  root.classList.toggle('site-dark', resolvedMode === 'dark');
+  root.style.colorScheme = resolvedMode;
   root.style.setProperty('--primary', c.primary);
   root.style.setProperty('--sidebar-primary', c.primary);
   root.style.setProperty('--secondary', c.secondary);
@@ -96,13 +130,17 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [previewSettings, setPreviewSettings] = useState<SiteSettings | null>(null);
+  const [visitorMode, setVisitorModeState] = useState<'light' | 'dark' | null>(() => {
+    const saved = localStorage.getItem('elements-visitor-theme');
+    return saved === 'light' || saved === 'dark' ? saved : null;
+  });
 
   const refresh = useCallback(async () => {
     try {
       const res = await fetch(`${getApiUrl()}/settings?t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        const merged = { ...DEFAULT_SETTINGS, ...data.settings, colors: { ...DEFAULT_SETTINGS.colors, ...(data.settings?.colors || {}) } };
+        const merged = { ...DEFAULT_SETTINGS, ...data.settings, colors: { ...DEFAULT_SETTINGS.colors, ...(data.settings?.colors || {}) }, darkColors: { ...DEFAULT_SETTINGS.darkColors, ...(data.settings?.darkColors || {}) } };
         setSettings(merged);
       }
     } catch {
@@ -116,9 +154,26 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
     refresh();
   }, [refresh]);
 
+  const activeSettings = previewSettings || settings;
+  const resolvedMode = resolveAppearanceMode(activeSettings, visitorMode);
+
   useEffect(() => {
-    applyThemeToDocument(previewSettings || settings);
-  }, [settings, previewSettings]);
+    applyThemeToDocument(activeSettings, resolvedMode);
+  }, [activeSettings, resolvedMode]);
+
+  useEffect(() => {
+    if (activeSettings.appearanceMode !== 'system' || visitorMode) return;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => applyThemeToDocument(activeSettings, media.matches ? 'dark' : 'light');
+    media.addEventListener?.('change', onChange);
+    return () => media.removeEventListener?.('change', onChange);
+  }, [activeSettings, visitorMode]);
+
+  const setVisitorMode = useCallback((mode: 'light' | 'dark' | null) => {
+    setVisitorModeState(mode);
+    if (mode) localStorage.setItem('elements-visitor-theme', mode);
+    else localStorage.removeItem('elements-visitor-theme');
+  }, []);
 
   const saveSettings = useCallback(async (newSettings: SiteSettings, token: string) => {
     const res = await fetch(`${getApiUrl()}/settings`, {
@@ -131,7 +186,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
       throw new Error(err.error || 'Failed to save settings');
     }
     const data = await res.json();
-    const merged = { ...DEFAULT_SETTINGS, ...data.settings, colors: { ...DEFAULT_SETTINGS.colors, ...(data.settings?.colors || {}) } };
+    const merged = { ...DEFAULT_SETTINGS, ...data.settings, colors: { ...DEFAULT_SETTINGS.colors, ...(data.settings?.colors || {}) }, darkColors: { ...DEFAULT_SETTINGS.darkColors, ...(data.settings?.darkColors || {}) } };
     setSettings(merged);
     setPreviewSettings(null);
     return merged;
@@ -144,15 +199,15 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
     });
     if (!res.ok) throw new Error('Failed to reset settings');
     const data = await res.json();
-    const merged = { ...DEFAULT_SETTINGS, ...data.settings, colors: { ...DEFAULT_SETTINGS.colors, ...(data.settings?.colors || {}) } };
+    const merged = { ...DEFAULT_SETTINGS, ...data.settings, colors: { ...DEFAULT_SETTINGS.colors, ...(data.settings?.colors || {}) }, darkColors: { ...DEFAULT_SETTINGS.darkColors, ...(data.settings?.darkColors || {}) } };
     setSettings(merged);
     setPreviewSettings(null);
     return merged;
   }, []);
 
   const value = useMemo(
-    () => ({ settings, loading, previewSettings, setPreview: setPreviewSettings, refresh, saveSettings, resetSettings }),
-    [settings, loading, previewSettings, refresh, saveSettings, resetSettings]
+    () => ({ settings, loading, previewSettings, setPreview: setPreviewSettings, refresh, saveSettings, resetSettings, resolvedMode, visitorMode, setVisitorMode }),
+    [settings, loading, previewSettings, refresh, saveSettings, resetSettings, resolvedMode, visitorMode, setVisitorMode]
   );
 
   return <SiteSettingsContext.Provider value={value}>{children}</SiteSettingsContext.Provider>;

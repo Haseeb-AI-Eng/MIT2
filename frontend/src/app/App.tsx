@@ -34,6 +34,7 @@ import { useKeepAlive } from '../hooks/useKeepAlive';
 import ScrollToTop from '../app/ScrollToTop';
 import { SiteSettingsProvider } from './contexts/SiteSettingsContext';
 import { Toaster } from './components/ui/sonner';
+import { PublicSiteEnhancements } from './components/PublicSiteEnhancements';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ interface LayoutProps {
 function Layout({ children, onMenuClick }: LayoutProps) {
   return (
     <div className="site-theme-scope min-h-screen bg-background text-foreground overflow-x-hidden">
+      <PublicSiteEnhancements />
       <Header onMenuClick={onMenuClick} />
       <main className="w-full overflow-x-hidden">{children}</main>
       <Footer />
@@ -53,6 +55,7 @@ function Layout({ children, onMenuClick }: LayoutProps) {
 function LayoutNoSidebar({ children, onMenuClick }: LayoutProps) {
   return (
     <div className="site-theme-scope min-h-screen bg-background text-foreground overflow-x-hidden">
+      <PublicSiteEnhancements />
       <Header onMenuClick={onMenuClick} />
       <main className="w-full overflow-x-hidden">{children}</main>
       <Footer />

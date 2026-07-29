@@ -67,6 +67,47 @@ function normalizeProjectReferences(project: any): string[] {
 // actual reference list rather than a coincidental year in parentheses.
 const CITATION_HEADER_REGEX = /[A-Z][A-Za-z.,&'’\-\s]{0,80}?\((?:\d{4}[a-z]?|n\.d\.)\)\./g;
 
+function extractEmbeddedReferences(description: string): string[] {
+  if (!description) return [];
+  const normalized = description.replace(/\r\n/g, '\n');
+  const lines = normalized.split('\n');
+  const headingIndex = lines.findIndex((rawLine) => {
+    const line = rawLine
+      .trim()
+      .replace(/^#{1,6}\s*/, '')
+      .replace(/^(\*\*|__)(.*?)\1$/, '$2')
+      .replace(/[:：]\s*$/, '')
+      .trim()
+      .toLowerCase();
+    return ['references', 'reference', 'bibliography', 'sources', 'citations'].includes(line);
+  });
+
+  if (headingIndex >= 0) {
+    const after = lines.slice(headingIndex + 1).join('\n').trim();
+    if (!after) return [];
+    const numbered = after
+      .split(/\n(?=\s*(?:[-*•]|\d+[.)])\s+)/)
+      .map((item) => item.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim())
+      .filter(Boolean);
+    if (numbered.length > 1) return numbered;
+
+    const citations = after
+      .split(/(?=[A-Z][A-Za-z.,&'’\-\s]{0,80}?\((?:\d{4}[a-z]?|n\.d\.)\)\.)/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    return citations.length ? citations : [after];
+  }
+
+  const matches = [...normalized.matchAll(new RegExp(CITATION_HEADER_REGEX, 'g'))];
+  if (matches.length < 2) return [];
+  const first = matches[0].index ?? 0;
+  return normalized
+    .slice(first)
+    .split(/(?=[A-Z][A-Za-z.,&'’\-\s]{0,80}?\((?:\d{4}[a-z]?|n\.d\.)\)\.)/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function stripEmbeddedReferencesSection(description: string): string {
   if (!description) return '';
 
@@ -610,6 +651,9 @@ export function ProjectDetail() {
 
   const tags: string[] = project.tags || [];
   const detailedExplanation = generateDetailedExplanation(project);
+  const dedicatedReferences = normalizeProjectReferences(project);
+  const embeddedReferences = extractEmbeddedReferences(project.description || '');
+  const projectReferences = Array.from(new Set((dedicatedReferences.length ? dedicatedReferences : embeddedReferences).map((item) => item.trim()).filter(Boolean)));
 
   // Remove any References/Bibliography block stored inside the description.
   // The public project page no longer auto-renders a References heading or list.
@@ -974,6 +1018,21 @@ export function ProjectDetail() {
               <p key={idx}>{p}</p>
             ))}
           </div>
+
+          {projectReferences.length > 0 && (
+            <section className="mt-12 mb-10 pt-8 border-t border-black/10" aria-labelledby="project-references-heading">
+              <h2 id="project-references-heading" className="text-2xl md:text-3xl font-extrabold mb-5 text-left">
+                References
+              </h2>
+              <ol className="list-decimal pl-6 space-y-4 text-[15px] md:text-[16px] leading-relaxed text-left text-black/80">
+                {projectReferences.map((reference, index) => (
+                  <li key={`${reference}-${index}`} className="pl-2 break-words">
+                    {linkifyText(reference)}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
 
           <div className="flex flex-wrap items-center gap-3 mt-12 pt-6 border-t border-black/10">
             {project.status && (
