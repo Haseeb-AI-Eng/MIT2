@@ -345,3 +345,21 @@ html.site-dark .site-theme-scope video {
 }
 .site-theme-toggle:hover { transform: translateY(-2px) scale(1.03); }
 .site-theme-toggle:active { transform: scale(.96); }
+
+/* Fully opaque public UI surfaces.
+   These components must not inherit the translucent bg-white theme bridge. */
+.site-theme-scope [data-opaque-surface] {
+  background-color: var(--background) !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.site-theme-scope [data-opaque-surface="search-panel"] {
+  box-shadow: -18px 0 45px rgba(0, 0, 0, 0.22) !important;
+}
+
+html.site-dark .site-theme-scope [data-opaque-surface] {
+  background-color: var(--background) !important;
+}

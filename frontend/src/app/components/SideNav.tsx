@@ -30,7 +30,7 @@ export function SideNav() {
   }, [location.pathname]);
   return (
     <aside className="hidden lg:block w-80 shrink-0 relative z-30">
-      <div className="sticky top-[140px] z-20 bg-white">
+      <div data-opaque-surface="side-navigation" className="sticky top-[140px] z-20 bg-[var(--background)]">
         <nav className="py-4">
           <div className="space-y-0">
             {navItems.map((section) => (

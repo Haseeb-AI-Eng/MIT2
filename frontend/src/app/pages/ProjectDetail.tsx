@@ -792,7 +792,8 @@ export function ProjectDetail() {
 
         {/* ── LEFT SIDEBAR ── */}
         <aside
-          className="hidden md:flex flex-col flex-shrink-0 border-r border-black/10 relative z-10 -mt-24 bg-white shadow-[0_-16px_24px_-12px_rgba(0,0,0,0.18)]"
+          data-opaque-surface="project-sidebar"
+          className="hidden md:flex flex-col flex-shrink-0 border-r border-black/10 relative z-10 -mt-24 bg-[var(--background)] shadow-[0_-16px_24px_-12px_rgba(0,0,0,0.18)]"
           style={{ width: '320px', minWidth: '280px', padding: '1.5rem 1.5rem 2rem' }}
         >
           <div className="border-t border-black/10 pt-5 mb-5">

@@ -111,7 +111,8 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
 
       {/* Slide-out panel */}
       <div
-        className={`fixed top-0 right-0 z-[95] h-full w-full sm:w-[480px] md:w-[540px] bg-white shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
+        data-opaque-surface="search-panel"
+        className={`fixed top-0 right-0 z-[95] h-full w-full sm:w-[480px] md:w-[540px] bg-[var(--background)] text-[var(--foreground)] shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
