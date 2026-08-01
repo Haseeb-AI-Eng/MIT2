@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { memo } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { stripMarkdownForPreview, stripMarkdownLine } from '../utils/markdownPreview';
 
 function ProjectCardLogo() {
   return (
@@ -60,7 +61,7 @@ function getAdjustedNewsCardText(title: string, description?: string) {
   const mergedTitle = 'The Unseen Gaze; Elements Interactive, Pexels, and Pakistan’s Digital Visual';
   const titleRegex = /^The Unseen Gaze:?$/i;
   const subtitleRegex = /^Elements Interactive,\s*Pexels,\s*and Pakistan['’]s Digital Visual(?:\s+Narrative)?$/i;
-  const normalizeLine = (line: string) => line.replace(/^\s*#{1,6}\s*/, '').trim();
+  const normalizeLine = (line: string) => stripMarkdownLine(line);
   if (!description) return { title, description };
 
   const normalized = description.replace(/\r\n/g, '\n').trim();
@@ -94,7 +95,7 @@ function parseNewsCardPreview(description?: string) {
   if (!description) return { heading: '', text: '' };
 
   const normalized = description.replace(/\r\n/g, '\n').trim();
-  const lines = normalized.split('\n').map((line) => line.trim()).filter(Boolean);
+  const lines = normalized.split('\n').map((line) => stripMarkdownLine(line)).filter(Boolean);
   if (lines.length === 0) return { heading: '', text: '' };
 
   const headingRegex = new RegExp(
@@ -123,11 +124,11 @@ function parseNewsCardPreview(description?: string) {
   }
 
   if (headingLineIndex === -1) {
-    return { heading: '', text: lines.join(' ') };
+    return { heading: '', text: stripMarkdownForPreview(lines.join(' ')) };
   }
 
   const remainingLines = [headingLineRest, ...lines.slice(headingLineIndex + 1)].filter(Boolean);
-  return { heading, text: remainingLines.join(' ') };
+  return { heading: stripMarkdownForPreview(heading), text: stripMarkdownForPreview(remainingLines.join(' ')) };
 }
 
 // ── Fixed image heights per breakpoint, per role ──────────────────────────

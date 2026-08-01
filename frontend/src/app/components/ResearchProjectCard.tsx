@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Eye, Play, ArrowRight } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { stripMarkdownForPreview, stripMarkdownLine } from '../utils/markdownPreview';
 
 export type ResearchProjectCardType =
   | 'featured'
@@ -38,7 +39,7 @@ interface PreviewSection {
 
 function parseDescriptionPreview(description: string): PreviewSection[] {
   const normalized = description.replace(/\r\n/g, '\n').trim();
-  const lines = normalized.split('\n').map((line) => line.trim()).filter(Boolean);
+  const lines = normalized.split('\n').map((line) => stripMarkdownLine(line)).filter(Boolean);
   if (lines.length === 0) return [];
 
   const sections: PreviewSection[] = [];
@@ -60,7 +61,7 @@ function parseDescriptionPreview(description: string): PreviewSection[] {
         paragraphs: [],
       };
       if (match[2]) {
-        current.paragraphs.push(match[2].trim());
+        current.paragraphs.push(stripMarkdownForPreview(match[2]));
       }
       continue;
     }
@@ -74,9 +75,9 @@ function parseDescriptionPreview(description: string): PreviewSection[] {
     }
 
     if (current.paragraphs.length > 0) {
-      current.paragraphs[current.paragraphs.length - 1] += ` ${line}`;
+      current.paragraphs[current.paragraphs.length - 1] += ` ${stripMarkdownForPreview(line)}`;
     } else {
-      current.paragraphs.push(line);
+      current.paragraphs.push(stripMarkdownForPreview(line));
     }
   }
 
@@ -142,7 +143,7 @@ export function ResearchProjectCard({
   const previewSections = parseDescriptionPreview(description);
   const previewSection = previewSections[0] ?? null;
   const previewHeading = previewSection?.heading;
-  const previewParagraph = previewSection?.paragraphs?.[0] || description;
+  const previewParagraph = stripMarkdownForPreview(previewSection?.paragraphs?.[0] || description);
   const category = getCardLabel(project);
   const dateLabel = formatDate(project.publishedAt || project.createdAt || project.updatedAt);
   const statTiles = getStatTiles(project, viewCount);
@@ -248,7 +249,7 @@ export function ResearchProjectCard({
             )}
             {cardType === 'text' && (
               <div className="text-[14px] leading-[1.75] text-slate-700">
-                {description || 'A short summary that highlights the core idea without relying on imagery.'}
+                {stripMarkdownForPreview(description) || 'A short summary that highlights the core idea without relying on imagery.'}
               </div>
             )}
             <div className="mt-4 flex flex-wrap gap-2">

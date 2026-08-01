@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount, dedupeProjectList } from '../api';
 import { ResearchCard } from '../components/ResearchCard';
 import { TopPageNav } from '../components/TopPageNav';
+import { stripMarkdownForPreview } from '../utils/markdownPreview';
 
 const cyclingWords = ['#health', '#design', '#AI', '#robotics', '#education'];
 const PAGE_SIZE = 12;
@@ -17,8 +18,9 @@ function makeLogoText(text: string) {
 }
 
 function toShortDescription(text: string, length = 120) {
-  if (!text) return 'A published research project from the platform.';
-  return text.length > length ? `${text.slice(0, length).trim()}...` : text;
+  const clean = stripMarkdownForPreview(text);
+  if (!clean) return 'A published research project from the platform.';
+  return clean.length > length ? `${clean.slice(0, length).trim()}...` : clean;
 }
 
 function getAuthorName(project: any): string | undefined {
