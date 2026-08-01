@@ -48,8 +48,8 @@ export function AdminLogin() {
 
       const data = await response.json();
 
-      if (data.user.role !== 'admin') {
-        throw new Error('Only admins can access the admin panel');
+      if (data.user.role !== 'admin' && data.user.role !== 'researcher') {
+        throw new Error('Only admins or collaborators can access the admin panel');
       }
 
       localStorage.setItem('token', data.token);

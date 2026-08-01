@@ -37,6 +37,8 @@ export function AdminProjects() {
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState<string | null>(null);
   const [openingProjectId, setOpeningProjectId] = useState<string | null>(null);
+  const currentUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null;
+  const isSuperuser = currentUser?.role === 'admin' && currentUser?.email?.toLowerCase() === 'admin@example.com';
 
   const load = async () => {
     setLoading(true);
@@ -61,10 +63,27 @@ export function AdminProjects() {
   );
 
   const openCreate = () => { setForm(EMPTY_FORM); setDialogOpen(true); };
+  const canEditProject = (project: any) => {
+    if (isSuperuser) return true;
+    if (currentUser?.role !== 'researcher') return false;
+    return project?.canEdit === true;
+  };
+  const getEditMessage = (project: any) => {
+    if (isSuperuser) return 'You can edit this project anytime.';
+    if (currentUser?.role !== 'researcher') return 'Only researcher collaborators can edit projects.';
+    if (project?.editReason === 'locked-30-days') return 'Published projects can only be edited for 30 days after publication.';
+    if (project?.editReason === 'not-assigned') return 'This project is not assigned to your account.';
+    if (project?.editReason === 'not-authorized') return 'You are not authorized to edit this project.';
+    return 'You can edit this project.';
+  };
   const openEdit = async (summary: any) => {
     const id = String(summary?._id || '');
     if (!id) {
       toast.error('Project ID is missing');
+      return;
+    }
+    if (!canEditProject(summary)) {
+      toast.error(getEditMessage(summary));
       return;
     }
 
@@ -98,6 +117,10 @@ export function AdminProjects() {
 
   const handleSave = async () => {
     if (!form.title.trim()) { toast.error('Title is required'); return; }
+    if (form._id && !canEditProject(projects.find((p) => p._id === form._id))) {
+      toast.error(getEditMessage(projects.find((p) => p._id === form._id)) || 'You are not allowed to edit this project right now.');
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -207,12 +230,22 @@ export function AdminProjects() {
                   <TableCell className="text-sm text-slate-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {!canEditProject(p) && (
+                        <span className="text-[11px] text-amber-600 font-medium">Restricted</span>
+                      )}
                       {p.slug && (
                         <a href={`/projects/${p._id}`} target="_blank" rel="noreferrer" className="p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100">
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       )}
-                      <button disabled={openingProjectId === p._id} onClick={() => openEdit(p)} title="Edit complete project" className="p-2 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 disabled:cursor-wait disabled:opacity-50"><Pencil className={`w-4 h-4 ${openingProjectId === p._id ? 'animate-pulse' : ''}`} /></button>
+                      <button
+                        disabled={openingProjectId === p._id || !canEditProject(p)}
+                        onClick={() => openEdit(p)}
+                        title={canEditProject(p) ? 'Edit complete project' : getEditMessage(p)}
+                        className="p-2 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 disabled:cursor-wait disabled:opacity-50 disabled:hover:bg-transparent"
+                      >
+                        <Pencil className={`w-4 h-4 ${openingProjectId === p._id ? 'animate-pulse' : ''}`} />
+                      </button>
                       <button onClick={() => setToDelete(p._id)} className="p-2 text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </TableCell>

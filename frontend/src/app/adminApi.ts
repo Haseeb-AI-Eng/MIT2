@@ -32,7 +32,7 @@ export const fetchDashboardSummary = () =>
 // ---- Projects ----
 export const adminFetchProjects = (params: Record<string, string> = {}) => {
   const qs = new URLSearchParams(params).toString();
-  return fetch(`${BASE()}/projects${qs ? `?${qs}` : ''}`).then(handle<any>);
+  return fetch(`${BASE()}/projects${qs ? `?${qs}` : ''}`, { headers: authHeaders(getToken(), false) }).then(handle<any>);
 };
 export const adminFetchProject = (id: string) =>
   fetch(`${BASE()}/projects/${encodeURIComponent(id)}`, {
