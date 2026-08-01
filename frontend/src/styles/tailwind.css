@@ -37,3 +37,37 @@ body,
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+/* Single page scrollbar: only the document element may scroll vertically. */
+html {
+  height: auto !important;
+  min-height: 100%;
+  overflow-x: clip !important;
+  overflow-y: scroll !important;
+}
+
+body,
+#root,
+.site-theme-root,
+.site-theme-scope,
+.site-theme-scope > main {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 100%;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}
+
+body {
+  position: static !important;
+}
+
+/* Prevent accidental nested page scrollbars while preserving component-level lists/modals. */
+.site-theme-root,
+.site-theme-scope {
+  scrollbar-width: none;
+}
+
+.site-theme-root::-webkit-scrollbar,
+.site-theme-scope::-webkit-scrollbar {
+  display: none;
+}

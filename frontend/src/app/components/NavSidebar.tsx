@@ -36,7 +36,7 @@ export function NavSidebar({ isOpen, onClose }: NavSidebarProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed top-0 right-0 h-screen bg-white z-[1001] shadow-[-4px_0_20px_rgba(0,0,0,0.08)] flex flex-col overflow-y-auto w-[75%] md:w-[50vw] md:max-w-[750px]"
+            className="fixed top-0 right-0 h-[100dvh] bg-white z-[1001] shadow-[-4px_0_20px_rgba(0,0,0,0.08)] flex flex-col overflow-hidden w-[75%] md:w-[50vw] md:max-w-[750px]"
           >
             {/* Top Row Utility Icons */}
             <div className="flex justify-end items-center gap-6 pt-[50px] pr-[20px] md:pt-[60px] md:pr-[40px]">
@@ -47,7 +47,7 @@ export function NavSidebar({ isOpen, onClose }: NavSidebarProps) {
             </div>
 
             {/* Navigation Links */}
-            <nav className="flex flex-col mt-[60px] pl-[60px] md:pl-[70px] space-y-[20px] md:space-y-[24px] pb-12">
+            <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col mt-[60px] pl-[60px] md:pl-[70px] space-y-[20px] md:space-y-[24px] pb-12">
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
