@@ -27,7 +27,7 @@ export function TopPageNav() {
             <button
               key={nav}
               onClick={() => navigate(routes[nav] || '/')}
-              className={`px-0 py-2 text-[13px] md:text-[14px] font-semibold transition-colors border-b-2 ${
+              className={`cursor-pointer px-0 py-2 text-[13px] md:text-[14px] font-semibold transition-colors border-b-2 ${
                 activeSection === nav
                   ? 'text-[#E91E63] border-[#E91E63]'
                   : 'text-black/60 border-transparent hover:text-black'

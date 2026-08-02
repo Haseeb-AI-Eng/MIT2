@@ -53,8 +53,8 @@ export function NavSidebar({ isOpen, onClose }: NavSidebarProps) {
                   key={link.label}
                   to={link.path}
                   onClick={onClose}
-                  className={`text-[30px] md:text-[34px] font-bold leading-[1.3] tracking-tight transition-colors hover:text-[#e6007e] ${
-                    location.pathname === link.path ? 'text-[#e6007e]' : 'text-[#b0b0b0]'
+                  className={`text-[30px] md:text-[34px] font-bold leading-[1.3] tracking-tight transition-colors hover:text-[#910B08] ${
+                    location.pathname === link.path ? 'text-[#910B08]' : 'text-[#b0b0b0]'
                   }`}
                 >
                   {link.label}

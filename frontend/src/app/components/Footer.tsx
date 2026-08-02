@@ -17,8 +17,6 @@ export function Footer() {
     'Member Portal': '/',
     'For Press + Media': '/',
     'Publications': '/',
-    'Accessibility': '/',
-    'Donate to the Lab': '/support-media-lab',
   };
 
   const handleNavigate = (linkName: string) => {
@@ -64,13 +62,10 @@ export function Footer() {
             <LogoIcon height={40} outlineColor="#000" />
           </Link>
           <div className="text-right lg:text-left">
-            <p className="text-[13px] text-black/70">Elements Interactive Institute of Technology</p>
-            <p className="text-[13px] text-black/70">School of Architecture + Planning</p>
+            <p className="text-[13px] font-semibold text-black/70">Elements Interactive Media</p>
+            <p className="text-[13px] font-semibold text-black/70">and ICT Solutions</p>
           </div>
-          <div className="flex flex-col gap-1">
-            <button onClick={() => handleNavigate('Accessibility')} className="text-left text-[13px] text-black/70 hover:text-black transition-colors cursor-pointer">Accessibility</button>
-            <button onClick={() => handleNavigate('Donate to the Lab')} className="text-left text-[13px] text-black/70 hover:text-black transition-colors cursor-pointer">Donate to the Lab</button>
-          </div>
+          <div className="flex flex-col gap-1"></div>
         </div>
       </div>
     </footer>
