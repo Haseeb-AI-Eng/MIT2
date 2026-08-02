@@ -7,7 +7,7 @@ export function SupportMediaLab() {
     <div className="min-h-screen bg-white">
       <section data-hero-section className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[320px] md:min-h-0 flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <HeroVideo src="/hero-products.mp4" />
+          <HeroVideo src="/elements-hero.mp4" />
         </div>
         <div className="absolute inset-0 bg-black/60" />
 

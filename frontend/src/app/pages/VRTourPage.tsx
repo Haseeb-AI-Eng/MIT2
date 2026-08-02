@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { TopPageNav } from '../components/TopPageNav';
 import { HeroVideo } from './HeroVideo';
 
-const videoUrl = '/YTDown.com_YouTube_Telenor-360-DVC_Media_fZMWZNUZDzE_001_1080s.mp4';
+const videoUrl = '/elements-hero.mp4';
 
 export function VRTourPage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -127,7 +127,7 @@ export function VRTourPage() {
     <div className="min-h-screen bg-white text-black">
       <section className="relative overflow-hidden bg-black text-white">
         <div className="absolute inset-0">
-          <HeroVideo src="/hero-products.mp4" />
+          <HeroVideo src="/elements-hero.mp4" />
         </div>
 
         <div className="relative mx-auto flex min-h-[360px] max-w-7xl flex-col justify-center px-6 py-16 text-center sm:min-h-[420px] md:px-10 md:py-20 lg:px-12 lg:py-24">

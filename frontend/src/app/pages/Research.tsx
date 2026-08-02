@@ -155,7 +155,7 @@ export function Research() {
     <div className="min-h-screen bg-white">
       <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[50vh] md:min-h-0 flex items-center justify-center">
         <div className="absolute inset-0">
-          <HeroVideo src="/hero-academia.mp4" />
+          <HeroVideo src="/research-hero.mp4" />
         </div>
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative mx-auto max-w-[1200px] px-6 text-center z-10">
