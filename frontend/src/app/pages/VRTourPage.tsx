@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import * as THREE from 'three';
 import { TopPageNav } from '../components/TopPageNav';
 import { HeroVideo } from './HeroVideo';
+import waterFlow360Video from '../assets/water-flow-360-vr-tour.mp4';
 
-const videoUrl = '/elements-hero.mp4';
+const videoUrl = waterFlow360Video;
 
 export function VRTourPage() {
   const containerRef = useRef<HTMLDivElement | null>(null);

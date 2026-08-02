@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResearchProjectCard, ResearchProjectCardType } from '../components/ResearchProjectCard';
 import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount, dedupeProjectList } from '../api';
+import { HeroVideo } from './HeroVideo';
 
 const PAGE_SIZE = 12;
 
@@ -145,7 +146,7 @@ export function Projects() {
   return (
     <div className="min-h-screen bg-white">
       <section data-hero-section className="relative overflow-hidden bg-black text-white">
-        <img src="/image.gif" alt="Projects hero" className="absolute inset-0 w-full h-full object-cover opacity-60" fetchPriority="high" />
+        <HeroVideo src="/elements-hero.mp4" />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative mx-auto max-w-[1200px] px-6 py-16 text-center">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">Research Projects</p>
