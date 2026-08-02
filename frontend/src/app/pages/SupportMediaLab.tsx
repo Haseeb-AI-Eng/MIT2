@@ -1,21 +1,16 @@
 import { Link } from 'react-router-dom';
 import { TopPageNav } from '../components/TopPageNav';
+import { HeroVideo } from './HeroVideo';
 
 export function SupportMediaLab() {
   return (
     <div className="min-h-screen bg-white">
       <section data-hero-section className="relative bg-black text-white aspect-auto md:aspect-[16/5] min-h-[320px] md:min-h-0 flex items-center justify-center overflow-hidden">
-        {/* Background image/gif layer */}
         <div className="absolute inset-0">
-          <img
-            src="/image.gif"
-            alt="Support the Media Lab background"
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-black/60" />
+          <HeroVideo src="/hero-products.mp4" />
         </div>
+        <div className="absolute inset-0 bg-black/60" />
 
-        {/* Content container */}
         <div className="relative mx-auto max-w-[1100px] px-6 py-12 md:py-0 text-center z-10">
           <p className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.25em] md:tracking-[0.35em] text-red-400 mb-4 font-medium">
             About the Lab

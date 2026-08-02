@@ -4,6 +4,7 @@ import { fetchPublishedProjects, trackProjectView, fetchProjectViewCount, dedupe
 import { ResearchCard } from '../components/ResearchCard';
 import { TopPageNav } from '../components/TopPageNav';
 import { stripMarkdownForPreview } from '../utils/markdownPreview';
+import { HeroVideo } from './HeroVideo';
 
 const cyclingWords = ['#health', '#design', '#AI', '#robotics', '#education'];
 const PAGE_SIZE = 12;
@@ -153,12 +154,9 @@ export function Research() {
   return (
     <div className="min-h-screen bg-white">
       <section data-hero-section className="relative overflow-hidden bg-black text-white aspect-auto md:aspect-[16/5] min-h-[50vh] md:min-h-0 flex items-center justify-center">
-        <img
-          src="/image.gif"
-          alt="Research hero"
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-          fetchPriority="high"
-        />
+        <div className="absolute inset-0">
+          <HeroVideo src="/hero-academia.mp4" />
+        </div>
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative mx-auto max-w-[1200px] px-6 text-center z-10">
           <p className="text-[12px] uppercase tracking-[0.35em] text-white/60 mb-4">
