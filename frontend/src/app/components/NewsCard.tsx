@@ -259,7 +259,7 @@ function NewsCardComponent(props: NewsCardProps) {
         )}
         {trimmedDescription && (
           <p
-            className={`font-sans text-black/75 group-hover:text-[#199BD8] transition-colors duration-200 line-clamp-3 ${
+            className={`font-sans text-black/75 transition-colors duration-200 line-clamp-3 ${
               size === 'large' ? 'text-[15px] leading-[1.5]' : 'text-[13px] leading-[1.5]'
             }`}
             style={{ fontFamily: "'Poppins', 'Helvetica Neue', Arial, sans-serif" }}
