@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Research } from './pages/Research';
+import { ResearchGroupDetail } from './pages/ResearchGroupDetail';
 import { ArticleDetail } from './pages/ArticleDetail';
 import { Foundations } from './pages/Foundations';
 import { Projects } from './pages/Projects';
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/" element={<Layout onMenuClick={toggleNav}><Home /></Layout>} />
           <Route path="/about" element={<Layout onMenuClick={toggleNav}><About /></Layout>} />
           <Route path="/research" element={<Layout onMenuClick={toggleNav}><Research /></Layout>} />
+          <Route path="/research/groups/:groupSlug" element={<LayoutNoSidebar onMenuClick={toggleNav}><ResearchGroupDetail /></LayoutNoSidebar>} />
           <Route path="/foundations" element={<Layout onMenuClick={toggleNav}><Foundations /></Layout>} />
           <Route path="/projects" element={<LayoutNoSidebar onMenuClick={toggleNav}><Projects /></LayoutNoSidebar>} />
           <Route path="/support-media-lab" element={<Layout onMenuClick={toggleNav}><SupportMediaLab /></Layout>} />
