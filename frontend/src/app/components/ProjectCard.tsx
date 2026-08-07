@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { Trash2, Eye } from 'lucide-react';
+import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface ProjectCardProps {
   image: string;
@@ -35,17 +36,11 @@ export function ProjectCard({ image, title, category, teamLabel, viewCount = 0, 
         className="w-full text-left cursor-pointer"
       >
         <div className="aspect-[16/9] overflow-hidden bg-gray-100 mb-4 relative">
-          <img
+          <ImageWithFallback
             src={image}
             alt={title}
-            loading="lazy"
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (target.src !== window.location.origin + '/image.gif') {
-                target.src = '/image.gif';
-              }
-            }}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
           {onDelete && (
             <button

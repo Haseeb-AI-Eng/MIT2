@@ -18,6 +18,44 @@ function isLikelyVideoUrl(value: string) {
  * endpoint is important because list endpoints often return only `hasImage`
  * instead of embedding the stored image itself.
  */
+function optimizeRemoteImageUrl(value: string): string {
+  const raw = value.trim();
+  if (!raw || raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
+
+  // Uploaded images are often stored as relative paths (e.g. /uploads/x.jpg).
+  // Resolve them against the API origin, not the Vercel frontend origin.
+  if (raw.startsWith('/')) return `${apiOrigin}${raw}`;
+  if (!/^https?:\/\//i.test(raw)) return `${apiOrigin}/${raw.replace(/^\.\//, '')}`;
+
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase();
+
+    // Pexels supports server-side resize/compression. Requesting a card-sized image
+    // instead of the original multi-megabyte file makes a huge difference on mobile.
+    if (host === 'images.pexels.com' || host.endsWith('.pexels.com')) {
+      url.searchParams.set('auto', 'compress');
+      url.searchParams.set('cs', 'tinysrgb');
+      if (!url.searchParams.has('w')) url.searchParams.set('w', '900');
+      if (!url.searchParams.has('fit')) url.searchParams.set('fit', 'crop');
+      return url.toString();
+    }
+
+    // Unsplash also provides an image CDN with dynamic sizing/compression.
+    if (host === 'images.unsplash.com') {
+      url.searchParams.set('auto', 'format');
+      url.searchParams.set('fit', 'crop');
+      if (!url.searchParams.has('w')) url.searchParams.set('w', '900');
+      if (!url.searchParams.has('q')) url.searchParams.set('q', '62');
+      return url.toString();
+    }
+
+    return raw;
+  } catch {
+    return raw;
+  }
+}
+
 export function getProjectImageUrl(project: any): string {
   if (!project) return '';
 
@@ -34,9 +72,13 @@ export function getProjectImageUrl(project: any): string {
 
   for (const value of candidates) {
     if (typeof value === 'string' && value.trim() && !isLikelyVideoUrl(value.trim())) {
-      return value.trim();
+      return optimizeRemoteImageUrl(value);
     }
   }
+
+  // Do not fire a guaranteed 404 for records that the list API explicitly says
+  // have no stored image. This was causing a large queue of failed mobile requests.
+  if (project.hasImage === false || project.has_image === false) return '';
 
   const id = project._id ?? project.id ?? project.slug;
   if (!id) return '';
