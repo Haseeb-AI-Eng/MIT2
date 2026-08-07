@@ -5,6 +5,7 @@ import {
   dedupeProjectList,
   fetchAllPublishedProjects,
   fetchProjectViewCount,
+  getProjectImageUrl,
   trackProjectView,
 } from '../api';
 import { TopPageNav } from '../components/TopPageNav';
@@ -56,9 +57,27 @@ function ResearchArticleCard({
   onOpen: () => void;
 }) {
   const tags = Array.isArray(project.tags) ? project.tags.slice(0, 4) : [];
+  const image = getProjectImageUrl(project);
 
   return (
-    <article className="group flex min-h-[330px] flex-col border-b border-r border-black/10 bg-white p-7 md:p-8">
+    <article className="group flex min-h-[430px] flex-col overflow-hidden border-b border-r border-black/10 bg-white">
+      <div className="relative h-[205px] w-full overflow-hidden bg-neutral-100">
+        <img
+          src={image}
+          alt={project.title || 'Research article'}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          onError={(event) => {
+            event.currentTarget.style.display = 'none';
+            const placeholder = event.currentTarget.nextElementSibling as HTMLElement | null;
+            if (placeholder) placeholder.style.display = 'flex';
+          }}
+        />
+        <div className="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200 px-6 text-center text-[12px] font-semibold uppercase tracking-[0.16em] text-black/35">
+          {project.tags?.[0] || 'Research'}
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col p-7 md:p-8">
       <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#d90000]">
         Research article
       </p>
@@ -85,6 +104,7 @@ function ResearchArticleCard({
           Open article
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </button>
+      </div>
       </div>
     </article>
   );

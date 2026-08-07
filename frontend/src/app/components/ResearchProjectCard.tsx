@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Eye, Play, ArrowRight } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { stripMarkdownForPreview, stripMarkdownLine } from '../utils/markdownPreview';
+import { getProjectImageUrl } from '../api';
 
 export type ResearchProjectCardType =
   | 'featured'
@@ -137,7 +138,7 @@ export function ResearchProjectCard({
   viewCount = 0,
   onClick,
 }: ResearchProjectCardProps) {
-  const image = project.coverImage || project.cover_image || project.image || '';
+  const image = getProjectImageUrl(project);
   const title = project.title || 'Untitled research project';
   const description = project.description || project.excerpt || project.summary || '';
   const previewSections = parseDescriptionPreview(description);

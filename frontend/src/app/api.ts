@@ -7,6 +7,42 @@ const API_BASE = apiOrigin + (apiOrigin.endsWith('/api') ? '' : '/api');
 
 export const getApiUrl = () => API_BASE;
 
+function isLikelyVideoUrl(value: string) {
+  const clean = value.toLowerCase().split('?')[0];
+  return /\.(mp4|webm|ogg|mov|m4v)$/.test(clean) || clean.includes('/video/upload/') || clean.includes('videos.pexels.com');
+}
+
+/**
+ * Resolve the best image for a project card.
+ * Prefer an explicit image URL, then use the backend image endpoint. The backend
+ * endpoint is important because list endpoints often return only `hasImage`
+ * instead of embedding the stored image itself.
+ */
+export function getProjectImageUrl(project: any): string {
+  if (!project) return '';
+
+  const candidates = [
+    project.coverImage,
+    project.cover_image,
+    project.image,
+    project.imageUrl,
+    project.image_url,
+    project.thumbnail,
+    project.thumbnailUrl,
+    project.poster,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim() && !isLikelyVideoUrl(value.trim())) {
+      return value.trim();
+    }
+  }
+
+  const id = project._id ?? project.id ?? project.slug;
+  if (!id) return '';
+  return `${API_BASE}/projects/${encodeURIComponent(String(id))}/image`;
+}
+
 // ---- Client-side in-memory cache ----
 interface CacheEntry { data: unknown; ts: number }
 const _clientCache = new Map<string, CacheEntry>();

@@ -6,6 +6,7 @@ import { TopPageNav } from '../components/TopPageNav';
 import { HeroVideo } from './HeroVideo';
 import { TypingEffect } from '../components/TypingEffect';
 import {
+  getProjectImageUrl,
   fetchAllPublishedProjects,
   dedupeProjectList,
   getLocalProjectViews,
@@ -304,7 +305,7 @@ export const Home = React.memo(function Home() {
                 style={role === 'wide' || role === 'huge' ? { gridRow: 'span 2' } : undefined}
               >
                 <NewsCard
-                  image={project.coverImage || project.cover_image || ''}
+                  image={getProjectImageUrl(project)}
                   videoUrl={project.videoUrl || project.video_url || ''}
                   title={project.title}
                   description={project.description}
