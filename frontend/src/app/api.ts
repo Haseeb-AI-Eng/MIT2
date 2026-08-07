@@ -18,10 +18,85 @@ function isLikelyVideoUrl(value: string) {
  * endpoint is important because list endpoints often return only `hasImage`
  * instead of embedding the stored image itself.
  */
-export function getProjectImageUrl(project: any): string {
+function optimizeExternalImageUrl(value: string, width: number) {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+
+    if (host === 'images.unsplash.com') {
+      url.searchParams.set('auto', 'format');
+      url.searchParams.set('fit', 'crop');
+      url.searchParams.set('w', String(width));
+      url.searchParams.set('q', '70');
+      return url.toString();
+    }
+
+    if (host === 'images.pexels.com') {
+      url.searchParams.set('auto', 'compress');
+      url.searchParams.set('cs', 'tinysrgb');
+      url.searchParams.set('w', String(width));
+      return url.toString();
+    }
+  } catch {
+    // Keep non-URL values unchanged below.
+  }
+
+  return value;
+}
+
+function normalizeBackendImageUrl(value: string, width: number) {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  // Any project-image endpoint should always point at the configured API
+  // origin. This repairs stale Replit URLs and Railway-generated localhost
+  // URLs without touching normal external images.
+  try {
+    const parsed = new URL(trimmed, apiOrigin);
+    const isProjectImage = /\/api\/projects\/[^/]+\/image\/?$/i.test(parsed.pathname);
+    const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(parsed.hostname);
+
+    if (isProjectImage || isLocalHost) {
+      const path = parsed.pathname.startsWith('/api/')
+        ? parsed.pathname
+        : `/api${parsed.pathname.startsWith('/') ? parsed.pathname : `/${parsed.pathname}`}`;
+      const url = new URL(`${apiOrigin}${path}`);
+      url.searchParams.set('w', String(width));
+      url.searchParams.set('q', '72');
+      url.searchParams.set('format', 'webp');
+      return url.toString();
+    }
+  } catch {
+    // Relative paths are handled below.
+  }
+
+  if (/^\/api\/projects\/[^/]+\/image\/?$/i.test(trimmed)) {
+    const url = new URL(`${apiOrigin}${trimmed}`);
+    url.searchParams.set('w', String(width));
+    url.searchParams.set('q', '72');
+    url.searchParams.set('format', 'webp');
+    return url.toString();
+  }
+
+  // Backend-hosted upload paths must resolve against Railway, not Vercel.
+  if (/^\/(uploads|media|files)\//i.test(trimmed)) {
+    return `${apiOrigin}${trimmed}`;
+  }
+
+  return optimizeExternalImageUrl(trimmed, width);
+}
+
+/**
+ * Resolve a lightweight, public image URL for project cards.
+ * - Never exposes Railway/container localhost URLs to visitors.
+ * - Requests a compressed WebP thumbnail from the backend for stored images.
+ * - Requests smaller variants from Unsplash/Pexels when possible.
+ */
+export function getProjectImageUrl(project: any, width = 720): string {
   if (!project) return '';
 
   const candidates = [
+    project.coverImageUrl,
     project.coverImage,
     project.cover_image,
     project.image,
@@ -33,14 +108,23 @@ export function getProjectImageUrl(project: any): string {
   ];
 
   for (const value of candidates) {
-    if (typeof value === 'string' && value.trim() && !isLikelyVideoUrl(value.trim())) {
-      return value.trim();
-    }
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (!trimmed || isLikelyVideoUrl(trimmed)) continue;
+    return normalizeBackendImageUrl(trimmed, width);
   }
 
+  // Fast list endpoints provide `hasImage` without embedding the large base64
+  // payload. Only request the image endpoint when the backend says one exists.
+  if (project.hasImage === false) return '';
   const id = project._id ?? project.id ?? project.slug;
-  if (!id) return '';
-  return `${API_BASE}/projects/${encodeURIComponent(String(id))}/image`;
+  if (!id || project.hasImage !== true) return '';
+
+  const url = new URL(`${API_BASE}/projects/${encodeURIComponent(String(id))}/image`);
+  url.searchParams.set('w', String(width));
+  url.searchParams.set('q', '72');
+  url.searchParams.set('format', 'webp');
+  return url.toString();
 }
 
 // ---- Client-side in-memory cache ----
@@ -136,7 +220,7 @@ export async function fetchFeaturedProjects(limit = 6, signal?: AbortSignal) {
   if (cached) return cached;
   const res = await fetchWithTimeout(
     `${API_BASE}/projects/fast?featured=true&limit=${limit}`,
-    { signal, cache: 'no-store' }
+    { signal }
   );
   if (!res.ok) return [];
   const data = await res.json();
@@ -188,7 +272,7 @@ export async function fetchPublishedProjects(
   console.log(`[API] fetchPublishedProjects: Fetching from ${API_BASE}/projects/fast?status=published&limit=${limit}&page=${page}`);
   const fetchPromise = fetchWithTimeout(
     `${API_BASE}/projects/fast?status=published&limit=${limit}&page=${page}`,
-    { signal, cache: 'no-store' }
+    { signal }
   )
   .then(res => {
     if (!res.ok) {

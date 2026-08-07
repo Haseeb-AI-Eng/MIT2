@@ -20,6 +20,7 @@ import crypto from "crypto";
 import zlib from "zlib";
 import { MongoClient, ObjectId } from "mongodb";
 import twilio from "twilio";
+import sharp from "sharp";
 
 let scrapeAll;
 let startCronJob;
@@ -92,6 +93,49 @@ const API_BASE_URL =
   (REPLIT_DOMAIN ? `https://${REPLIT_DOMAIN}` : `http://localhost:${PORT}`);
 
 const app = express();
+app.set("trust proxy", 1);
+
+function getPublicBaseUrl(req) {
+  const forwardedProto = String(req.headers["x-forwarded-proto"] || "")
+    .split(",")[0]
+    .trim();
+  const protocol = forwardedProto || req.protocol || "https";
+  const forwardedHost = String(req.headers["x-forwarded-host"] || "")
+    .split(",")[0]
+    .trim();
+  const host = forwardedHost || req.get("host");
+  if (host) return `${protocol}://${host}`;
+  return API_BASE_URL;
+}
+
+const _imageCache = new Map();
+const IMAGE_CACHE_MAX_ENTRIES = 96;
+
+function imageCacheGet(key) {
+  const entry = _imageCache.get(key);
+  if (!entry) return null;
+  // Refresh insertion order so frequently used thumbnails survive eviction.
+  _imageCache.delete(key);
+  _imageCache.set(key, entry);
+  return entry;
+}
+
+function imageCacheSet(key, value) {
+  if (_imageCache.has(key)) _imageCache.delete(key);
+  _imageCache.set(key, value);
+  while (_imageCache.size > IMAGE_CACHE_MAX_ENTRIES) {
+    const oldest = _imageCache.keys().next().value;
+    _imageCache.delete(oldest);
+  }
+}
+
+function imageCacheInvalidateProject(projectId) {
+  const prefix = `${projectId}:`;
+  for (const key of _imageCache.keys()) {
+    if (key.startsWith(prefix)) _imageCache.delete(key);
+  }
+}
+
 app.use(cors());
 app.use(gzipResponse);
 app.use(express.json({ limit: "100mb" }));
@@ -660,7 +704,7 @@ app.get("/api/projects/fast", async (req, res) => {
     const cacheKey = `projects:fast:${JSON.stringify(filter)}:${page}:${limit}`;
     const cached = cacheGet(cacheKey);
     if (cached) {
-      res.setHeader("Cache-Control", "public, max-age=300");
+      res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=600");
       res.setHeader("X-Cache", "HIT");
       return res.json(cached);
     }
@@ -711,10 +755,12 @@ app.get("/api/projects/fast", async (req, res) => {
       projectsCollection.countDocuments(filter),
     ]);
 
-    // Build coverImage as a full URL for the frontend — no base64 involved
+    // Build request-aware public image URLs. Railway runs Node behind a proxy,
+    // so a localhost fallback must never be exposed to phones/other devices.
+    const publicBaseUrl = getPublicBaseUrl(req);
     const trimmed = projects.map((p) => {
       const imgUrl = p.hasImage
-        ? `${API_BASE_URL}/api/projects/${p._id}/image`
+        ? `${publicBaseUrl}/api/projects/${p._id}/image?w=720&q=72&format=webp`
         : null;
       return {
         ...p,
@@ -731,7 +777,7 @@ app.get("/api/projects/fast", async (req, res) => {
       totalPages: Math.ceil(total / limit),
     };
     cacheSet(cacheKey, result);
-    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=600");
     res.setHeader("X-Cache", "MISS");
     res.json(result);
   } catch (err) {
@@ -784,7 +830,7 @@ app.get("/api/projects", async (req, res) => {
     if (cacheKey) {
       const cached = cacheGet(cacheKey);
       if (cached) {
-        res.setHeader("Cache-Control", "public, max-age=300");
+        res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=600");
         res.setHeader("X-Cache", "HIT");
         return res.json(cached);
       }
@@ -848,7 +894,7 @@ app.get("/api/projects", async (req, res) => {
 
     if (cacheKey) {
       cacheSet(cacheKey, result);
-      res.setHeader("Cache-Control", "public, max-age=300");
+      res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=600");
       res.setHeader("X-Cache", "MISS");
     }
 
@@ -932,6 +978,25 @@ app.get("/api/projects/:id", async (req, res) => {
     const { id } = req.params;
     const project = await fetchProjectWithTeam(id);
     if (!project) return res.status(404).json({ error: "Project not found" });
+
+    // Never send a multi-megabyte base64 cover inside project-detail JSON.
+    // The browser gets a lightweight public thumbnail URL instead.
+    const rawCover = project.coverImage || project.cover_image || "";
+    const hasImage = Boolean(rawCover);
+    if (hasImage) {
+      const imageId = project._id?.toString?.() || id;
+      const imageUrl = `${getPublicBaseUrl(req)}/api/projects/${imageId}/image?w=1440&q=78&format=webp`;
+      project.coverImage = imageUrl;
+      project.cover_image = imageUrl;
+      project.coverImageUrl = imageUrl;
+    } else {
+      project.coverImage = "";
+      project.cover_image = "";
+      project.coverImageUrl = "";
+    }
+    project.hasImage = hasImage;
+
+    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
     res.json({ project });
   } catch (err) {
     console.error(err);
@@ -942,39 +1007,96 @@ app.get("/api/projects/:id", async (req, res) => {
 app.get("/api/projects/:id/image", async (req, res) => {
   try {
     const { id } = req.params;
+    const width = Math.max(240, Math.min(parseInt(req.query.w, 10) || 720, 1600));
+    const quality = Math.max(50, Math.min(parseInt(req.query.q, 10) || 72, 86));
+    const requestedFormat = String(req.query.format || "webp").toLowerCase();
+    const format = requestedFormat === "jpeg" || requestedFormat === "jpg" ? "jpeg" : "webp";
+    const cacheKey = `${id}:${width}:${quality}:${format}`;
+
+    const cached = imageCacheGet(cacheKey);
+    if (cached) {
+      if (req.headers["if-none-match"] === cached.etag) {
+        return res.status(304).end();
+      }
+      res.setHeader("Content-Type", cached.contentType);
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.setHeader("ETag", cached.etag);
+      res.setHeader("Content-Length", cached.buffer.length);
+      res.setHeader("X-Image-Cache", "HIT");
+      return res.end(cached.buffer);
+    }
+
     const match = ObjectId.isValid(id)
       ? { _id: new ObjectId(id) }
       : { slug: id };
     const project = await projectsCollection.findOne(match, {
-      projection: { coverImage: 1, cover_image: 1, _id: 0 },
+      projection: { coverImage: 1, cover_image: 1, _id: 1 },
     });
     const raw = project?.coverImage || project?.cover_image || "";
     if (!raw) return res.status(404).send("No image");
 
-    const dataUriMatch = raw.match(
-      /^data:([a-zA-Z0-9+\/]+\/[a-zA-Z0-9+\/]+);base64,(.+)$/,
-    );
-    if (dataUriMatch) {
-      const mime = dataUriMatch[1];
-      const buf = Buffer.from(dataUriMatch[2], "base64");
-      res.setHeader("Content-Type", mime);
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-      res.setHeader("Content-Length", buf.length);
-      return res.end(buf);
-    }
-    if (
-      raw.startsWith("http://") ||
-      raw.startsWith("https://") ||
-      raw.startsWith("/")
-    ) {
+    // URL-based covers are already hosted elsewhere. Keep this endpoint cheap
+    // and redirect rather than proxying a potentially large external file.
+    if (/^https?:\/\//i.test(raw)) {
+      try {
+        const parsed = new URL(raw);
+        if (["localhost", "127.0.0.1", "0.0.0.0"].includes(parsed.hostname)) {
+          const publicUrl = new URL(parsed.pathname + parsed.search, getPublicBaseUrl(req));
+          res.setHeader("Cache-Control", "public, max-age=300");
+          return res.redirect(302, publicUrl.toString());
+        }
+      } catch {
+        // Fall through to the normal redirect below.
+      }
+      res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
       return res.redirect(302, raw);
     }
-    const buf = Buffer.from(raw, "base64");
-    res.setHeader("Content-Type", "image/jpeg");
+    if (raw.startsWith("/")) {
+      const target = new URL(raw, getPublicBaseUrl(req)).toString();
+      res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+      return res.redirect(302, target);
+    }
+
+    let sourceBuffer;
+    const dataUriMatch = raw.match(/^data:([^;]+);base64,(.+)$/s);
+    if (dataUriMatch) {
+      sourceBuffer = Buffer.from(dataUriMatch[2], "base64");
+    } else {
+      sourceBuffer = Buffer.from(raw, "base64");
+    }
+
+    if (!sourceBuffer.length) return res.status(404).send("No image");
+
+    let transformer = sharp(sourceBuffer, { failOn: "none" })
+      .rotate()
+      .resize({ width, withoutEnlargement: true, fit: "inside" });
+
+    let outputBuffer;
+    let contentType;
+    if (format === "jpeg") {
+      outputBuffer = await transformer.jpeg({ quality, progressive: true, mozjpeg: true }).toBuffer();
+      contentType = "image/jpeg";
+    } else {
+      outputBuffer = await transformer.webp({ quality, effort: 2, smartSubsample: true }).toBuffer();
+      contentType = "image/webp";
+    }
+
+    const etag = `"${crypto.createHash("sha1").update(outputBuffer).digest("hex")}"`;
+    const entry = { buffer: outputBuffer, contentType, etag };
+    imageCacheSet(cacheKey, entry);
+
+    if (req.headers["if-none-match"] === etag) {
+      return res.status(304).end();
+    }
+
+    res.setHeader("Content-Type", contentType);
     res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-    res.setHeader("Content-Length", buf.length);
-    return res.end(buf);
+    res.setHeader("ETag", etag);
+    res.setHeader("Content-Length", outputBuffer.length);
+    res.setHeader("X-Image-Cache", "MISS");
+    return res.end(outputBuffer);
   } catch (err) {
+    console.error("Project image error:", err);
     res.status(500).send("Image error");
   }
 });
@@ -1337,9 +1459,10 @@ app.put(
         }
       }
 
-      // Invalidate fast cache on update
+      // Invalidate list + thumbnail caches on update.
       cacheInvalidate("projects:fast:");
       cacheInvalidate("projects:list:");
+      imageCacheInvalidateProject(id);
 
       const project = await fetchProjectWithTeam(id);
       res.json({ project });
@@ -1366,6 +1489,7 @@ app.delete(
         return res.status(404).json({ error: "Project not found" });
       cacheInvalidate("projects:fast:");
       cacheInvalidate("projects:list:");
+      imageCacheInvalidateProject(id);
       res.json({ success: true });
     } catch (err) {
       console.error(err);

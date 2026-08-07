@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { memo } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { stripMarkdownForPreview, stripMarkdownLine } from '../utils/markdownPreview';
 
@@ -164,6 +164,47 @@ function isVideoMedia(url?: string): boolean {
   return false;
 }
 
+
+function DeferredCardVideo({ src, poster }: { src: string; poster?: string }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '240px 0px', threshold: 0.01 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <video
+      ref={ref}
+      className="absolute inset-0 w-full h-full object-cover"
+      src={shouldLoad ? src : undefined}
+      muted
+      loop
+      playsInline
+      autoPlay={shouldLoad}
+      preload="none"
+      poster={poster || undefined}
+    />
+  );
+}
+
 function NewsCardComponent(props: NewsCardProps) {
   const {
     image,
@@ -207,16 +248,7 @@ function NewsCardComponent(props: NewsCardProps) {
         className={`relative overflow-hidden bg-gray-100 flex-shrink-0 w-full ${imageHeightClass}`}
       >
         {resolvedVideoUrl ? (
-          <video
-            className="absolute inset-0 w-full h-full object-cover"
-            src={resolvedVideoUrl}
-            muted
-            loop
-            playsInline
-            autoPlay
-            preload="metadata"
-            poster={resolvedImage || undefined}
-          />
+          <DeferredCardVideo src={resolvedVideoUrl} poster={resolvedImage || undefined} />
         ) : (
           <ImageWithFallback
             src={resolvedImage}

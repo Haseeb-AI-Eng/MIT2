@@ -305,7 +305,7 @@ export const Home = React.memo(function Home() {
                 style={role === 'wide' || role === 'huge' ? { gridRow: 'span 2' } : undefined}
               >
                 <NewsCard
-                  image={getProjectImageUrl(project)}
+                  image={getProjectImageUrl(project, role === 'huge' || role === 'wide' ? 960 : 640)}
                   videoUrl={project.videoUrl || project.video_url || ''}
                   title={project.title}
                   description={project.description}
@@ -314,8 +314,8 @@ export const Home = React.memo(function Home() {
                   viewCount={projectId ? projectViews[projectId] ?? 0 : 0}
                   size={role === 'huge' || role === 'wide' ? 'large' : 'medium'}
                   aspect={role === 'huge' || role === 'wide' ? 'wide' : 'normal'}
-                  imageLoading={index < 10 ? 'eager' : 'lazy'}
-                  imageFetchPriority={index < 4 ? 'high' : 'auto'}
+                  imageLoading={index < 4 ? 'eager' : 'lazy'}
+                  imageFetchPriority={index < 2 ? 'high' : 'auto'}
                 />
               </motion.div>
             );
