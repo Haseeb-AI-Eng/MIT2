@@ -53,7 +53,7 @@ export const HeroVideo = React.memo(({ src = '/hero-animation.mp4' }: HeroVideoP
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
         onLoadedData={markReady}
         onCanPlay={markReady}
         onPlaying={markReady}

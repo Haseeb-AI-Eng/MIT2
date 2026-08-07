@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Eye, Layers3, Sparkles } from 'lucide-react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import {
   dedupeProjectList,
   fetchProjectViewCount,
-  getProjectImageUrl,
   fetchPublishedProjects,
   trackProjectView,
 } from '../api';
@@ -88,28 +86,15 @@ function ArticleCard({
   project,
   viewCount,
   onOpen,
-  priority = false,
 }: {
   project: any;
   viewCount: number;
   onOpen: () => void;
-  priority?: boolean;
 }) {
   const tags = Array.isArray(project.tags) ? project.tags.slice(0, 3) : [];
-  const image = getProjectImageUrl(project);
 
   return (
-    <article className="group flex min-h-[390px] flex-col overflow-hidden border-b border-r border-black/10 bg-white">
-      <div className="relative h-[190px] w-full overflow-hidden bg-neutral-100">
-        <ImageWithFallback
-          src={image}
-          alt={project.title || 'Research article'}
-          priority={priority}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-        />
-      </div>
-      <div className="flex flex-1 flex-col p-7">
+    <article className="group flex min-h-[300px] flex-col border-b border-r border-black/10 bg-white p-7">
       <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/40">
         Research article
       </p>
@@ -135,7 +120,6 @@ function ArticleCard({
         >
           Read article <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </button>
-      </div>
       </div>
     </article>
   );
@@ -360,13 +344,12 @@ export function Research() {
                 </div>
 
                 <div className="grid grid-cols-1 border-l border-t border-black/10 md:grid-cols-2 xl:grid-cols-4">
-                  {latestArticles.map((project, index) => {
+                  {latestArticles.map((project) => {
                     const id = project._id ?? project.slug;
                     return (
                       <ArticleCard
                         key={id}
                         project={project}
-                        priority={index < 4}
                         viewCount={viewCounts[id] ?? 0}
                         onOpen={() => openProject(project)}
                       />

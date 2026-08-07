@@ -2,8 +2,8 @@ import { motion } from 'motion/react';
 import { Eye, Play, ArrowRight } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { stripMarkdownForPreview, stripMarkdownLine } from '../utils/markdownPreview';
-import { getProjectImageUrl } from '../api';
 
+import { getProjectCardImage } from '../api';
 export type ResearchProjectCardType =
   | 'featured'
   | 'standard'
@@ -138,7 +138,7 @@ export function ResearchProjectCard({
   viewCount = 0,
   onClick,
 }: ResearchProjectCardProps) {
-  const image = getProjectImageUrl(project);
+  const image = getProjectCardImage(project);
   const title = project.title || 'Untitled research project';
   const description = project.description || project.excerpt || project.summary || '';
   const previewSections = parseDescriptionPreview(description);
@@ -169,7 +169,6 @@ export function ResearchProjectCard({
             src={image}
             alt={title}
             className="w-full h-full min-h-[280px] object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           {cardType === 'video' && (

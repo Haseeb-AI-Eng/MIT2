@@ -1,70 +1,40 @@
-import React, { memo, useEffect, useMemo, useState } from 'react'
+import React, { useState, memo } from 'react'
 
-function makeFallbackDataUri(label?: string) {
-  const text = (label || 'Research').trim().slice(0, 34) || 'Research'
-  const escaped = text.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[char] || char))
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7f7f7"/><stop offset="1" stop-color="#e7e7e7"/></linearGradient></defs><rect width="900" height="600" fill="url(#g)"/><rect x="56" y="56" width="112" height="112" fill="#111"/><rect x="86" y="86" width="52" height="52" fill="#f4f4f4"/><text x="56" y="512" font-family="Arial,Helvetica,sans-serif" font-size="29" font-weight="700" fill="#222">${escaped}</text><text x="56" y="550" font-family="Arial,Helvetica,sans-serif" font-size="16" letter-spacing="5" fill="#777">ELEMENTS INTERACTIVE</text></svg>`
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
-}
+const makeFallbackImage = (label = 'ELEMENTS INTERACTIVE') => {
+  const safeLabel = String(label || 'ELEMENTS INTERACTIVE')
+    .replace(/[&<>"']/g, '')
+    .slice(0, 58);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+    <rect width="1200" height="800" fill="#f3f3f3"/>
+    <rect x="72" y="72" width="92" height="92" fill="#111"/>
+    <rect x="100" y="100" width="36" height="36" fill="#f3f3f3"/>
+    <text x="72" y="650" font-family="Arial,Helvetica,sans-serif" font-size="32" font-weight="700" fill="#111">${safeLabel}</text>
+    <text x="72" y="705" font-family="Arial,Helvetica,sans-serif" font-size="20" letter-spacing="8" fill="#777">ELEMENTS INTERACTIVE</text>
+  </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
 
-type SmartImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
-  priority?: boolean
-}
-
-function ImageWithFallbackComponent(props: SmartImageProps) {
+function ImageWithFallbackComponent(props: React.ImgHTMLAttributes<HTMLImageElement>) {
   const [didError, setDidError] = useState(false)
-  const [loaded, setLoaded] = useState(false)
-  const {
-    src,
-    alt,
-    style,
-    className,
-    loading,
-    priority = false,
-    onLoad,
-    onError,
-    ...rest
-  } = props
 
-  useEffect(() => {
-    setDidError(false)
-    setLoaded(false)
-  }, [src])
+  const handleError = () => {
+    setDidError(true)
+  }
 
-  const fallback = useMemo(() => makeFallbackDataUri(alt), [alt])
+  const { src, alt, style, className, loading = 'lazy', ...rest } = props
   const hasSrc = typeof src === 'string' && src.trim().length > 0
-  const finalSrc = !hasSrc || didError ? fallback : src
-  const effectiveLoading = loading ?? (priority ? 'eager' : 'lazy')
+  const finalSrc = !hasSrc || didError ? makeFallbackImage(alt) : src
 
   return (
-    <span className="relative block h-full w-full overflow-hidden bg-neutral-100">
-      {!loaded && hasSrc && !didError && (
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 animate-pulse bg-gradient-to-br from-neutral-100 via-neutral-50 to-neutral-200"
-        />
-      )}
-      <img
-        src={finalSrc}
-        alt={alt}
-        className={`${className || ''} transition-opacity duration-200 ${loaded || didError || !hasSrc ? 'opacity-100' : 'opacity-0'}`}
-        style={style}
-        loading={effectiveLoading as React.ImgHTMLAttributes<HTMLImageElement>['loading']}
-        decoding="async"
-        fetchPriority={priority ? 'high' : 'auto'}
-        draggable={false}
-        {...rest}
-        onLoad={(event) => {
-          setLoaded(true)
-          onLoad?.(event)
-        }}
-        onError={(event) => {
-          setDidError(true)
-          setLoaded(true)
-          onError?.(event)
-        }}
-      />
-    </span>
+    <img
+      src={finalSrc}
+      alt={alt}
+      className={className}
+      style={style}
+      loading={loading as React.ImgHTMLAttributes<HTMLImageElement>['loading']}
+      {...rest}
+      onError={handleError}
+    />
   )
 }
 

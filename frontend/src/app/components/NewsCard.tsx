@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { memo, useEffect, useState } from 'react';
+import { memo } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { stripMarkdownForPreview, stripMarkdownLine } from '../utils/markdownPreview';
 
@@ -162,27 +162,6 @@ function isVideoMedia(url?: string): boolean {
   return false;
 }
 
-
-function useBandwidthFriendlyMedia() {
-  const [preferPoster, setPreferPoster] = useState(false);
-
-  useEffect(() => {
-    const nav = navigator as Navigator & {
-      connection?: { saveData?: boolean; effectiveType?: string };
-    };
-    const connection = nav.connection;
-    const smallScreen = window.matchMedia('(max-width: 768px)').matches;
-    const constrained = Boolean(
-      connection?.saveData ||
-      ['slow-2g', '2g', '3g'].includes(connection?.effectiveType || '') ||
-      smallScreen
-    );
-    setPreferPoster(constrained);
-  }, []);
-
-  return preferPoster;
-}
-
 function NewsCardComponent(props: NewsCardProps) {
   const {
     image,
@@ -203,7 +182,6 @@ function NewsCardComponent(props: NewsCardProps) {
 
   // Sometimes uploaded videos are stored inside the image/coverImage field.
   const resolvedVideoUrl = videoUrl || (isVideoMedia(image) ? image : '');
-  const preferPoster = useBandwidthFriendlyMedia();
   const resolvedImage = resolvedVideoUrl === image ? '' : image || '';
 
   const isFeatured = aspect === 'wide' || aspect === 'side';
@@ -224,7 +202,7 @@ function NewsCardComponent(props: NewsCardProps) {
       <div
         className={`relative overflow-hidden bg-gray-100 flex-shrink-0 w-full ${imageHeightClass}`}
       >
-        {resolvedVideoUrl && !preferPoster ? (
+        {resolvedVideoUrl ? (
           <video
             className="absolute inset-0 w-full h-full object-cover"
             src={resolvedVideoUrl}
@@ -232,16 +210,15 @@ function NewsCardComponent(props: NewsCardProps) {
             loop
             playsInline
             autoPlay
-            preload="none"
+            preload="metadata"
             poster={resolvedImage || undefined}
           />
         ) : (
           <ImageWithFallback
             src={resolvedImage}
             alt={title}
-            priority={size === 'large'}
+            loading="lazy"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
           />
         )}
         {resolvedVideoUrl && (
