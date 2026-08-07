@@ -13,35 +13,34 @@ function isLikelyVideoUrl(value: string) {
 }
 
 /**
- * Resolve only an image URL already supplied by the project payload.
- * This intentionally does NOT call /api/projects/:id/image for every card;
- * doing that caused dozens of extra network requests on mobile.
+ * Resolve the best image for a project card.
+ * Prefer an explicit image URL, then use the backend image endpoint. The backend
+ * endpoint is important because list endpoints often return only `hasImage`
+ * instead of embedding the stored image itself.
  */
-export function getProjectCardImage(project: any): string {
+export function getProjectImageUrl(project: any): string {
   if (!project) return '';
 
   const candidates = [
     project.coverImage,
     project.cover_image,
-    project.coverImageUrl,
-    project.cover_image_url,
     project.image,
     project.imageUrl,
     project.image_url,
     project.thumbnail,
     project.thumbnailUrl,
     project.poster,
-    project.posterUrl,
   ];
 
   for (const value of candidates) {
-    if (typeof value === 'string') {
-      const clean = value.trim();
-      if (clean && !isLikelyVideoUrl(clean)) return clean;
+    if (typeof value === 'string' && value.trim() && !isLikelyVideoUrl(value.trim())) {
+      return value.trim();
     }
   }
 
-  return '';
+  const id = project._id ?? project.id ?? project.slug;
+  if (!id) return '';
+  return `${API_BASE}/projects/${encodeURIComponent(String(id))}/image`;
 }
 
 // ---- Client-side in-memory cache ----

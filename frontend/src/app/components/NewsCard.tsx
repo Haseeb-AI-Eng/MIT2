@@ -27,6 +27,8 @@ interface NewsCardProps {
   size?: 'small' | 'medium' | 'large';
   aspect?: 'normal' | 'tall' | 'wide' | 'side';
   onClick?: () => void;
+  imageLoading?: 'eager' | 'lazy';
+  imageFetchPriority?: 'high' | 'low' | 'auto';
 }
 
 function trimText(text: string, maxChars: number = 200): string {
@@ -173,6 +175,8 @@ function NewsCardComponent(props: NewsCardProps) {
     size = 'medium',
     aspect = 'normal',
     onClick,
+    imageLoading = 'lazy',
+    imageFetchPriority = 'auto',
   } = props;
   const adjusted = getAdjustedNewsCardText(title, description);
   const preview = parseNewsCardPreview(adjusted.description);
@@ -217,7 +221,9 @@ function NewsCardComponent(props: NewsCardProps) {
           <ImageWithFallback
             src={resolvedImage}
             alt={title}
-            loading="lazy"
+            loading={imageLoading}
+            fetchPriority={imageFetchPriority}
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
           />
         )}
