@@ -694,7 +694,19 @@ export function AddResearchProject() {
                     <select id="category" name="category" value={formData.category} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                       <option value="">Select a category</option>
                       <option value="AI">AI & Machine Learning</option>
-                      <option value="HCI">Human-Computer Interaction</option>
+                      <option value="Neuroergonomics">Neuroergonomics</option>
+                      <option value="Algorithmic Social Behaviour">Algorithmic Social Behaviour</option>
+                      <option value="Human Computer Interaction">Human Computer Interaction</option>
+                      <option value="Tangible User Interfaces">Tangible User Interfaces</option>
+                      <option value="Algorithmic Morality">Algorithmic Morality</option>
+                      <option value="Edtech">Edtech</option>
+                      <option value="Sonic Interaction Design">Sonic Interaction Design</option>
+                      <option value="New Media">New Media</option>
+                      <option value="Health Informatics">Health Informatics</option>
+                      <option value="Space Readiness">Space Readiness</option>
+                      <option value="Human Dynamics">Human Dynamics</option>
+                      <option value="Futurism & Foresight">Futurism & Foresight</option>
+                      <option value="HCI">HCI</option>
                       <option value="Media">Media Technology</option>
                       <option value="Biology">Synthetic Biology</option>
                       <option value="Other">Other</option>
