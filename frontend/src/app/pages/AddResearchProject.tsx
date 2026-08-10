@@ -10,6 +10,7 @@ import { X } from 'lucide-react';
 import { getApiUrl, clientCacheInvalidate } from '../api';
 import { TopPageNav } from '../components/TopPageNav';
 
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 
 function normalizeImportedText(text: string) {
