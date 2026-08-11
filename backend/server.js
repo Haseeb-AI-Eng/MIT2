@@ -19,6 +19,8 @@ import nodemailer from "nodemailer";
 import crypto from "crypto";
 import zlib from "zlib";
 import { MongoClient, ObjectId } from "mongodb";
+import { HEALTH_INFORMATICS_PROJECT } from "./health-informatics-project.js";
+import { DIGITAL_TWIN_PORTS_PROJECT } from "./digital-twin-ports-project.js";
 import twilio from "twilio";
 import sharp from "sharp";
 
@@ -192,6 +194,100 @@ async function seedDefaultAdmin() {
   );
 }
 
+async function seedHealthInformaticsProject() {
+  const existing = await projectsCollection.findOne({
+    $or: [
+      { sourceKey: HEALTH_INFORMATICS_PROJECT.sourceKey },
+      { slug: HEALTH_INFORMATICS_PROJECT.slug },
+    ],
+  });
+
+  if (existing) {
+    // Keep this boss-provided record in sync with the curated source file.
+    // This repairs formatting/category/media fields without deleting the
+    // project, changing its _id, or touching unrelated database records.
+    const updates = {
+      ...HEALTH_INFORMATICS_PROJECT,
+      updatedAt: new Date(),
+      publishedAt: existing.publishedAt || existing.createdAt || new Date(),
+    };
+    await projectsCollection.updateOne({ _id: existing._id }, { $set: updates });
+    cacheInvalidate("projects:fast:");
+    cacheInvalidate("projects:list:");
+    console.log(`✅ Synced Health Informatics article: ${existing.slug}`);
+    return { ...existing, ...updates };
+  }
+
+  const now = new Date();
+  const doc = {
+    ...HEALTH_INFORMATICS_PROJECT,
+    createdAt: now,
+    updatedAt: now,
+    publishedAt: now,
+  };
+  const result = await projectsCollection.insertOne(doc);
+  cacheInvalidate("projects:fast:");
+  cacheInvalidate("projects:list:");
+  console.log("✅ Added first boss-provided Health Informatics research article");
+  return { _id: result.insertedId, ...doc };
+}
+
+
+async function seedDigitalTwinPortsProject() {
+  const existing = await projectsCollection.findOne({
+    $or: [
+      { sourceKey: DIGITAL_TWIN_PORTS_PROJECT.sourceKey },
+      { slug: DIGITAL_TWIN_PORTS_PROJECT.slug },
+    ],
+  });
+
+  if (existing) {
+    const updates = {
+      ...DIGITAL_TWIN_PORTS_PROJECT,
+      updatedAt: new Date(),
+      publishedAt: existing.publishedAt || existing.createdAt || new Date(),
+    };
+    await projectsCollection.updateOne({ _id: existing._id }, { $set: updates });
+    cacheInvalidate("projects:fast:");
+    cacheInvalidate("projects:list:");
+    console.log(`✅ Synced Digital Twin ports article: ${existing.slug}`);
+    return { ...existing, ...updates };
+  }
+
+  const now = new Date();
+  const doc = {
+    ...DIGITAL_TWIN_PORTS_PROJECT,
+    createdAt: now,
+    updatedAt: now,
+    publishedAt: now,
+  };
+  const result = await projectsCollection.insertOne(doc);
+  cacheInvalidate("projects:fast:");
+  cacheInvalidate("projects:list:");
+  console.log("✅ Added Digital Twin ports research article");
+  return { _id: result.insertedId, ...doc };
+}
+
+async function fixUrbanMotionAerialSpelling() {
+  const docs = await projectsCollection
+    .find({ title: /Urban Motion:\s*Ariel Study of a City in Transit/i })
+    .toArray();
+
+  for (const project of docs) {
+    const updates = {
+      title: String(project.title || '').replace(/Ariel Study/gi, 'Aerial Study'),
+      updatedAt: new Date(),
+    };
+    await projectsCollection.updateOne({ _id: project._id }, { $set: updates });
+  }
+
+  if (docs.length) {
+    cacheInvalidate("projects:fast:");
+    cacheInvalidate("projects:list:");
+    console.log(`✅ Corrected Aerial spelling in ${docs.length} Urban Motion project(s)`);
+  }
+}
+
 async function connectDB() {
   const client = new MongoClient(MONGO_URI);
   await client.connect();
@@ -252,6 +348,9 @@ async function connectDB() {
   await announcementsCollection.createIndex({ createdAt: -1 });
 
   await seedDefaultAdmin();
+  await seedHealthInformaticsProject();
+  await seedDigitalTwinPortsProject();
+  await fixUrbanMotionAerialSpelling();
 
   console.log(`✅ Connected to MongoDB ${DB_NAME}`);
 }
@@ -739,12 +838,18 @@ app.get("/api/projects/fast", async (req, res) => {
               title: 1,
               slug: 1,
               tags: 1,
+              category: 1,
+              researchGroup: 1,
+              groupType: 1,
+              articleType: 1,
+              sourceKey: 1,
               status: 1,
               description: {
                 $substrCP: [{ $ifNull: ["$description", ""] }, 0, 150],
               },
               featured: 1,
               createdAt: 1,
+              publishedAt: 1,
               teamCount: 1,
               hasImage: 1,
               videoUrl: 1,
@@ -855,6 +960,10 @@ app.get("/api/projects", async (req, res) => {
           title: 1,
           slug: 1,
           tags: 1,
+          category: 1,
+          researchGroup: 1,
+          groupType: 1,
+          articleType: 1,
           status: 1,
           description: { $substr: ["$description", 0, 150] },
           _id: 1,
@@ -1202,6 +1311,9 @@ app.post("/api/projects", async (req, res) => {
       ? req.body.status
       : "draft";
     const tags = Array.isArray(req.body.tags) ? req.body.tags : [];
+    const category = String(req.body.category || tags[0] || "").trim();
+    const researchGroup = String(req.body.researchGroup || category || "").trim();
+    const groupType = String(req.body.groupType || "").trim();
     const featured = req.body.featured === true;
     const coverImage = req.body.coverImage || req.body.cover_image || "";
     const description = req.body.description || "";
@@ -1219,6 +1331,15 @@ app.post("/api/projects", async (req, res) => {
       videoUrl: req.body.videoUrl || req.body.video_url || "",
       status,
       tags,
+      category,
+      researchGroup,
+      groupType,
+      articleType: req.body.articleType || "research-article",
+      externalProjectUrl: req.body.externalProjectUrl || "",
+      externalProjectLabel: req.body.externalProjectLabel || "",
+      interfaceImage: req.body.interfaceImage || "",
+      hideDefaultVideo: req.body.hideDefaultVideo === true,
+      suppressGeneratedExplanation: req.body.suppressGeneratedExplanation === true,
       labId:
         req.body.labId && ObjectId.isValid(req.body.labId)
           ? new ObjectId(req.body.labId)
@@ -1378,6 +1499,24 @@ app.put(
         updates.videoUrl = req.body.videoUrl || req.body.video_url;
       if (req.body.tags)
         updates.tags = Array.isArray(req.body.tags) ? req.body.tags : [];
+      if (req.body.category !== undefined)
+        updates.category = String(req.body.category || "").trim();
+      if (req.body.researchGroup !== undefined)
+        updates.researchGroup = String(req.body.researchGroup || "").trim();
+      if (req.body.groupType !== undefined)
+        updates.groupType = String(req.body.groupType || "").trim();
+      if (req.body.articleType !== undefined)
+        updates.articleType = req.body.articleType || "research-article";
+      if (req.body.externalProjectUrl !== undefined)
+        updates.externalProjectUrl = req.body.externalProjectUrl || "";
+      if (req.body.externalProjectLabel !== undefined)
+        updates.externalProjectLabel = req.body.externalProjectLabel || "";
+      if (req.body.interfaceImage !== undefined)
+        updates.interfaceImage = req.body.interfaceImage || "";
+      if (req.body.hideDefaultVideo !== undefined)
+        updates.hideDefaultVideo = req.body.hideDefaultVideo === true;
+      if (req.body.suppressGeneratedExplanation !== undefined)
+        updates.suppressGeneratedExplanation = req.body.suppressGeneratedExplanation === true;
       if (req.body.featured !== undefined)
         updates.featured = req.body.featured === true;
       if (req.body.status && validateProjectStatus(req.body.status))

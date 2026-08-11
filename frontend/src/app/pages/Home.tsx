@@ -113,7 +113,18 @@ export const Home = React.memo(function Home() {
     fetchAllPublishedProjects()
       .then((res) => {
         if (!active) return;
-        const projects = dedupeProjectList((res.projects || []).filter((project) => !shouldExcludeHomeProject(project)));
+        const projects = dedupeProjectList((res.projects || []).filter((project) => !shouldExcludeHomeProject(project)))
+          .sort((a, b) => {
+            // Boss-provided published research must be visible immediately on Highlights.
+            // Keep the rest of the existing content; it simply moves down.
+            const aBoss = String(a?.sourceKey || '').startsWith('boss-') || a?.slug === 'bridging-pakistans-digital-health-divide-ui-ux';
+            const bBoss = String(b?.sourceKey || '').startsWith('boss-') || b?.slug === 'bridging-pakistans-digital-health-divide-ui-ux';
+            if (aBoss !== bBoss) return aBoss ? -1 : 1;
+
+            const aTime = new Date(a?.publishedAt || a?.createdAt || 0).getTime() || 0;
+            const bTime = new Date(b?.publishedAt || b?.createdAt || 0).getTime() || 0;
+            return bTime - aTime;
+          });
         setVisibleProjects(projects.slice(0, MAX_VISIBLE_PROJECTS));
         setHiddenProjects(projects.slice(MAX_VISIBLE_PROJECTS));
       })

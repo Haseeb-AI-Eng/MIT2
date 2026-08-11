@@ -23,7 +23,8 @@ const STATUS_STYLE: Record<string, string> = {
 
 const EMPTY_FORM = {
   _id: '', title: '', description: '', coverImage: '', videoUrl: '',
-  status: 'draft', tags: '', labId: '', lead: '', email: '', featured: false,
+  status: 'draft', category: 'AI', tags: '', labId: '', lead: '', email: '', featured: false,
+  externalProjectUrl: '', externalProjectLabel: '', interfaceImage: '',
 };
 
 export function AdminProjects() {
@@ -101,11 +102,15 @@ export function AdminProjects() {
         coverImage: p.coverImage || p.cover_image || '',
         videoUrl: p.videoUrl || '',
         status: p.status || 'draft',
+        category: p.category || p.researchGroup || p.tags?.[0] || 'AI',
         tags: (p.tags || []).join(', '),
         labId: p.labId?._id || p.labId || '',
         lead: p.lead || '',
         email: p.leadEmail || p.email || '',
         featured: !!p.featured,
+        externalProjectUrl: p.externalProjectUrl || '',
+        externalProjectLabel: p.externalProjectLabel || '',
+        interfaceImage: p.interfaceImage || '',
       });
       setDialogOpen(true);
     } catch (error: any) {
@@ -129,12 +134,18 @@ export function AdminProjects() {
         coverImage: form.coverImage,
         videoUrl: form.videoUrl,
         status: form.status,
-        tags: form.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
+        category: form.category,
+        researchGroup: form.category,
+        groupType: form.category === 'Health Informatics' ? 'Working Group' : undefined,
+        tags: Array.from(new Set([form.category, ...form.tags.split(',').map((t: string) => t.trim()).filter(Boolean)])),
         labId: form.labId || null,
         lead: form.lead,
         leadEmail: form.email,
         email: form.email,
         featured: form.featured,
+        externalProjectUrl: form.externalProjectUrl,
+        externalProjectLabel: form.externalProjectLabel,
+        interfaceImage: form.interfaceImage,
       };
       if (form._id) {
         const res = await adminUpdateProject(form._id, payload);
@@ -207,6 +218,7 @@ export function AdminProjects() {
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Tags</TableHead>
                 <TableHead>Lead</TableHead>
                 <TableHead>Created</TableHead>
@@ -225,6 +237,7 @@ export function AdminProjects() {
                   <TableCell>
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold capitalize ${STATUS_STYLE[p.status] || 'bg-slate-100'}`}>{p.status}</span>
                   </TableCell>
+                  <TableCell className="text-xs font-semibold text-slate-700 whitespace-nowrap">{p.category || p.researchGroup || '—'}</TableCell>
                   <TableCell className="text-xs text-slate-500 max-w-[160px] truncate">{(p.tags || []).join(', ') || '—'}</TableCell>
                   <TableCell className="text-sm text-slate-600">{p.lead || '—'}</TableCell>
                   <TableCell className="text-sm text-slate-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}</TableCell>
@@ -291,6 +304,19 @@ export function AdminProjects() {
                 <Input value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} placeholder="https://..." />
               </div>
             </div>
+            <div>
+              <Label className="mb-1.5 block">Research Category / Group</Label>
+              <Select value={form.category || 'AI'} onValueChange={(v) => setForm({ ...form, category: v })}>
+                <SelectTrigger><SelectValue placeholder="Select research category" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AI">AI</SelectItem>
+                  <SelectItem value="HCI">HCI</SelectItem>
+                  <SelectItem value="Media">Media</SelectItem>
+                  <SelectItem value="Health Informatics">Health Informatics</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="mt-1.5 text-xs text-slate-500">Controls which research group the project appears under on the public Research page.</p>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="mb-1.5 block">Status</Label>
@@ -312,6 +338,26 @@ export function AdminProjects() {
                     {labs.map((l) => <SelectItem key={l._id} value={l._id}>{l.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-3">
+                <Label className="block font-extrabold">Related User Interface</Label>
+                <p className="mt-1 text-xs text-slate-500">Optional full interface image shown inside the article. Clicking it opens the related product.</p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="mb-1.5 block">Interface Image URL</Label>
+                  <Input value={form.interfaceImage || ''} onChange={(e) => setForm({ ...form, interfaceImage: e.target.value })} placeholder="https://.../login-screen.png" />
+                </div>
+                <div>
+                  <Label className="mb-1.5 block">Destination URL</Label>
+                  <Input value={form.externalProjectUrl || ''} onChange={(e) => setForm({ ...form, externalProjectUrl: e.target.value })} placeholder="https://diabassist.app" />
+                </div>
+                <div className="md:col-span-2">
+                  <Label className="mb-1.5 block">Interface Label</Label>
+                  <Input value={form.externalProjectLabel || ''} onChange={(e) => setForm({ ...form, externalProjectLabel: e.target.value })} placeholder="DiabAssist" />
+                </div>
               </div>
             </div>
             <div>

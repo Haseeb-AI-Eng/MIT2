@@ -139,10 +139,12 @@ export function makeResearchGroupMonogram(name: string) {
 }
 
 function groupDescription(name: string, type: GroupType, tags: string[]) {
+  const normalizedName = normalizeGroupName(name);
   const topics = tags
-    .slice(0, 3)
-    .map((tag) => String(tag).replace(/^#/, ''))
-    .filter(Boolean);
+    .map((tag) => String(tag).replace(/^#/, '').trim())
+    .filter(Boolean)
+    .filter((tag) => normalizeGroupName(tag) !== normalizedName)
+    .slice(0, 3);
 
   const topicText = topics.length
     ? ` Its current themes include ${topics.join(', ')}.`

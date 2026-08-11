@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { fetchProjectByIdOrSlug } from '../api';
+import diabAssistUiImage from '../assets/diabassist-login.jpeg';
 
 function formatDate(dateValue: string | Date | undefined) {
   if (!dateValue) return '';
@@ -234,6 +235,47 @@ function promoteStandaloneBoldLinesToHeadings(markdown: string) {
 
 function repairLegacyBoldHeadings(description: string) {
   return promoteStandaloneBoldLinesToHeadings(unescapeMarkdownPunctuation(description));
+}
+
+
+// PDF text extraction often preserves visual line wrapping as hard newlines.
+// Those are not semantic paragraph/heading boundaries and can create bugs like
+// turning the wrapped word "discussions" into a heading and leaving a comma
+// at the beginning of the next paragraph. For boss-provided PDF research,
+// collapse only soft wraps while preserving markdown headings, lists and blank
+// lines. This is deliberately opt-in so older hand-formatted projects are not
+// changed.
+function normalizePdfSoftWraps(markdown: string) {
+  const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+  const out: string[] = [];
+  let paragraph: string[] = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    out.push(paragraph.join(' ').replace(/\s+/g, ' ').trim());
+    paragraph = [];
+  };
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) {
+      flushParagraph();
+      if (out[out.length - 1] !== '') out.push('');
+      continue;
+    }
+
+    const structural = /^(#{1,6})\s+/.test(line) || /^[-*•]\s+/.test(line) || /^\d+\.\s+/.test(line);
+    if (structural) {
+      flushParagraph();
+      out.push(line);
+      continue;
+    }
+
+    paragraph.push(line);
+  }
+
+  flushParagraph();
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 // ── Flattened inline bullet-list repair (render-time) ────────────────────
@@ -650,7 +692,7 @@ export function ProjectDetail() {
     .filter(Boolean);
 
   const tags: string[] = project.tags || [];
-  const detailedExplanation = generateDetailedExplanation(project);
+  const detailedExplanation = project.suppressGeneratedExplanation ? [] : generateDetailedExplanation(project);
   const dedicatedReferences = normalizeProjectReferences(project);
   const embeddedReferences = extractEmbeddedReferences(project.description || '');
   const projectReferences = Array.from(new Set((dedicatedReferences.length ? dedicatedReferences : embeddedReferences).map((item) => item.trim()).filter(Boolean)));
@@ -658,7 +700,10 @@ export function ProjectDetail() {
   // Remove any References/Bibliography block stored inside the description.
   // The public project page no longer auto-renders a References heading or list.
   // References can be added manually in the intended final section.
-  const descriptionBody = stripEmbeddedReferencesSection(project.description || '');
+  const descriptionBodyRaw = stripEmbeddedReferencesSection(project.description || '');
+  const descriptionBody = project.sourceKey?.startsWith?.('boss-') || project.slug === 'bridging-pakistans-digital-health-divide-ui-ux'
+    ? normalizePdfSoftWraps(descriptionBodyRaw)
+    : descriptionBodyRaw;
   const unseenGaze = extractUnseenGazeTitle(descriptionBody);
   const sanitizedDescriptionBody = unseenGaze.title ? unseenGaze.cleanedDescription : descriptionBody;
   const rawDescriptionSections = parseProjectDescription(sanitizedDescriptionBody);
@@ -743,7 +788,8 @@ export function ProjectDetail() {
   const displayTitle = unseenGaze.title || project.title;
   const detailSubtitle = '';
 
-  const videoSrc = project.videoUrl || '/16521670-hd_1920_1080_25fps.mp4';
+  const videoSrc = project.videoUrl || (project.hideDefaultVideo ? '' : '/16521670-hd_1920_1080_25fps.mp4');
+  const interfaceImageSrc = project.interfaceImage || (/diabassist\.app/i.test(String(project.externalProjectUrl || '')) ? diabAssistUiImage : '');
 
   return (
     <div className="min-h-screen bg-white">
@@ -771,20 +817,22 @@ export function ProjectDetail() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/70" />
         </div>
 
-        <div className="absolute top-4 right-5 z-10">
-          <span className="text-white/80 text-[13px] tracking-wide">
-            {project.groupName || project.group || 'Research Project'}
+        <div className="absolute top-[92px] right-4 md:top-4 md:right-5 z-10">
+          <span className="text-white/75 text-[11px] md:text-[13px] tracking-wide">
+            {project.researchGroup || project.category || project.groupName || project.group || 'Research Project'}
           </span>
         </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="relative z-10 text-[22px] sm:text-[28px] md:text-[44px] font-bold leading-snug px-6 max-w-4xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
-        >
-          {displayTitle}
-        </motion.h1>
+        <div className="relative z-10 w-full px-5 pt-[112px] pb-8 md:px-8 md:pt-0 md:pb-0 flex items-center justify-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            className="text-[18px] min-[380px]:text-[20px] sm:text-[25px] md:text-[40px] font-bold leading-[1.12] sm:leading-[1.15] px-1 sm:px-5 max-w-[92vw] md:max-w-4xl break-words drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+          >
+            {displayTitle}
+          </motion.h1>
+        </div>
       </section>
 
       {/* ── Body: sidebar + main ── */}
@@ -822,7 +870,7 @@ export function ProjectDetail() {
                 ))
               ) : (
                 <>
-                  <p className="text-[13px] text-black/60">{project.group || "Director's Office"}</p>
+                  <p className="text-[13px] text-black/60">{project.researchGroup || project.category || project.group || "Director's Office"}</p>
                   <p className="text-[13px] text-black/60">External Relations</p>
                 </>
               )}
@@ -1007,12 +1055,50 @@ export function ProjectDetail() {
             )}
           </div>
 
-          <div className="mb-10 rounded-2xl overflow-hidden border border-black/10 bg-black aspect-video">
-            <video controls className="w-full h-full object-cover">
-              <source src={videoSrc} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
+          {interfaceImageSrc && project.externalProjectUrl ? (
+            <section className="mb-10">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-black/45">Related user interface</p>
+              <a
+                href={project.externalProjectUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="group block overflow-hidden rounded-2xl border border-black/10 bg-neutral-100"
+                aria-label={`Open ${project.externalProjectLabel || 'related interface'}`}
+              >
+                <img
+                  src={interfaceImageSrc}
+                  alt={project.externalProjectLabel || 'Related user interface'}
+                  loading="lazy"
+                  className="w-full max-h-[760px] object-contain bg-white transition-transform duration-500 group-hover:scale-[1.005]"
+                />
+                <div className="flex items-center justify-between gap-4 border-t border-black/10 bg-white px-5 py-4">
+                  <span className="font-semibold text-black">{project.externalProjectLabel || 'Open interface'}</span>
+                  <span className="text-sm text-black/50">Visit ↗</span>
+                </div>
+              </a>
+            </section>
+          ) : project.externalProjectUrl ? (
+            <section className="mb-10 rounded-2xl border border-black/10 bg-neutral-50 p-5 md:p-6">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-black/45">Related interface</p>
+              <a
+                href={project.externalProjectUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-flex items-center gap-2 text-[17px] font-semibold text-black underline decoration-black/20 underline-offset-4 hover:decoration-black"
+              >
+                {project.externalProjectLabel || 'Open related interface'} ↗
+              </a>
+            </section>
+          ) : null}
+
+          {videoSrc ? (
+            <div className="mb-10 rounded-2xl overflow-hidden border border-black/10 bg-black aspect-video">
+              <video controls preload="metadata" className="w-full h-full object-cover">
+                <source src={videoSrc} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          ) : null}
 
           <div className="space-y-6 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-left mb-10">
             {detailedExplanation.map((p, idx) => (
