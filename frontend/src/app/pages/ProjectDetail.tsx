@@ -1091,7 +1091,35 @@ export function ProjectDetail() {
             </section>
           ) : null}
 
-          {project.externalVideoUrl ? (
+          {videoSrc ? (
+            <section className="mb-10 overflow-hidden rounded-2xl border border-black/10 bg-black">
+              <div className="aspect-video bg-black">
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster={project.coverImage || project.cover_image || undefined}
+                  className="h-full w-full object-cover"
+                >
+                  <source src={videoSrc} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+              {project.externalVideoUrl ? (
+                <div className="flex items-center justify-between gap-4 bg-white px-5 py-4 text-black">
+                  <span className="font-semibold">{project.externalVideoLabel || 'Source video'}</span>
+                  <a
+                    href={project.externalVideoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-medium text-black/60 underline underline-offset-4 hover:text-black"
+                  >
+                    View on Pexels ↗
+                  </a>
+                </div>
+              ) : null}
+            </section>
+          ) : project.externalVideoUrl ? (
             <section className="mb-10 overflow-hidden rounded-2xl border border-black/10 bg-black">
               <a
                 href={project.externalVideoUrl}
@@ -1118,13 +1146,6 @@ export function ProjectDetail() {
                 </div>
               </a>
             </section>
-          ) : videoSrc ? (
-            <div className="mb-10 rounded-2xl overflow-hidden border border-black/10 bg-black aspect-video">
-              <video controls preload="metadata" className="w-full h-full object-cover">
-                <source src={videoSrc} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            </div>
           ) : null}
 
           <div className="space-y-6 text-[15px] md:text-[16px] text-black/80 leading-relaxed text-left mb-10">

@@ -114,6 +114,17 @@ export function getProjectImageUrl(project: any, width = 720): string {
     return normalizeBackendImageUrl(trimmed, width);
   }
 
+  // If an admin pasted only a Pexels video page URL, ask the backend to
+  // resolve its Open Graph poster. This means future Pexels research cards can
+  // render an image automatically without manually hunting for a thumbnail URL.
+  const pexelsPage = [project.externalVideoUrl, project.videoUrl, project.video_url]
+    .find((value) => typeof value === 'string' && /^https?:\/\/(?:www\.)?pexels\.com\/video\//i.test(value.trim()));
+  if (pexelsPage) {
+    const preview = new URL(`${API_BASE}/media/pexels-preview`);
+    preview.searchParams.set('url', pexelsPage.trim());
+    return preview.toString();
+  }
+
   // Fast list endpoints provide `hasImage` without embedding the large base64
   // payload. Only request the image endpoint when the backend says one exists.
   if (project.hasImage === false) return '';

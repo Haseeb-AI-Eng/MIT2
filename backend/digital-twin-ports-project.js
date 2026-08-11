@@ -14,7 +14,7 @@ export const DIGITAL_TWIN_PORTS_PROJECT = {
     "[9] N. Makhado, T. Paepae, M. Sejeso, and C. Harley, “Berth Allocation and Quay Crane Scheduling in Port Operations: A Systematic Review, ” Journal of Marine Science and Engineering, vol. 13, no. 7, article 1339, 2025, doi: 10.3390/jmse13071339."
   ],
   "coverImage": "https://images.pexels.com/videos/38129603/aerial-cityscape-aerial-shot-commercial-shipping-containers-38129603.jpeg?auto=compress&dpr=1&h=750&w=1260",
-  "videoUrl": "",
+  "videoUrl": "https://videos.pexels.com/video-files/38129603/16189307_1920_1080_60fps.mp4",
   "externalVideoUrl": "https://www.pexels.com/video/aerial-view-of-port-qasim-in-karachi-38129603/",
   "externalVideoLabel": "Aerial View of Port Qasim in Karachi",
   "status": "published",

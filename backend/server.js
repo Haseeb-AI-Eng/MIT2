@@ -21,6 +21,7 @@ import zlib from "zlib";
 import { MongoClient, ObjectId } from "mongodb";
 import { HEALTH_INFORMATICS_PROJECT } from "./health-informatics-project.js";
 import { DIGITAL_TWIN_PORTS_PROJECT } from "./digital-twin-ports-project.js";
+import { PUNJAB_FLOOD_MEDIA_PROJECT } from "./punjab-flood-media-project.js";
 import twilio from "twilio";
 import sharp from "sharp";
 
@@ -194,6 +195,128 @@ async function seedDefaultAdmin() {
   );
 }
 
+function isPexelsVideoPageUrl(value = "") {
+  return /^https?:\/\/(?:www\.)?pexels\.com\/video\//i.test(String(value).trim());
+}
+
+function decodeHtmlAttribute(value = "") {
+  return String(value)
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+async function resolvePexelsMedia(pageUrl) {
+  const normalized = String(pageUrl || "").trim();
+  if (!isPexelsVideoPageUrl(normalized)) return null;
+
+  const idMatch = normalized.match(/-(\d+)\/?(?:\?.*)?$/) || normalized.match(/\/video\/(?:[^/]*-)?(\d+)\/?/i);
+  const videoId = idMatch?.[1] || "";
+  let coverImage = "";
+  let videoUrl = "";
+
+  try {
+    const pageResponse = await fetch(normalized, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; ElementsInteractiveBot/1.0)",
+        Accept: "text/html,application/xhtml+xml",
+      },
+    });
+    if (pageResponse.ok) {
+      const html = await pageResponse.text();
+      const imageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+      if (imageMatch?.[1]) coverImage = decodeHtmlAttribute(imageMatch[1]);
+
+      const mp4Matches = [...html.matchAll(/https:\/\/videos\.pexels\.com\/video-files\/[^"'\\\s]+\.mp4(?:\?[^"'\\\s]*)?/gi)]
+        .map((match) => decodeHtmlAttribute(match[0]));
+      if (mp4Matches.length) {
+        videoUrl = mp4Matches.find((url) => /1920|1080|fullhd|hd/i.test(url)) || mp4Matches[0];
+      }
+    }
+  } catch (error) {
+    console.warn(`⚠️ Could not read Pexels page metadata: ${error.message}`);
+  }
+
+  if (!videoUrl && videoId) {
+    try {
+      const downloadResponse = await fetch(`https://www.pexels.com/download/video/${videoId}/`, {
+        redirect: "manual",
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; ElementsInteractiveBot/1.0)" },
+      });
+      const location = downloadResponse.headers.get("location") || "";
+      if (/^https:\/\/videos\.pexels\.com\//i.test(location)) videoUrl = location;
+    } catch (error) {
+      console.warn(`⚠️ Could not resolve Pexels download URL: ${error.message}`);
+    }
+  }
+
+  return { pageUrl: normalized, videoUrl, coverImage, videoId };
+}
+
+async function normalizeProjectMediaInput(body = {}, existing = null) {
+  const hasVideoInput = body.videoUrl !== undefined || body.video_url !== undefined;
+  const hasExternalInput = body.externalVideoUrl !== undefined;
+  const hasCoverInput = body.coverImage !== undefined || body.cover_image !== undefined;
+
+  const incomingVideoUrl = hasVideoInput
+    ? String(body.videoUrl ?? body.video_url ?? "").trim()
+    : "";
+  const incomingExternalVideoUrl = hasExternalInput
+    ? String(body.externalVideoUrl ?? "").trim()
+    : "";
+
+  let videoUrl = hasVideoInput
+    ? incomingVideoUrl
+    : String(existing?.videoUrl ?? "").trim();
+  let externalVideoUrl = hasExternalInput
+    ? incomingExternalVideoUrl
+    : String(existing?.externalVideoUrl ?? "").trim();
+  let coverImage = hasCoverInput
+    ? String(body.coverImage ?? body.cover_image ?? "").trim()
+    : String(existing?.coverImage ?? "").trim();
+
+  // Prefer an explicitly submitted Pexels page over any previously stored URL.
+  const submittedPexelsPageUrl = isPexelsVideoPageUrl(incomingVideoUrl)
+    ? incomingVideoUrl
+    : isPexelsVideoPageUrl(incomingExternalVideoUrl)
+      ? incomingExternalVideoUrl
+      : "";
+
+  // On create, or when no new media field was submitted, an existing Pexels
+  // page may still be used to repair an empty direct video/cover field.
+  const existingPexelsPageUrl = isPexelsVideoPageUrl(externalVideoUrl)
+    ? externalVideoUrl
+    : isPexelsVideoPageUrl(videoUrl)
+      ? videoUrl
+      : "";
+
+  const pexelsPageUrl = submittedPexelsPageUrl || existingPexelsPageUrl;
+
+  if (pexelsPageUrl) {
+    const resolved = await resolvePexelsMedia(pexelsPageUrl);
+    externalVideoUrl = pexelsPageUrl;
+
+    // A Pexels page URL is not directly playable. If the user pasted a
+    // Pexels page, always refresh the direct MP4 for that exact page unless
+    // they also explicitly supplied a direct non-Pexels video URL.
+    const explicitDirectVideo = hasVideoInput && incomingVideoUrl && !isPexelsVideoPageUrl(incomingVideoUrl);
+    if (!explicitDirectVideo && (submittedPexelsPageUrl || !videoUrl || isPexelsVideoPageUrl(videoUrl))) {
+      videoUrl = resolved?.videoUrl || "";
+    }
+
+    // If the Pexels page was changed and no cover was explicitly supplied,
+    // refresh the thumbnail too instead of retaining the old project's image.
+    if (!hasCoverInput && (submittedPexelsPageUrl || !coverImage)) {
+      coverImage = resolved?.coverImage || coverImage;
+    }
+  }
+
+  return { videoUrl, externalVideoUrl, coverImage };
+}
+
 async function seedHealthInformaticsProject() {
   const existing = await projectsCollection.findOne({
     $or: [
@@ -266,6 +389,73 @@ async function seedDigitalTwinPortsProject() {
   cacheInvalidate("projects:list:");
   console.log("✅ Added Digital Twin ports research article");
   return { _id: result.insertedId, ...doc };
+}
+
+async function seedPunjabFloodMediaProject() {
+  const existing = await projectsCollection.findOne({
+    $or: [
+      { sourceKey: PUNJAB_FLOOD_MEDIA_PROJECT.sourceKey },
+      { slug: PUNJAB_FLOOD_MEDIA_PROJECT.slug },
+    ],
+  });
+
+  if (existing) {
+    const updates = {
+      ...PUNJAB_FLOOD_MEDIA_PROJECT,
+      updatedAt: new Date(),
+      publishedAt: existing.publishedAt || existing.createdAt || new Date(),
+    };
+    await projectsCollection.updateOne({ _id: existing._id }, { $set: updates });
+    cacheInvalidate("projects:fast:");
+    cacheInvalidate("projects:list:");
+    console.log(`✅ Synced Punjab flood media article: ${existing.slug}`);
+    return { ...existing, ...updates };
+  }
+
+  const now = new Date();
+  const doc = {
+    ...PUNJAB_FLOOD_MEDIA_PROJECT,
+    createdAt: now,
+    updatedAt: now,
+    publishedAt: now,
+  };
+  const result = await projectsCollection.insertOne(doc);
+  cacheInvalidate("projects:fast:");
+  cacheInvalidate("projects:list:");
+  console.log("✅ Added Punjab flood media research article");
+  return { _id: result.insertedId, ...doc };
+}
+
+async function removeUnwantedDemoProjects() {
+  const unwantedTitles = [
+    /^MediAssist AI\s*[–—-]\s*Intelligent Clinical Decision Support System$/i,
+    /^Semester project$/i,
+    /^fggguyfguoylyuliiuh;ih$/i,
+  ];
+
+  const unwantedProjects = await projectsCollection
+    .find({ $or: unwantedTitles.map((title) => ({ title })) })
+    .project({ _id: 1, title: 1, slug: 1 })
+    .toArray();
+
+  if (!unwantedProjects.length) return;
+
+  const projectIds = unwantedProjects.map((project) => project._id);
+
+  await Promise.all([
+    projectMembersCollection.deleteMany({ projectId: { $in: projectIds } }),
+    projectViewsCollection.deleteMany({ projectId: { $in: projectIds } }),
+    projectsCollection.deleteMany({ _id: { $in: projectIds } }),
+  ]);
+
+  cacheInvalidate("projects:fast:");
+  cacheInvalidate("projects:list:");
+
+  console.log(
+    `✅ Removed ${unwantedProjects.length} unwanted/demo project(s): ${unwantedProjects
+      .map((project) => project.title)
+      .join(" | ")}`,
+  );
 }
 
 async function fixUrbanMotionAerialSpelling() {
@@ -350,7 +540,9 @@ async function connectDB() {
   await seedDefaultAdmin();
   await seedHealthInformaticsProject();
   await seedDigitalTwinPortsProject();
+  await seedPunjabFloodMediaProject();
   await fixUrbanMotionAerialSpelling();
+  await removeUnwantedDemoProjects();
 
   console.log(`✅ Connected to MongoDB ${DB_NAME}`);
 }
@@ -1275,6 +1467,35 @@ async function fetchProjectWithTeam(idOrSlug) {
   return project;
 }
 
+app.get("/api/media/pexels", async (req, res) => {
+  try {
+    const url = String(req.query.url || "").trim();
+    if (!isPexelsVideoPageUrl(url)) {
+      return res.status(400).json({ error: "A valid Pexels video page URL is required" });
+    }
+    const media = await resolvePexelsMedia(url);
+    res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+    res.json(media || { pageUrl: url, videoUrl: "", coverImage: "" });
+  } catch (error) {
+    console.error("Pexels media resolver failed:", error);
+    res.status(502).json({ error: "Unable to resolve Pexels media" });
+  }
+});
+
+app.get("/api/media/pexels-preview", async (req, res) => {
+  try {
+    const url = String(req.query.url || "").trim();
+    if (!isPexelsVideoPageUrl(url)) return res.status(400).send("Invalid Pexels URL");
+    const media = await resolvePexelsMedia(url);
+    if (!media?.coverImage) return res.status(404).send("Preview not found");
+    res.setHeader("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+    return res.redirect(302, media.coverImage);
+  } catch (error) {
+    console.error("Pexels preview resolver failed:", error);
+    return res.status(502).send("Preview unavailable");
+  }
+});
+
 app.post("/api/projects", async (req, res) => {
   try {
     let userId;
@@ -1315,7 +1536,8 @@ app.post("/api/projects", async (req, res) => {
     const researchGroup = String(req.body.researchGroup || category || "").trim();
     const groupType = String(req.body.groupType || "").trim();
     const featured = req.body.featured === true;
-    const coverImage = req.body.coverImage || req.body.cover_image || "";
+    const media = await normalizeProjectMediaInput(req.body);
+    const coverImage = media.coverImage;
     const description = req.body.description || "";
 
     const slugBase = title
@@ -1328,7 +1550,9 @@ app.post("/api/projects", async (req, res) => {
       title,
       description,
       coverImage,
-      videoUrl: req.body.videoUrl || req.body.video_url || "",
+      videoUrl: media.videoUrl,
+      externalVideoUrl: media.externalVideoUrl,
+      externalVideoLabel: req.body.externalVideoLabel || "",
       status,
       tags,
       category,
@@ -1490,13 +1714,19 @@ app.put(
       if (!ObjectId.isValid(id))
         return res.status(400).json({ error: "Invalid project id" });
 
+      const existingProjectForMedia = await projectsCollection.findOne({ _id: new ObjectId(id) });
+      const media = await normalizeProjectMediaInput(req.body, existingProjectForMedia);
       const updates = { updatedAt: new Date() };
       if (req.body.title) updates.title = req.body.title.trim();
       if (req.body.description) updates.description = req.body.description;
-      if (req.body.coverImage || req.body.cover_image)
-        updates.coverImage = req.body.coverImage || req.body.cover_image;
-      if (req.body.videoUrl || req.body.video_url)
-        updates.videoUrl = req.body.videoUrl || req.body.video_url;
+      if (req.body.coverImage !== undefined || req.body.cover_image !== undefined || media.coverImage !== existingProjectForMedia?.coverImage)
+        updates.coverImage = media.coverImage;
+      if (req.body.videoUrl !== undefined || req.body.video_url !== undefined || media.videoUrl !== existingProjectForMedia?.videoUrl)
+        updates.videoUrl = media.videoUrl;
+      if (req.body.externalVideoUrl !== undefined || media.externalVideoUrl !== existingProjectForMedia?.externalVideoUrl)
+        updates.externalVideoUrl = media.externalVideoUrl;
+      if (req.body.externalVideoLabel !== undefined)
+        updates.externalVideoLabel = req.body.externalVideoLabel || "";
       if (req.body.tags)
         updates.tags = Array.isArray(req.body.tags) ? req.body.tags : [];
       if (req.body.category !== undefined)

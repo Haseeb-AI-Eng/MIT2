@@ -24,7 +24,7 @@ const STATUS_STYLE: Record<string, string> = {
 const EMPTY_FORM = {
   _id: '', title: '', description: '', coverImage: '', videoUrl: '',
   status: 'draft', category: 'AI', tags: '', labId: '', lead: '', email: '', featured: false,
-  externalProjectUrl: '', externalProjectLabel: '', interfaceImage: '',
+  externalProjectUrl: '', externalProjectLabel: '', interfaceImage: '', externalVideoUrl: '', externalVideoLabel: '',
 };
 
 export function AdminProjects() {
@@ -101,6 +101,8 @@ export function AdminProjects() {
         description: p.description || '',
         coverImage: p.coverImage || p.cover_image || '',
         videoUrl: p.videoUrl || '',
+        externalVideoUrl: p.externalVideoUrl || '',
+        externalVideoLabel: p.externalVideoLabel || '',
         status: p.status || 'draft',
         category: p.category || p.researchGroup || p.tags?.[0] || 'AI',
         tags: (p.tags || []).join(', '),
@@ -133,6 +135,8 @@ export function AdminProjects() {
         description: form.description,
         coverImage: form.coverImage,
         videoUrl: form.videoUrl,
+        externalVideoUrl: form.externalVideoUrl,
+        externalVideoLabel: form.externalVideoLabel,
         status: form.status,
         category: form.category,
         researchGroup: form.category,
@@ -294,14 +298,23 @@ export function AdminProjects() {
               </div>
               <RichProjectEditor value={form.description} onChange={(description) => setForm({ ...form, description })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="mb-1.5 block">Cover Image URL</Label>
-                <Input value={form.coverImage} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} placeholder="https://..." />
+                <Input value={form.coverImage} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} placeholder="Optional — auto-filled for Pexels links" />
               </div>
               <div>
-                <Label className="mb-1.5 block">Video URL</Label>
-                <Input value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} placeholder="https://..." />
+                <Label className="mb-1.5 block">Video URL / Pexels Page URL</Label>
+                <Input value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} placeholder="Paste direct MP4 or https://www.pexels.com/video/..." />
+                <p className="mt-1.5 text-xs text-slate-500">If you paste a Pexels video page, the backend automatically resolves the playable MP4 and card poster when the project is saved.</p>
+              </div>
+              <div>
+                <Label className="mb-1.5 block">External Video Source URL</Label>
+                <Input value={form.externalVideoUrl} onChange={(e) => setForm({ ...form, externalVideoUrl: e.target.value })} placeholder="https://www.pexels.com/video/..." />
+              </div>
+              <div>
+                <Label className="mb-1.5 block">External Video Label</Label>
+                <Input value={form.externalVideoLabel} onChange={(e) => setForm({ ...form, externalVideoLabel: e.target.value })} placeholder="e.g. Aerial View of Flooded Landscape in Punjab" />
               </div>
             </div>
             <div>

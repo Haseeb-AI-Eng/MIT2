@@ -225,9 +225,14 @@ function NewsCardComponent(props: NewsCardProps) {
   const displayTitle = adjusted.title;
   const previewHeading = preview.heading;
 
-  // Sometimes uploaded videos are stored inside the image/coverImage field.
-  const resolvedVideoUrl = videoUrl || (isVideoMedia(image) ? image : '');
-  const resolvedImage = resolvedVideoUrl === image ? '' : image || '';
+  // Cards should paint a poster/cover immediately. This avoids a blank first
+  // frame while an MP4 is still buffering (especially on the first Highlights
+  // card). Only autoplay video when there is no usable image/poster at all.
+  const imageIsVideo = isVideoMedia(image);
+  const resolvedImage = imageIsVideo ? '' : image || '';
+  const [imageFailed, setImageFailed] = useState(false);
+  const fallbackVideoUrl = videoUrl || (imageIsVideo ? image : '');
+  const resolvedVideoUrl = (!resolvedImage || imageFailed) ? fallbackVideoUrl : '';
 
   const isFeatured = aspect === 'wide' || aspect === 'side';
   const imageHeightClass = isFeatured ? FEATURED_IMAGE_HEIGHT : NORMAL_IMAGE_HEIGHT;
@@ -248,15 +253,25 @@ function NewsCardComponent(props: NewsCardProps) {
         className={`relative overflow-hidden bg-gray-100 flex-shrink-0 w-full ${imageHeightClass}`}
       >
         {resolvedVideoUrl ? (
-          <DeferredCardVideo src={resolvedVideoUrl} poster={resolvedImage || undefined} />
-        ) : (
-          <ImageWithFallback
+          <DeferredCardVideo src={resolvedVideoUrl} poster={imageFailed ? undefined : (resolvedImage || undefined)} />
+        ) : resolvedImage ? (
+          <img
             src={resolvedImage}
             alt={title}
             loading={imageLoading}
             fetchPriority={imageFetchPriority}
             decoding="async"
+            onError={() => setImageFailed(true)}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
+          />
+        ) : (
+          <ImageWithFallback
+            src=""
+            alt={title}
+            loading={imageLoading}
+            fetchPriority={imageFetchPriority}
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         )}
         {resolvedVideoUrl && (
