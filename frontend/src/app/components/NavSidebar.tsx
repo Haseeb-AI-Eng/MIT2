@@ -1,4 +1,4 @@
-import { Search, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -40,7 +40,6 @@ export function NavSidebar({ isOpen, onClose }: NavSidebarProps) {
           >
             {/* Top Row Utility Icons */}
             <div className="flex justify-end items-center gap-6 pt-[50px] pr-[20px] md:pt-[60px] md:pr-[40px]">
-              <Search size={20} className="text-[#999] cursor-pointer hover:text-black transition-colors" />
               <button onClick={onClose} className="p-1 hover:bg-slate-50 rounded-full transition-colors flex items-center justify-center">
                 <X size={20} className="text-[#999] cursor-pointer" />
               </button>
