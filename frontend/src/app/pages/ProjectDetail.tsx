@@ -1091,7 +1091,34 @@ export function ProjectDetail() {
             </section>
           ) : null}
 
-          {videoSrc ? (
+          {project.externalVideoUrl ? (
+            <section className="mb-10 overflow-hidden rounded-2xl border border-black/10 bg-black">
+              <a
+                href={project.externalVideoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="group block"
+                aria-label={project.externalVideoLabel || 'Open source video'}
+              >
+                <div className="relative aspect-video overflow-hidden bg-black">
+                  <img
+                    src={project.coverImage || project.cover_image || '/image.gif'}
+                    alt={project.externalVideoLabel || 'Source video preview'}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                  <div className="absolute inset-0 bg-black/15 transition-colors group-hover:bg-black/25" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/95 text-2xl text-black shadow-xl">▶</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-4 bg-white px-5 py-4 text-black">
+                  <span className="font-semibold">{project.externalVideoLabel || 'Watch source video'}</span>
+                  <span className="text-sm text-black/50">Pexels ↗</span>
+                </div>
+              </a>
+            </section>
+          ) : videoSrc ? (
             <div className="mb-10 rounded-2xl overflow-hidden border border-black/10 bg-black aspect-video">
               <video controls preload="metadata" className="w-full h-full object-cover">
                 <source src={videoSrc} type="video/mp4" />
