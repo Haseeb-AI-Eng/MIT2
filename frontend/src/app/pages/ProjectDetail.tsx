@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { fetchProjectByIdOrSlug } from '../api';
 import diabAssistUiImage from '../assets/diabassist-login.jpeg';
+import stakeholderResponsibilityImage from '../assets/ai-healthcare-stakeholder-responsibility.jpeg';
 
 function formatDate(dateValue: string | Date | undefined) {
   if (!dateValue) return '';
@@ -1035,6 +1036,19 @@ export function ProjectDetail() {
                           </li>
                         ))}
                       </ul>
+                    );
+                  }
+
+                  if (section.type === 'paragraph' && section.text?.trim() === '[[STAKEHOLDER_TABLE_IMAGE]]') {
+                    return (
+                      <figure key={idx} className="my-8 overflow-hidden rounded-xl border border-black/10 bg-white">
+                        <img
+                          src={stakeholderResponsibilityImage}
+                          alt="Stakeholder and primary responsibility model for responsible AI in healthcare in Pakistan"
+                          loading="lazy"
+                          className="w-full h-auto object-contain"
+                        />
+                      </figure>
                     );
                   }
 

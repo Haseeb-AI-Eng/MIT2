@@ -22,6 +22,7 @@ import { MongoClient, ObjectId } from "mongodb";
 import { HEALTH_INFORMATICS_PROJECT } from "./health-informatics-project.js";
 import { DIGITAL_TWIN_PORTS_PROJECT } from "./digital-twin-ports-project.js";
 import { PUNJAB_FLOOD_MEDIA_PROJECT } from "./punjab-flood-media-project.js";
+import { AI_HEALTHCARE_ETHICS_PROJECT } from "./ai-healthcare-ethics-project.js";
 import twilio from "twilio";
 import sharp from "sharp";
 
@@ -426,6 +427,42 @@ async function seedPunjabFloodMediaProject() {
   return { _id: result.insertedId, ...doc };
 }
 
+
+async function seedAiHealthcareEthicsProject() {
+  const existing = await projectsCollection.findOne({
+    $or: [
+      { sourceKey: AI_HEALTHCARE_ETHICS_PROJECT.sourceKey },
+      { slug: AI_HEALTHCARE_ETHICS_PROJECT.slug },
+    ],
+  });
+
+  if (existing) {
+    const updates = {
+      ...AI_HEALTHCARE_ETHICS_PROJECT,
+      updatedAt: new Date(),
+      publishedAt: existing.publishedAt || existing.createdAt || new Date(),
+    };
+    await projectsCollection.updateOne({ _id: existing._id }, { $set: updates });
+    cacheInvalidate("projects:fast:");
+    cacheInvalidate("projects:list:");
+    console.log(`✅ Synced AI healthcare ethics article: ${existing.slug}`);
+    return { ...existing, ...updates };
+  }
+
+  const now = new Date();
+  const doc = {
+    ...AI_HEALTHCARE_ETHICS_PROJECT,
+    createdAt: now,
+    updatedAt: now,
+    publishedAt: now,
+  };
+  const result = await projectsCollection.insertOne(doc);
+  cacheInvalidate("projects:fast:");
+  cacheInvalidate("projects:list:");
+  console.log("✅ Added AI in Healthcare research article");
+  return { _id: result.insertedId, ...doc };
+}
+
 async function removeUnwantedDemoProjects() {
   const unwantedTitles = [
     /^MediAssist AI\s*[–—-]\s*Intelligent Clinical Decision Support System$/i,
@@ -541,6 +578,7 @@ async function connectDB() {
   await seedHealthInformaticsProject();
   await seedDigitalTwinPortsProject();
   await seedPunjabFloodMediaProject();
+  await seedAiHealthcareEthicsProject();
   await fixUrbanMotionAerialSpelling();
   await removeUnwantedDemoProjects();
 
