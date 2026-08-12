@@ -165,7 +165,24 @@ function isVideoMedia(url?: string): boolean {
 }
 
 
-function DeferredCardVideo({ src, poster }: { src: string; poster?: string }) {
+function isDirectPlayableVideo(url?: string): boolean {
+  if (!url) return false;
+  const cleanUrl = url.toLowerCase().split('?')[0].replace(/\/+$/, '');
+  return /\.(mp4|webm|ogg|mov|m4v)$/i.test(cleanUrl)
+    || cleanUrl.includes('/video/upload/')
+    || cleanUrl.startsWith('data:video/')
+    || cleanUrl.includes('videos.pexels.com/');
+}
+
+function DeferredCardVideo({
+  src,
+  poster,
+  onError,
+}: {
+  src: string;
+  poster?: string;
+  onError?: () => void;
+}) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const [shouldLoad, setShouldLoad] = useState(false);
 
@@ -183,24 +200,37 @@ function DeferredCardVideo({ src, poster }: { src: string; poster?: string }) {
           observer.disconnect();
         }
       },
-      { rootMargin: '240px 0px', threshold: 0.01 }
+      { rootMargin: '320px 0px', threshold: 0.01 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!shouldLoad || !ref.current) return;
+    const video = ref.current;
+    video.muted = true;
+    video.defaultMuted = true;
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => undefined);
+    }
+  }, [shouldLoad, src]);
+
   return (
     <video
       ref={ref}
-      className="absolute inset-0 w-full h-full object-cover"
+      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform"
       src={shouldLoad ? src : undefined}
       muted
       loop
       playsInline
-      autoPlay={shouldLoad}
-      preload="none"
+      autoPlay
+      preload="metadata"
       poster={poster || undefined}
+      onError={onError}
+      aria-label={`${src ? 'Autoplay research video' : 'Research video'}`}
     />
   );
 }
@@ -225,14 +255,17 @@ function NewsCardComponent(props: NewsCardProps) {
   const displayTitle = adjusted.title;
   const previewHeading = preview.heading;
 
-  // Cards should paint a poster/cover immediately. This avoids a blank first
-  // frame while an MP4 is still buffering (especially on the first Highlights
-  // card). Only autoplay video when there is no usable image/poster at all.
+  // Highlights cards should autoplay their real project video whenever a
+  // direct playable URL is available. The image remains the poster/fallback so
+  // the card never flashes blank while the video is loading or if it fails.
   const imageIsVideo = isVideoMedia(image);
   const resolvedImage = imageIsVideo ? '' : image || '';
   const [imageFailed, setImageFailed] = useState(false);
-  const fallbackVideoUrl = videoUrl || (imageIsVideo ? image : '');
-  const resolvedVideoUrl = (!resolvedImage || imageFailed) ? fallbackVideoUrl : '';
+  const [videoFailed, setVideoFailed] = useState(false);
+  const candidateVideoUrl = videoUrl || (imageIsVideo ? image : '');
+  const resolvedVideoUrl = !videoFailed && isDirectPlayableVideo(candidateVideoUrl)
+    ? candidateVideoUrl
+    : '';
 
   const isFeatured = aspect === 'wide' || aspect === 'side';
   const imageHeightClass = isFeatured ? FEATURED_IMAGE_HEIGHT : NORMAL_IMAGE_HEIGHT;
@@ -253,7 +286,11 @@ function NewsCardComponent(props: NewsCardProps) {
         className={`relative overflow-hidden bg-gray-100 flex-shrink-0 w-full ${imageHeightClass}`}
       >
         {resolvedVideoUrl ? (
-          <DeferredCardVideo src={resolvedVideoUrl} poster={imageFailed ? undefined : (resolvedImage || undefined)} />
+          <DeferredCardVideo
+            src={resolvedVideoUrl}
+            poster={imageFailed ? undefined : (resolvedImage || undefined)}
+            onError={() => setVideoFailed(true)}
+          />
         ) : resolvedImage ? (
           <img
             src={resolvedImage}
