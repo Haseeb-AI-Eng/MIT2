@@ -714,13 +714,13 @@ async function sendSMS(to, body) {
   }
 }
 
-async function sendMail({ to, subject, html, text }) {
+async function sendMail({ to, subject, html, text, replyTo }) {
   if (!mailTransporter || !EMAIL_USER || !EMAIL_PASS) {
     console.warn(
       "⚠️  Email credentials not configured; skipping email to:",
       to,
     );
-    return;
+    return false;
   }
   try {
     await mailTransporter.sendMail({
@@ -729,10 +729,13 @@ async function sendMail({ to, subject, html, text }) {
       subject,
       text,
       html,
+      ...(replyTo ? { replyTo } : {}),
     });
-    console.log(`✅ Email successfully sent to: ${to}`);
+    console.log(`✅ Email successfully sent to: ${Array.isArray(to) ? to.join(", ") : to}`);
+    return true;
   } catch (err) {
     console.error("Failed to send email:", err);
+    return false;
   }
 }
 
@@ -2888,6 +2891,95 @@ app.delete(
     }
   },
 );
+
+
+const CONTACT_RECIPIENTS = [
+  "info@elementsinteractive.pk",
+  "info@e-i.global",
+];
+
+function escapeContactHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+app.post("/api/contact", async (req, res) => {
+  try {
+    const name = String(req.body?.name || "").trim();
+    const email = String(req.body?.email || "").trim();
+    const phone = String(req.body?.phone || "").trim();
+    const subject = String(req.body?.subject || "").trim();
+    const message = String(req.body?.message || "").trim();
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({
+        error: "Name, email, subject, and message are required.",
+      });
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      return res.status(400).json({ error: "Please provide a valid email address." });
+    }
+
+    if (name.length > 120 || email.length > 254 || phone.length > 60 || subject.length > 200 || message.length > 10000) {
+      return res.status(400).json({ error: "One or more fields are too long." });
+    }
+
+    const safeName = escapeContactHtml(name);
+    const safeEmail = escapeContactHtml(email);
+    const safePhone = escapeContactHtml(phone || "Not provided");
+    const safeSubject = escapeContactHtml(subject);
+    const safeMessage = escapeContactHtml(message).replace(/\n/g, "<br />");
+
+    const mailSubject = `[Website Contact] ${subject}`;
+    const text = [
+      "New website contact form submission",
+      "",
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Phone: ${phone || "Not provided"}`,
+      `Subject: ${subject}`,
+      "",
+      "Message:",
+      message,
+    ].join("\n");
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
+        <h2>New Website Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${safeName}</p>
+        <p><strong>Email:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
+        <p><strong>Phone:</strong> ${safePhone}</p>
+        <p><strong>Subject:</strong> ${safeSubject}</p>
+        <p><strong>Message:</strong></p>
+        <div style="padding:12px 16px;background:#f6f6f6;border-left:4px solid #E91E63">${safeMessage}</div>
+      </div>`;
+
+    const sent = await sendMail({
+      to: CONTACT_RECIPIENTS,
+      replyTo: email,
+      subject: mailSubject,
+      text,
+      html,
+    });
+
+    if (!sent) {
+      return res.status(503).json({
+        error: "Email service is unavailable. Please try again later.",
+      });
+    }
+
+    res.json({ success: true, message: "Message sent successfully." });
+  } catch (err) {
+    console.error("Contact form error:", err);
+    res.status(500).json({ error: "Unable to send your message right now." });
+  }
+});
 
 // Global error handler
 app.use((err, req, res, next) => {

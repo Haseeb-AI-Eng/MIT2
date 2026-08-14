@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { HeroVideo } from './HeroVideo';
 import { TopPageNav } from '../components/TopPageNav';
+import { getApiUrl } from '../api';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ export function Contact() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -24,10 +26,20 @@ export function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSubmitError('');
 
     try {
-      // Simulate form submission
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch(`${getApiUrl()}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to send your message.');
+      }
+
       setSubmitted(true);
       setFormData({
         name: '',
@@ -39,6 +51,7 @@ export function Contact() {
       setTimeout(() => setSubmitted(false), 5000);
     } catch (error) {
       console.error('Form submission error:', error);
+      setSubmitError(error instanceof Error ? error.message : 'Unable to send your message. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -227,6 +240,12 @@ export function Contact() {
                 {submitted && (
                   <div className="p-4 bg-green-100 border border-green-300 text-green-800 rounded-none">
                     Thank you for your message! We'll get back to you soon.
+                  </div>
+                )}
+
+                {submitError && (
+                  <div className="p-4 bg-red-100 border border-red-300 text-red-800 rounded-none">
+                    {submitError}
                   </div>
                 )}
               </form>

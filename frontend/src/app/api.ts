@@ -1,7 +1,17 @@
-// Ensure the base URL points to the current origin when no environment API URL is configured.
+// Resolve the backend API origin.
+// In local development the Vite frontend runs on :5173 while the API runs on :8080.
+// In production VITE_API_URL should point to Railway; the Railway URL is also kept
+// as a safe production fallback.
+const isLocalFrontend =
+  typeof window !== 'undefined' &&
+  ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
 const defaultApiUrl =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4173');
+  isLocalFrontend
+    ? 'http://localhost:8080'
+    : (import.meta.env.VITE_API_URL ||
+       'https://workspaceapi-server-production-003e.up.railway.app');
+
 const apiOrigin = defaultApiUrl.replace(/\/$/, '');
 const API_BASE = apiOrigin + (apiOrigin.endsWith('/api') ? '' : '/api');
 
